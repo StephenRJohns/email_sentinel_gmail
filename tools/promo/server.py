@@ -8,6 +8,7 @@ Routes:
     GET  /batch/<batch>          — codes table filtered to one batch
     POST /assign/<code>          — assign a code (form fields: name, email, ut_session, notes)
     POST /void/<code>            — void a code
+    POST /void-many              — void multiple codes (form field: codes[], multi-value)
     POST /mint                   — mint a new batch (form fields: batch, qty, label)
     POST /void-batch/<batch>     — void all unused in a batch
 
@@ -126,6 +127,31 @@ def assign(code: str):
             f"Assigned {code} -> {assigned_to}  (Sheet + {bf.path.name} updated)",
             "ok",
         )
+    return redirect(request.referrer or url_for("index"))
+
+
+@app.route("/void-many", methods=["POST"])
+def void_many():
+    codes = request.form.getlist("codes")
+    if not codes:
+        flash("No codes selected.", "warn")
+        return redirect(request.referrer or url_for("index"))
+
+    voided, failed = [], []
+    for code in codes:
+        try:
+            client.void(code)
+            bf = find_batch_file_for_code(config.PROMO_CODES_DIR, code)
+            if bf:
+                bf.update_status(code, "voided")
+            voided.append(code)
+        except AppsScriptError:
+            failed.append(code)
+
+    if voided:
+        flash(f"Voided {len(voided)} code(s): {', '.join(voided)}", "ok")
+    if failed:
+        flash(f"Failed to void {len(failed)} code(s): {', '.join(failed)}", "error")
     return redirect(request.referrer or url_for("index"))
 
 

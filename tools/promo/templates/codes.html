@@ -47,57 +47,90 @@
     <button class="btn-danger" type="submit">Void all unused in this batch</button>
   </form>
 </section>
+{% else %}
+{% set batches_with_unused = batches | selectattr('unused', 'gt', 0) | list %}
+{% if batches_with_unused %}
+<section class="batch-void-all">
+  <h2>Void all unused by batch</h2>
+  <div class="batch-void-buttons">
+    {% for b in batches_with_unused %}
+    <form class="inline" method="post" action="{{ url_for('void_batch', batch=b.batch) }}"
+          onsubmit="return confirm('Void all unused codes in batch {{ b.batch }}?');">
+      <button class="btn-danger" type="submit">{{ b.batch }} ({{ b.unused }} unused)</button>
+    </form>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endif %}
 
-<table class="codes">
-  <thead>
-    <tr>
-      <th>Code</th>
-      <th>Batch</th>
-      <th>Status</th>
-      <th>Assigned To</th>
-      <th>Redeemed By</th>
-      <th>Created</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for r in rows %}
-    <tr class="status-{{ r.status }}">
-      <td class="code">{{ r.code }}</td>
-      <td>{{ r.batch }}</td>
-      <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
-      <td>{{ r.assigned_to or '—' }}</td>
-      <td>{{ r.redeemed_by or '—' }}</td>
-      <td class="ts">{{ r.created[:10] if r.created else '—' }}</td>
-      <td class="actions">
-        {% if r.status == 'unused' %}
-          <details>
-            <summary>{% if r.assigned_to %}Reassign{% else %}Assign{% endif %}</summary>
-            <form method="post" action="{{ url_for('assign', code=r.code) }}">
-              <input name="name"        placeholder="Name (optional)">
-              <input name="email"       placeholder="Email (optional)">
-              <input name="ut_session"  placeholder="UT session ID (optional)">
-              <input name="notes"       placeholder="Notes (optional)">
-              <button type="submit">Save</button>
+<form method="post" action="{{ url_for('void_many') }}" id="bulk-form">
+  <div class="bulk-toolbar" id="bulk-toolbar">
+    <label class="select-all-label">
+      <input type="checkbox" id="select-all"> Select all unused
+    </label>
+    <button class="btn-danger" type="submit" id="void-selected-btn" disabled
+            onclick="return confirm('Void selected codes?');">
+      Void selected (<span id="selected-count">0</span>)
+    </button>
+  </div>
+
+  <table class="codes">
+    <thead>
+      <tr>
+        <th class="col-check"></th>
+        <th>Code</th>
+        <th>Batch</th>
+        <th>Status</th>
+        <th>Assigned To</th>
+        <th>Redeemed By</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+      <tr class="status-{{ r.status }}">
+        <td class="col-check">
+          {% if r.status == 'unused' %}
+          <input type="checkbox" name="codes" value="{{ r.code }}" class="row-check">
+          {% endif %}
+        </td>
+        <td class="code">{{ r.code }}</td>
+        <td>{{ r.batch }}</td>
+        <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+        <td>{{ r.assigned_to or '—' }}</td>
+        <td>{{ r.redeemed_by or '—' }}</td>
+        <td class="ts">{{ r.created[:10] if r.created else '—' }}</td>
+        <td class="actions">
+          {% if r.status == 'unused' %}
+            <details class="assign-details">
+              <summary>{% if r.assigned_to %}Reassign{% else %}Assign{% endif %}</summary>
+              <form method="post" action="{{ url_for('assign', code=r.code) }}">
+                <input name="name"        placeholder="Name (optional)">
+                <input name="email"       placeholder="Email (optional)">
+                <input name="ut_session"  placeholder="UT session ID (optional)">
+                <input name="notes"       placeholder="Notes (optional)">
+                <button type="submit">Save</button>
+              </form>
+            </details>
+            <form class="inline" method="post" action="{{ url_for('void', code=r.code) }}"
+                  onsubmit="return confirm('Void {{ r.code }}?');">
+              <button class="btn-danger btn-void-single" type="submit">Void</button>
             </form>
-          </details>
-          <form class="inline" method="post" action="{{ url_for('void', code=r.code) }}"
-                onsubmit="return confirm('Void {{ r.code }}?');">
-            <button class="btn-danger" type="submit">Void</button>
-          </form>
-        {% elif r.status == 'redeemed' %}
-          <span class="muted">redeemed {{ r.redeemed_at[:10] if r.redeemed_at else '' }}</span>
-        {% elif r.status == 'voided' %}
-          <span class="muted">voided</span>
-        {% endif %}
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="7" class="empty">No codes yet. Use the Mint form above.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+          {% elif r.status == 'redeemed' %}
+            <span class="muted">redeemed {{ r.redeemed_at[:10] if r.redeemed_at else '' }}</span>
+          {% elif r.status == 'voided' %}
+            <span class="muted">voided</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="8" class="empty">No codes yet. Use the Mint form above.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</form>
 
 <footer>
   <small>
@@ -105,6 +138,55 @@
     Server: {{ request.host }} (set PROMO_BIND_HOST in .env to change).
   </small>
 </footer>
+
+<script>
+(function () {
+  const selectAll   = document.getElementById('select-all');
+  const countSpan   = document.getElementById('selected-count');
+  const voidBtn     = document.getElementById('void-selected-btn');
+  const rowChecks   = () => Array.from(document.querySelectorAll('.row-check'));
+  const assignPanels = () => Array.from(document.querySelectorAll('.assign-details'));
+  const singleVoids  = () => Array.from(document.querySelectorAll('.btn-void-single'));
+
+  function updateToolbar() {
+    const checked = rowChecks().filter(c => c.checked);
+    const n = checked.length;
+    countSpan.textContent = n;
+    voidBtn.disabled = n === 0;
+
+    const anyChecked = n > 0;
+    // Disable assign panels and single-void buttons when rows are selected
+    assignPanels().forEach(d => {
+      if (anyChecked) {
+        d.removeAttribute('open');
+        d.style.pointerEvents = 'none';
+        d.style.opacity = '0.35';
+      } else {
+        d.style.pointerEvents = '';
+        d.style.opacity = '';
+      }
+    });
+    singleVoids().forEach(b => {
+      b.disabled = anyChecked;
+      b.style.opacity = anyChecked ? '0.35' : '';
+    });
+
+    // Sync select-all state
+    const all = rowChecks();
+    selectAll.indeterminate = n > 0 && n < all.length;
+    selectAll.checked = all.length > 0 && n === all.length;
+  }
+
+  selectAll.addEventListener('change', function () {
+    rowChecks().forEach(c => { c.checked = this.checked; });
+    updateToolbar();
+  });
+
+  document.addEventListener('change', function (e) {
+    if (e.target.classList.contains('row-check')) updateToolbar();
+  });
+})();
+</script>
 
 </body>
 </html>
