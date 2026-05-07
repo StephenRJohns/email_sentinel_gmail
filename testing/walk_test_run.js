@@ -5,10 +5,11 @@
  *
  * Workflow:
  *   1. Look in testing/test_runs/ for the latest file matching
- *      <YYYY-MM-DD>_<HH:MM:SS>_e2e_test_run.md.
- *   2. If there is no archived run from today, print a message and offer
- *      to launch run_free_e2e_tests.sh or run_pro_e2e_tests.sh. After
- *      the suite finishes, re-run this script to walk the new archive.
+ *      <YYYY-MM-DD>_<HH:MM:SS>_e2e_test_run.md (most recent by filename
+ *      sort, regardless of date).
+ *   2. If no archived run exists at all, print a message and offer to
+ *      launch run_free_e2e_tests.sh or run_pro_e2e_tests.sh. After the
+ *      suite finishes, re-run this script to walk the new archive.
  *   3. Otherwise, walk every `- [ ]` line in section order and prompt
  *      for y / n / s / q.
  *   4. Edit the file in place after each answer, so Ctrl+C never loses
@@ -45,24 +46,12 @@ const FILE_RE     = /^(\d{4}-\d{2}-\d{2})_(\d{2}:\d{2}:\d{2})_e2e_test_run\.md$/
 const CHECKBOX_RE = /^(\s*)- \[ \] (.*)$/;
 const SECTION_RE  = /^## (\d+[a-z]?) · (.*)$/;
 
-function pad2(n) { return String(n).padStart(2, '0'); }
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-}
-
 function findLatestRun() {
   if (!fs.existsSync(RUNS_DIR)) return null;
   const files = fs.readdirSync(RUNS_DIR)
     .filter(f => FILE_RE.test(f))
     .sort();
   return files.length ? path.join(RUNS_DIR, files[files.length - 1]) : null;
-}
-
-function isFromToday(filepath) {
-  const m = FILE_RE.exec(path.basename(filepath));
-  return !!m && m[1] === todayStr();
 }
 
 function countUnchecked(filepath) {
@@ -75,13 +64,7 @@ function ask(rl, prompt) {
 }
 
 async function offerSuiteAndExit(rl) {
-  console.log(`\nNo archived test run from ${todayStr()} in ${RUNS_DIR}.`);
-  const latest = findLatestRun();
-  if (latest) {
-    console.log(`Latest existing archive: ${path.basename(latest)}`);
-  } else {
-    console.log('No archived test runs at all yet.');
-  }
+  console.log(`\nNo archived test runs found in ${RUNS_DIR}.`);
   console.log('');
   console.log('Run the Playwright suite now?');
   console.log('  [f]ree  — run_free_e2e_tests.sh');
@@ -182,7 +165,7 @@ async function main() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const latest = findLatestRun();
 
-  if (!latest || !isFromToday(latest)) {
+  if (!latest) {
     await offerSuiteAndExit(rl);
     return;
   }
