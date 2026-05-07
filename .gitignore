@@ -26,6 +26,11 @@ usertesting/incoming/*
 !usertesting/incoming/.gitkeep
 !usertesting/incoming/README.md
 
+# Pro promo codes minted for paid UserTesting rounds. Each code is single-
+# use and grants Pro tier on redemption. Treat as round-scoped credentials
+# (mint / pass to one tester / void unredeemed at round close). Never commit.
+usertesting/promo_codes/
+
 # Marketing internal strategy (not for public repo)
 marketing/marketing_plan.md
 
