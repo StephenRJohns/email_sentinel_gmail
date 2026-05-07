@@ -142,7 +142,8 @@ test('S8: in-card Home button present on every root card', async ({ page }) => {
   for (const section of ['Rules', 'Settings', 'Help', 'Activity log']) {
     const frame = await openAddon(page);
     await clickButton(frame, section);
-    await expect(getFrame(page).getByRole('button', { name: /^Home$/i })).toBeVisible();
+    // Apps Script card push can take 15-25s; give it 30s before failing.
+    await expect(getFrame(page).getByRole('button', { name: /^Home$/i })).toBeVisible({ timeout: 30_000 });
   }
 });
 
@@ -177,11 +178,12 @@ test('S13: External integrations editor opens with renamed Type labels', async (
   const f = getFrame(page);
   // 'Server name' is the first input on the editor — confirms editor opened.
   await expect(f.getByLabel('Server name', { exact: false })).toBeVisible();
-  // 'Custom MCP' is the default selected dropdown option (visible in the
-  // closed-dropdown trigger). 'Custom' alone (the old label) would NOT match
-  // because we anchor on 'Custom MCP' specifically. Use a regex anchored on
-  // the start of a word to avoid matching 'Custom webhook'.
-  await expect(f.getByText(/Custom MCP/).first()).toBeVisible();
+  // 'Custom MCP' is the default selected option. In CardService's Material
+  // dropdown, the option span lives in a hidden overlay when the dropdown is
+  // closed, so toBeVisible() always fails. toBeAttached() confirms the label
+  // string exists (and is NOT the old 'Custom' label) without requiring CSS
+  // visibility — sufficient as a rename-regression guard.
+  await expect(f.getByText(/Custom MCP/).first()).toBeAttached();
 });
 
 // ─── S14 · Help Card Navigation ──────────────────────────────────────────────
@@ -209,8 +211,10 @@ test('S14: Settings & troubleshooting topic shows both support links', async ({ 
   await clickButton(getFrame(page), 'Settings & troubleshooting');
   // Two support paths now: Community Discussions for usage Q&A and rule
   // recipes, GitHub Issues for bugs and feature requests.
-  await expect(getFrame(page).getByText('Community discussions')).toBeVisible();
-  await expect(getFrame(page).getByText('Open a GitHub issue')).toBeVisible();
+  // Use getByRole('link') to avoid strict-mode violation: the kebab nav
+  // also contains a 'Community discussions' span that resolves to 2 elements.
+  await expect(getFrame(page).getByRole('link', { name: 'Community discussions' })).toBeVisible();
+  await expect(getFrame(page).getByRole('link', { name: 'Open a GitHub issue' })).toBeVisible();
 });
 
 test('S14: home card has a Community button next to Help', async ({ page }) => {
