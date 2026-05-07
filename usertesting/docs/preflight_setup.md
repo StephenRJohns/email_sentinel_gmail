@@ -93,20 +93,20 @@ If you don't have 2–3 hours for SDK setup right now, an acceptable temporary p
 
 ## Step 3 — Pre-flight self-test on a fresh Google account (~30 min)
 
-This is the most important step. You run both Scripts A and B against the deployed add-on as if you were a UserTesting tester, with a stopwatch.
+This is the most important step. You run Script A end-to-end against the deployed add-on as if you were a UserTesting tester, with a stopwatch — including the Pro promo redemption and Chat-webhook setup.
 
 ### 3a. What you need
 
 - A Google account that **isn't your dev account**. Easiest: create a free Gmail (`yourname-test+1@gmail.com` or similar) just for this. Or use a personal account separate from the dev one.
 - A clean browser session signed into that account.
 - A stopwatch (your phone is fine).
-- A real US mobile phone for Script B's SMS test.
+- The fresh test account must have **Google Chat enabled** (Script A's Round 1 screener requires Chat-enabled testers). Verify by visiting `chat.google.com` and confirming the Spaces sidebar appears.
+- A **single-use Pro promo code** minted for this self-test run (one of the codes you generated in Step 1e). Use a different code than the ten codes you reserve for paying testers.
+- `PROMO_SERVICE_URL` must be set as a Script Property on the test-deployment Apps Script project — without it the Settings card hides the promo redemption section and Task 2b is impossible.
 
-### 3b. Procedure (for each script in turn)
+### 3b. Procedure
 
-1. Open the script file fresh — read it through once before starting.
-   - `usertesting/docs/script_a_core.md` (15-min target)
-   - `usertesting/docs/script_b_power.md` (20-min target)
+1. Open `usertesting/docs/script_a_core.md` fresh — read it through once before starting. (20-min target. `script_b_power.md` is **retired** — see its banner. Do not pre-flight Script B.)
 2. Start the stopwatch.
 3. Run Task 1 → 2 → 3 → 4 → 5 in order, doing exactly what the script says. No shortcuts a real tester wouldn't take. Read each task aloud as if you were a UserTesting participant thinking out loud.
 4. Note any moment of confusion, broken behavior, or dead-end. Even minor ones — a verbal "wait, what is this asking me to do?" is a finding worth fixing.
@@ -116,13 +116,14 @@ This is the most important step. You run both Scripts A and B against the deploy
 
 | Script | Self-test target | If you go over |
 |---|---|---|
-| Script A (core) | ≤ 10 min as developer | Real testers will go ~50 % longer = > 15 min and may not finish. Trim Task 3 (rule writing) — it's the most variable. Consider pre-supplying a sample rule string in the script. |
-| Script B (SMS) | ≤ 14 min as developer | Real testers ~21 min. Trim Task 2 (provider setup) by pre-supplying the recipient phone-number entry instructions more explicitly, or by skipping the country-code dropdown discussion if testers seem confused there. |
+| Script A (core + 5 Google channels) | ≤ 14 min as developer | Real testers will go ~50 % longer = > 21 min and may not finish. Task 2c (Chat webhook) is the most variable — if it consistently runs > 5 min in self-test, consider pre-supplying a webhook URL instead and reducing Task 2c to a paste step. |
 
 ### 3d. Things to specifically spot-check during pre-flight
 
 - Does the home card communicate "what is this product?" within 30 seconds of opening the add-on for the first time? (Script A Task 1 hinges on this.)
-- Does the AI rule-suggestion button produce useful output for the example rule in Script A? (Click it, read the suggestion, ask: would a non-technical user accept this?)
+- Does the **Promo code** section appear in Settings when on Free tier with `PROMO_SERVICE_URL` set, and disappear after redemption? (If it persists after redemption, the post-redeem `updateCard` regressed.)
+- Does Task 2c's chat.google.com walkthrough work as written? Specifically: does **Apps & integrations ▸ Webhooks** still exist in the space-name dropdown, or has Google moved it again? Update Task 2c step 4 if the menu has shifted.
+- Do all five Google channels actually fire from a single rule? Check Calendar, Sheets, Tasks, Docs, Chat each show an alert within ~30 seconds of the manual scan — alert dispatch order is sequential, so missing tail-end channels (Docs, Chat) usually mean the run hit `MAX_RUN_MS` before they got their turn. If so, simplify the rule prompt to reduce Gemini latency.
 - Does the unverified-app consent warning's wording match what's in your task scripts ("Continue → Allow")? Google occasionally tweaks the consent UI; if the buttons are renamed, update the scripts before submitting.
 - After the alert fires, is the activity log line clear and reassuring to a non-technical tester? ("Calendar event created" is fine; "MCP alert sent to: …" is jargon.)
 - Does the home card show a **Scan email every** dropdown above a filled **Start scheduled scans** button? Confirm Script A's briefing tells testers to ignore both — they may otherwise click Start scheduled scans and burn your $5 Gemini sandbox budget by leaving monitoring on after the session ends.
@@ -135,38 +136,50 @@ Time budget: 30 min self-test + up to 60 min script trimming / minor add-on edit
 
 ## Step 4 — Fill placeholders + submit Round 1 to UserTesting (~30 min)
 
-> **Round 1 scope (decided 2026-04-29):** All 10 sessions run **Script A** (core install + first rule + Calendar alert + manual scan). Script B (SMS path) and "Start scheduled scans" / auto-trigger paths are **deferred** — see `script_b_power.md` deferred banner and the project memo for rationale.
+> **Round 1 scope (decided 2026-04-29, expanded 2026-05-07):** All 10 sessions run **Script A** (core install + first rule + all five Google channels including Chat). SMS-path testing (Script B) is **retired** for all rounds — see `script_b_power.md` banner. The "Start scheduled scans" / auto-trigger path is also out of scope (it cannot deliver a result inside a 20-min session).
 
-### 4a. Fill placeholders
+### 4a. Mint per-tester promo codes
 
-The Script A file (`script_a_core.md`) contains `<DEV_GEMINI_KEY>` and `<TEST_DEPLOYMENT_URL>` placeholders. Don't replace them in the repo — those values are per-round secrets and shouldn't end up in git history.
+Each tester needs a **unique single-use Pro promo code** so Task 2b's redemption flow flips them to Pro and unlocks the Google Chat channel. Codes are minted in the standalone admin/service Apps Script project (NOT this add-on project):
+
+1. Open the standalone admin/service project at script.google.com — same project that hosts `PromoCodeService.gs`.
+2. Pick the `mintCodes_` (or equivalent batch-mint) function from the dropdown — see `scripts/PromoCodeAdmin.gs` for the canonical helper.
+3. Generate **11 codes** total (10 for testers + 1 reserved for your own pre-flight self-test in Step 3a).
+4. Save them in your password manager labeled `UserTesting Round 1 — promo codes — minted <YYYY-MM-DD>`. Do not commit them anywhere; they go into UserTesting's per-session task assignments individually in Step 4c below.
+5. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties (not the standalone project) — without it the redemption section in Settings does not render.
+
+### 4b. Fill placeholders
+
+The Script A file (`script_a_core.md`) contains `<DEV_GEMINI_KEY>`, `<TEST_DEPLOYMENT_URL>`, and `<TESTER_PROMO_CODE>` placeholders. Don't replace them in the repo — those values are per-round (and per-tester for the promo code) secrets and shouldn't end up in git history.
 
 Instead:
 
 1. Copy the full text of `script_a_core.md`.
-2. Paste into a temp file (`/tmp/script_a_filled.md` or `usertesting/outgoing/round_1/script_a_filled.md` — the `outgoing/` directory is gitignored) OR paste directly into UserTesting's task editor.
-3. In the temp / UserTesting copy, replace `<DEV_GEMINI_KEY>` with the key from Step 1 and `<TEST_DEPLOYMENT_URL>` with the URL from Step 2.
-4. After the round closes (and definitely before any future round), rotate the Gemini key (revoke old, generate new in the same sandbox project) and create a fresh test deployment URL — Round-1 testers shouldn't retain working access.
+2. Paste into a temp file per tester (`usertesting/outgoing/round_1/script_a_filled_tester_<N>.md` — the `outgoing/` directory is gitignored) OR paste directly into UserTesting's task editor and submit each session individually.
+3. In each per-tester copy, replace `<DEV_GEMINI_KEY>` with the key from Step 1, `<TEST_DEPLOYMENT_URL>` with the URL from Step 2, and `<TESTER_PROMO_CODE>` with **a different one** of the 10 codes minted in Step 4a — never reuse the same code across two testers (single-use enforcement will lock the second tester out of Pro).
+4. After the round closes (and definitely before any future round), rotate the Gemini key (revoke old, generate new in the same sandbox project), create a fresh test deployment URL, and **void any unredeemed promo codes** via the standalone admin project — Round-1 testers shouldn't retain working access.
 
-### 4b. Sign up for UserTesting
+### 4c. Sign up for UserTesting
 
 If you don't already have an account: **https://www.usertesting.com/** → sign up. Onboarding asks about your company / use case; free-text answers are fine.
 
-### 4c. Configure the test — Script A only, 10 sessions
+### 4d. Configure the test — Script A only, 10 sessions
 
 1. Create a new test → **Unmoderated** / **Self-serve**.
 2. Devices: **Desktop only** (the add-on is desktop Gmail).
 3. Browser: any (Chrome and Firefox both work for Gmail).
-4. Tester profile filters (paste from Script A's "Screener questions" section):
+4. Session length: **20 minutes** (UserTesting prices the same up to 30 min; this gives testers headroom for the Chat-webhook step).
+5. Tester profile filters (paste from Script A's "Screener questions" section):
    - Heavy Gmail user (50+ emails/day)
    - One of: small business owner / freelancer / salesperson / real estate agent / paralegal / recruiter
    - US-based
+   - **Google Chat enabled** in their Google account (verifiable at chat.google.com — Spaces sidebar visible). School / enterprise accounts with Chat disabled do NOT qualify.
    - Has installed a Gmail add-on or browser extension before, OR comfortable installing software when given a link
-5. Tasks: paste Script A's 5 tasks, one per task field. Use the filled-in text from Step 4a.
-6. Session count: **10 sessions**.
-7. Submit.
+6. Tasks: paste Script A's 5 tasks, one per task field. Use the filled-in text from Step 4b. **Each session must use a different promo code** — UserTesting's "duplicate test" flow makes this easy: clone the test 10 times, edit only the `<TESTER_PROMO_CODE>` line in Task 2b for each.
+7. Session count: **10 sessions** (one per per-tester filled script).
+8. Submit.
 
-### 4d. Pay
+### 4e. Pay
 
 Roughly **$49 × 10 = $490** total. UserTesting charges per session at submission.
 
@@ -201,7 +214,7 @@ After fixes ship, optionally run a smaller Round 2 (~5 sessions, ~$245, unmodera
 | Step 1 — Sandbox GCP project + capped Gemini key | $0 (until tester usage; capped at $5) | ~10 min hands-on + hours/days waiting on Google's project-quota approval if your account hits that limit |
 | Step 2 — Marketplace SDK setup + install URL | $0 | **~2–3 hours** (pull-forward of pre-launch critical-path work; the SDK has to be configured for public launch anyway) |
 | Step 3 — Pre-flight self-test on fresh Google account | $0 | ~30 min + ≤60 min trim/fix |
-| Step 4 — UserTesting account + Round 1 submission (10 sessions, all Script A) | ~$490 | ~20 min |
+| Step 4 — Mint per-tester promo codes + UserTesting account + Round 1 submission (10 sessions, all Script A, 20-min) | ~$490 | ~30 min (10 min code minting + 20 min test setup) |
 | Wait for sessions to come back | $0 | 1–2 weeks (your time: 0) |
 | Step 5 — Triage + fix | $0 | ~3–4 hr review + 4–10 hr fixes |
 | Optional Round 2 | ~$245 | ~2 hr review |

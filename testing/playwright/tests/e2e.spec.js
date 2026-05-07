@@ -37,7 +37,10 @@ test('S2: Settings card opens', async ({ page }) => {
   await clickButton(frame, 'Settings');
   // Verify Settings card loaded. (S8 separately verifies the in-card Home
   // button is unconditionally present on the four root cards so users have
-  // a reliable escape route regardless of how they reached the card.)
+  // a reliable escape route regardless of how they reached the card.) The
+  // 'Gemini (rule evaluation)' section header is rendered unconditionally —
+  // it does NOT require a Gemini key to be configured — so this assertion
+  // is safe on a fresh test account.
   await expect(getFrame(page).getByText('Gemini (rule evaluation)')).toBeVisible();
 });
 
@@ -57,7 +60,7 @@ test('S2: polling and max-age fields visible in Settings', async ({ page }) => {
   // Polling is now a dropdown — check by visible label/title rather than
   // getByLabel which targets text inputs.
   await expect(f.getByText('Scan email every').first()).toBeVisible();
-  await expect(f.getByLabel('Only check emails newer than', { exact: false })).toBeVisible();
+  await expect(f.getByLabel('Only scan emails newer than', { exact: false })).toBeVisible();
 });
 
 // ─── S3 · Starter Rules ───────────────────────────────────────────────────────
@@ -104,7 +107,7 @@ test('S5: scan email now produces a result toast', async ({ page }) => {
   // The default 120s per-test timeout is too tight: handleRunCheckNow is
   // synchronous and can take 30-90s when Gemini is in the loop. The
   // post-action toast lands as transient text inside the iframe body — once
-  // toContainText sees "Check complete: ..." (or "Check failed: ...") it
+  // toContainText sees "Scan complete — ..." (or "Scan failed: ...") it
   // returns; we don't need it to persist. The Activity-log navigation step
   // that used to follow this assertion was dropped because a second click
   // queued behind the still-pending scan never advanced the card; the toast
@@ -114,7 +117,7 @@ test('S5: scan email now produces a result toast', async ({ page }) => {
   const frame = await openAddon(page);
   await clickButton(frame, 'Scan email now');
   await expect(getFrame(page).locator('body')).toContainText(
-    /Check (complete|failed)/i,
+    /Scan (complete|failed)/i,
     { timeout: 180_000 }
   );
 });
@@ -141,6 +144,44 @@ test('S8: in-card Home button present on every root card', async ({ page }) => {
     await clickButton(frame, section);
     await expect(getFrame(page).getByRole('button', { name: /^Home$/i })).toBeVisible();
   }
+});
+
+// ─── S12 · Google Docs Alert Channel ─────────────────────────────────────────
+// Full alert dispatch (Docs append + auto-create on first alert) is covered
+// manually in plan section 12 — it requires a fired rule and a real Doc. The
+// automated check is just that the Settings field for the global Doc ID renders
+// (regression guard for accidental field removal during the alert-channel
+// refactor that introduced this surface).
+
+test('S12: Google Docs ID field visible in Settings', async ({ page }) => {
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Settings');
+  await expect(
+    getFrame(page).getByLabel('Google Docs ID', { exact: false })
+  ).toBeVisible();
+});
+
+// ─── S13 · External Integrations Editor ──────────────────────────────────────
+// The Type dropdown labels were renamed in commit 237bd0f
+// ('Custom' → 'Custom MCP', 'Generic webhook' → 'Custom webhook'). A future
+// label edit could regress them silently — this smoke test asserts the editor
+// opens, the Type field renders, and the default selected option is the new
+// 'Custom MCP' label. Asserting all five labels would require opening the
+// dropdown menu, which is brittle across CardService renderings; the
+// remaining four labels are covered by manual section 13.
+
+test('S13: External integrations editor opens with renamed Type labels', async ({ page }) => {
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Settings');
+  await clickButton(getFrame(page), '+ Add external integration');
+  const f = getFrame(page);
+  // 'Server name' is the first input on the editor — confirms editor opened.
+  await expect(f.getByLabel('Server name', { exact: false })).toBeVisible();
+  // 'Custom MCP' is the default selected dropdown option (visible in the
+  // closed-dropdown trigger). 'Custom' alone (the old label) would NOT match
+  // because we anchor on 'Custom MCP' specifically. Use a regex anchored on
+  // the start of a word to avoid matching 'Custom webhook'.
+  await expect(f.getByText(/Custom MCP/).first()).toBeVisible();
 });
 
 // ─── S14 · Help Card Navigation ──────────────────────────────────────────────
@@ -230,10 +271,10 @@ test('S18: business hours checkbox is present in Settings', async ({ page }) => 
 test('S19: max email age persists a valid value', async ({ page }) => {
   const frame = await openAddon(page);
   await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only check emails newer than', '1');
+  await fillField(getFrame(page), 'Only scan emails newer than', '1');
   await clickButton(getFrame(page), 'Save settings');
   await expectToast(page, /Settings saved|No changes/);
-  const val = await getFrame(page).getByLabel('Only check emails newer than', { exact: false }).inputValue();
+  const val = await getFrame(page).getByLabel('Only scan emails newer than', { exact: false }).inputValue();
   expect(val).toBe('1');
 });
 
@@ -241,26 +282,26 @@ test('S19: max email age 0 is clamped to minimum of 1', async ({ page }) => {
   // Set to 7 first so that 0→1 is a real state change (avoids "No changes to save").
   let frame = await openAddon(page);
   await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only check emails newer than', '7');
+  await fillField(getFrame(page), 'Only scan emails newer than', '7');
   await clickButton(getFrame(page), 'Save settings');
   await expectToast(page, /Settings saved|No changes/);
   // Navigate away to clear the toast, then test the clamp.
   frame = await openAddon(page);
   await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only check emails newer than', '0');
+  await fillField(getFrame(page), 'Only scan emails newer than', '0');
   await clickButton(getFrame(page), 'Save settings');
   await expectToast(page, 'Settings saved');
-  const val = await getFrame(page).getByLabel('Only check emails newer than', { exact: false }).inputValue();
+  const val = await getFrame(page).getByLabel('Only scan emails newer than', { exact: false }).inputValue();
   expect(val).toBe('1');
 });
 
 test('S19: non-numeric max email age falls back to 30', async ({ page }) => {
   const frame = await openAddon(page);
   await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only check emails newer than', 'abc');
+  await fillField(getFrame(page), 'Only scan emails newer than', 'abc');
   await clickButton(getFrame(page), 'Save settings');
   await expectToast(page, 'Settings saved');
-  const val = await getFrame(page).getByLabel('Only check emails newer than', { exact: false }).inputValue();
+  const val = await getFrame(page).getByLabel('Only scan emails newer than', { exact: false }).inputValue();
   expect(val).toBe('30');
 });
 
@@ -269,6 +310,13 @@ test('S19: non-numeric max email age falls back to 30', async ({ page }) => {
 // checks (Chat/MCP labels, AI Suggest suffix) remain manual — they require a
 // "+ New rule" click that the Apps Script FILLED-button rendering doesn't
 // expose to Playwright reliably.
+//
+// TEST_TIER convention: run_pro_e2e_tests.sh exports TEST_TIER=pro; the Free
+// runner leaves it unset. The test.skip() calls below intentionally skip on
+// Pro so the same spec file can run in both wrappers without spurious
+// failures. Running playwright directly (without a wrapper) on a Pro account
+// will execute these tests and fail loudly — which is the correct outcome,
+// because the Free indicators genuinely are not present on Pro.
 
 test('S20: home card shows Free plan indicator and Upgrade button', async ({ page }) => {
   test.skip(process.env.TEST_TIER === 'pro', 'Free-tier-only — Pro hides the Free indicator and Upgrade button.');
@@ -282,4 +330,24 @@ test('S20: founding-member scarcity counter appears on home card', async ({ page
   const frame = await openAddon(page);
   await expect(frame.getByText(/Founding-member lifetime.*\$79/)).toBeVisible();
   await expect(frame.getByText(/of 500 remaining/i)).toBeVisible();
+});
+
+// The promo code section in Settings is double-gated: only Free users see it,
+// and only when the PROMO_SERVICE_URL Script Property is set on the add-on
+// project. On test accounts where the property is not set, the section is not
+// rendered and there is nothing to assert — the test exits cleanly. When
+// rendered, the test asserts internal consistency (input + button + hint
+// must all be present together — partial rendering would indicate a UI bug).
+// Server-side redemption logic (`runPromoServiceTests`) lives in the
+// standalone admin/service project and is exercised by manual section 22.
+
+test('S20: promo redemption section renders consistently when configured', async ({ page }) => {
+  test.skip(process.env.TEST_TIER === 'pro', 'Free-tier-only — the promo section is gated on !isPro().');
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Settings');
+  const f = getFrame(page);
+  const promoInput = f.getByLabel('Enter promo code', { exact: false });
+  if (!(await promoInput.isVisible().catch(() => false))) return;
+  await expect(f.getByRole('button', { name: 'Redeem code' })).toBeVisible();
+  await expect(f.getByText(/SENT-XXXX-XXXX/)).toBeVisible();
 });

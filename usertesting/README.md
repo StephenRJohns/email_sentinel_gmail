@@ -7,7 +7,7 @@ Everything to do with paid usability-testing rounds for emAIl Sentinel — task 
 | Subdirectory | Committed to git? | Contents |
 |---|---|---|
 | `docs/` | ✅ yes | Canonical task scripts, screener questions, triage template, pre-flight setup walkthrough. The reusable templates that *don't* contain per-round secrets. |
-| `outgoing/` | ❌ no — gitignored | Per-round filled scripts with real `<DEV_GEMINI_KEY>` and `<TEST_DEPLOYMENT_URL>` substituted in. These are *secrets-bearing* working files copied from `docs/` and edited locally for each round before pasting into the UserTesting platform. Don't commit. |
+| `outgoing/` | ❌ no — gitignored | Per-round (and per-tester) filled scripts with real `<DEV_GEMINI_KEY>`, `<TEST_DEPLOYMENT_URL>`, and `<TESTER_PROMO_CODE>` substituted in. These are *secrets-bearing* working files copied from `docs/` and edited locally for each round/tester before pasting into the UserTesting platform. Don't commit. |
 | `incoming/` | ❌ no — gitignored | Downloaded session recordings, transcripts, and any raw tester output from the UserTesting platform. May contain tester PII (email addresses, phone numbers, faces in webcam recordings if enabled). Don't commit. |
 | `findings/` | ✅ yes | Triage docs filled out from the recordings, plus per-round summaries. Sanitized — no PII, just summarized findings, severity, fix status. These get committed because they're the durable artifact of each round. |
 
@@ -16,12 +16,12 @@ Everything to do with paid usability-testing rounds for emAIl Sentinel — task 
 For each Round N (N = 1, 2, …):
 
 1. **Prep (Steps 1–3 of `docs/preflight_setup.md`).** Sandbox GCP project + capped Gemini key, Apps Script test deployment, pre-flight self-test on a fresh non-dev account.
-2. **Outgoing (Step 4).** Copy `docs/script_a_core.md` to `outgoing/round_<N>/script_a_core_filled.md` as a *filled* working file. Replace `<DEV_GEMINI_KEY>` and `<TEST_DEPLOYMENT_URL>` placeholders. Paste into UserTesting's task editor. Submit and pay. (Round 1 is all-Script-A; `docs/script_b_power.md` is preserved as a deferred reference for future rounds that add SMS-path coverage.)
+2. **Outgoing (Step 4).** Mint 10+1 single-use promo codes in the standalone admin/service Apps Script project (10 testers + 1 self-test reserve). Copy `docs/script_a_core.md` to `outgoing/round_<N>/script_a_filled_tester_<i>.md` once per tester. Replace `<DEV_GEMINI_KEY>`, `<TEST_DEPLOYMENT_URL>`, and `<TESTER_PROMO_CODE>` placeholders — every tester gets a different code. Paste into UserTesting's task editor (one session per tester). Submit and pay. (Every round uses Script A; `docs/script_b_power.md` is **retired** and not part of any round.)
 3. **Wait.** Sessions trickle back over 1–2 weeks. UserTesting emails you when each completes.
 4. **Incoming.** As recordings arrive, download them (UserTesting → Test → individual session → Download MP4) and any auto-generated transcripts to `incoming/round_<N>/`. Optionally download the platform's notes export.
 5. **Findings.** `cp docs/triage_template.md findings/round_<N>_<YYYY-MM-DD>_findings.md`, fill in the table while watching the recordings. After the round closes, write `findings/round_<N>_summary.md` capturing top issues, fix priorities, and the "would you pay $4.99/month?" yes-rate.
 6. **Fix.** Land critical / important fixes in the codebase. Update the **Fix status** column in the findings file as each is shipped.
-7. **Rotate secrets.** Revoke the Round-N Gemini key and create a fresh test deployment URL before Round N+1 — Round-N testers shouldn't retain working access.
+7. **Rotate secrets.** Revoke the Round-N Gemini key, create a fresh test deployment URL, and **void any unredeemed Round-N promo codes** in the standalone admin project before Round N+1 — Round-N testers shouldn't retain working access. Redeemed codes cannot be revoked (the tier flip is per-user persistent), but unredeemed ones can.
 
 ## Why outgoing/ and incoming/ are gitignored
 
@@ -34,6 +34,6 @@ The directories themselves are kept (with `.gitkeep`) so the structure is obviou
 
 - **Pre-flight walkthrough:** `docs/preflight_setup.md`
 - **Task script — core flow:** `docs/script_a_core.md`
-- **Task script — SMS path (deferred, future-round reference):** `docs/script_b_power.md`
+- **Task script — SMS path (RETIRED, historical reference only):** `docs/script_b_power.md`
 - **Triage template:** `docs/triage_template.md`
 - **Round-1 plan summary:** memory file `project_pre_launch_todo.md` (Testing section) and the locked plan at `~/.claude/plans/should-i-run-a-wondrous-hollerith.md`.

@@ -486,6 +486,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 - [ ] **Starter rules respect limit.** With 2 existing rules, click "Starter rules" → "Create starter rules". Toast reports 1 created and indicates 4 were skipped for the Free plan limit.
 - [ ] **SMS is allowed.** (Manual-only, see Section 9.) Configure any SMS provider and a recipient, attach to a rule, send a test — SMS dispatch works (SMS is included in the Free plan).
 - [ ] **Calendar / Sheets / Tasks / Docs allowed.** Enable each on a rule and verify alerts fire (covered by Sections 11 and 12).
+- [ ] **Promo redemption UI.** When the add-on project's `PROMO_SERVICE_URL` Script Property is set, the Settings card shows a "Promo code" section above the action buttons containing an `Enter promo code` text input (hint: "Format: SENT-XXXX-XXXX — case-insensitive") and a purple `Redeem code` button. The section is hidden entirely for Pro users and for Free users without the property configured. The redemption flow itself (POST to the standalone service, response parsing, tier flip) remains manual — the back-end is exercised hermetically by Section 22. Automated smoke check: `S20: promo redemption section renders consistently when configured` in `testing/playwright/tests/e2e.spec.js` skips silently when the section is not rendered, otherwise asserts input + button + hint all render together.
 
 ---
 
