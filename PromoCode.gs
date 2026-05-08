@@ -61,12 +61,11 @@ function redeemPromoCode_(code) {
   const token = PropertiesService.getScriptProperties().getProperty('PROMO_SERVICE_TOKEN') || '';
   if (!url || !token) return { ok: false, error: 'Promo codes not available.' };
 
-  const userEmail = Session.getEffectiveUser().getEmail();
   try {
     const resp = UrlFetchApp.fetch(url + '?t=' + encodeURIComponent(token), {
       method: 'post',
       contentType: 'application/json',
-      payload: JSON.stringify({ code: code, email: userEmail }),
+      payload: JSON.stringify({ code: code }),
       muteHttpExceptions: true
     });
     return JSON.parse(resp.getContentText());

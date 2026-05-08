@@ -231,6 +231,7 @@ function buildHomeCard() {
     .addSection(statusSection);
   if (setupSection) builder.addSection(setupSection);
   builder.addSection(navSection);
+  if (!isPro() && getPromoServiceUrl_()) builder.addSection(buildPromoSection_());
   // Name the home card so Gmail's nav tracking treats kebab-menu →
   // Home (which uses displayAddOnCards) as a stack-replacing root,
   // which should suppress the back arrow on the resulting card.
@@ -258,9 +259,10 @@ function handleStartMonitoring(e) {
     saveSettings(settings);
   }
   installTrigger(poll.value);
-  var msg = poll.clamped
-    ? 'Scheduled scans started. Set to every ' + plural_(Math.round(poll.value / 60), 'hour') + ' (' + getTier() + ' plan minimum).'
-    : 'Scheduled scans started.';
+  var hours = Math.round(poll.value / 60);
+  var atTierMin = poll.value === getTierLimits().minPollMinutes;
+  var tierNote = (atTierMin && getTier() === 'free') ? ' (' + getTier() + ' plan minimum)' : '';
+  var msg = 'Scheduled scans started. Scanning every ' + plural_(hours, 'hour') + tierNote + '.';
   return refreshHome_(msg);
 }
 
@@ -627,11 +629,19 @@ function buildRuleEditorCard(rule) {
     .setTitle('Rule text (plain English)')
     .setMultiline(true)
     .setValue(r.ruleText || ''));
-  ruleTextSection.addWidget(CardService.newTextButton()
-    .setText(isPro() ? 'Help me write the rule text' : 'Help me write the rule text (Pro)')
-    .setOnClickAction(CardService.newAction()
-      .setFunctionName('handleHelpWriteRuleText')
-      .setParameters({ ruleId: r.id || '' })));
+  if (isPro()) {
+    ruleTextSection.addWidget(CardService.newTextButton()
+      .setText('Help me write the rule text')
+      .setOnClickAction(CardService.newAction()
+        .setFunctionName('handleHelpWriteRuleText')
+        .setParameters({ ruleId: r.id || '' })));
+  } else {
+    ruleTextSection.addWidget(CardService.newTextParagraph()
+      .setText('<font color="#581c87">Upgrade to Pro to use AI assistance for generating rule text.</font>'));
+    ruleTextSection.addWidget(CardService.newTextButton()
+      .setText('Upgrade to Pro')
+      .setOnClickAction(navAction_('buildSettingsCard')));
+  }
 
   // ── Section 2: Alert channels ──────────────────────────────────────────────
   const channelsSection = CardService.newCardSection()
@@ -673,7 +683,10 @@ function buildRuleEditorCard(rule) {
   // External integrations (MCP servers + REST webhooks; Pro)
   if (!editorLimits.allowMcp) {
     channelsSection.addWidget(CardService.newTextParagraph()
-      .setText('<font color="#888888">External integrations (Microsoft Teams, Asana, custom MCP, custom webhooks) \u2014 <b>Pro plan only</b>.</font>'));
+      .setText('<font color="#581c87">External integrations (Microsoft Teams, Asana, custom MCP, custom webhooks) \u2014 upgrade to Pro to use this channel.</font>'));
+    channelsSection.addWidget(CardService.newTextButton()
+      .setText('Upgrade to Pro')
+      .setOnClickAction(navAction_('buildSettingsCard')));
   } else {
     const configuredMcpServers = loadMcpServers();
     if (configuredMcpServers.length === 0) {
@@ -698,7 +711,10 @@ function buildRuleEditorCard(rule) {
   // Google Chat (Pro)
   if (!editorLimits.allowChat) {
     channelsSection.addWidget(CardService.newTextParagraph()
-      .setText('<font color="#888888">Google Chat webhooks \u2014 <b>Pro plan only</b>.</font>'));
+      .setText('<font color="#581c87">Google Chat webhooks \u2014 upgrade to Pro to use this channel.</font>'));
+    channelsSection.addWidget(CardService.newTextButton()
+      .setText('Upgrade to Pro')
+      .setOnClickAction(navAction_('buildSettingsCard')));
   } else {
     const chatRegistry = parseChatSpaces_(settings.chatSpaces);
     const configuredChatNames = Object.keys(chatRegistry);
@@ -1272,14 +1288,14 @@ function buildSettingsCard() {
     .addSection(bizSection)
     .addSection(smsSection)
     .addSection(googleSection)
-    .addSection(mcpSection);
-  if (!isPro() && getPromoServiceUrl_()) settingsBuilder.addSection(buildPromoSection_());
-  return settingsBuilder.addSection(buttons).build();
+    .addSection(mcpSection)
+    .addSection(buttons);
+  return settingsBuilder.build();
 }
 
 function buildPromoSection_() {
   return CardService.newCardSection()
-    .setHeader('<b>Promo code</b>')
+    .setHeader('<b>Enter a promo code to upgrade to Pro</b>')
     .addWidget(CardService.newTextInput()
       .setFieldName('promoCode')
       .setTitle('Enter promo code')
@@ -1525,7 +1541,7 @@ function handleResetBaseline(e) {
       .addButton(CardService.newTextButton()
         .setText(whiteText_('Reset'))
         .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
-        .setBackgroundColor(BRAND_PURPLE_)
+        .setBackgroundColor(BRAND_RED_)
         .setOnClickAction(action_('handleConfirmResetBaseline')))
       .addButton(CardService.newTextButton()
         .setText('Cancel')
@@ -1693,7 +1709,7 @@ function handleClearLog(e) {
       .addButton(CardService.newTextButton()
         .setText(whiteText_('Clear'))
         .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
-        .setBackgroundColor(BRAND_PURPLE_)
+        .setBackgroundColor(BRAND_RED_)
         .setOnClickAction(action_('handleConfirmClearLog')))
       .addButton(CardService.newTextButton()
         .setText('Cancel')

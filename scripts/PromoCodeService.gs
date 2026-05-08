@@ -126,7 +126,7 @@ function doPost(e) {
     if (action === 'redeem') {
       const code  = normalizeCode_(body.code);
       const email = (body.email || '').trim();
-      if (!code || !email) return jsonError_('Missing fields.');
+      if (!code) return jsonError_('Missing fields.');
       return redeemCode_(code, email);
     }
 

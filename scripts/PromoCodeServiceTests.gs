@@ -95,6 +95,10 @@ function runPromoServiceTests() {
     record('second redemption of same code is blocked',
       errMatches(r, /already redeemed/i), JSON.stringify(r));
 
+    r = callRedeem('SENT-TEST-OKAY', '');
+    record('second redemption with no email is also blocked',
+      errMatches(r, /already redeemed/i), JSON.stringify(r));
+
     r = callRedeem('SENT-TEST-USED', 'buyer@example.com');
     record('pre-redeemed seed code is rejected',
       errMatches(r, /already redeemed/i), JSON.stringify(r));
@@ -134,8 +138,8 @@ function runPromoServiceTests() {
       errMatches(r, /missing fields/i), JSON.stringify(r));
 
     r = callDoPost({ t: token }, JSON.stringify({ code: 'SENT-AAAA-AAAA' }));
-    record('doPost missing email field rejects with Missing fields',
-      errMatches(r, /missing fields/i), JSON.stringify(r));
+    record('doPost with no email field is allowed and returns code not found',
+      errMatches(r, /not found/i), JSON.stringify(r));
 
     r = callDoPost({ t: token }, JSON.stringify({ code: '!!!  ###', email: 'x@y.com' }));
     record('doPost all-junk code strips to empty and rejects with Missing fields',

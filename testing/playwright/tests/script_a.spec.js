@@ -45,10 +45,11 @@ const SCRIPT_A_EMAIL_SUBJECT = 'DEMO test 1';
 test('Task 1 · home card loads with the value-prop content', async ({ page }) => {
   const frame = await openAddon(page);
   await expect(frame.getByText(/Free \(|Plan:?\s*Pro/i)).toBeVisible();
-  // Home card has Settings, Rules, Scan email now, Help, Activity log buttons —
-  // assert at least the two Task 2/Task 3 entry points and the Task 4 button
-  // are reachable, which is what a tester reading the home card would see.
+  // Home card nav row: Settings, Starter rules, Rules, Activity log, Help, Community.
+  // Also asserts the home-card "Scan email now" filled button (always present
+  // regardless of scan state — distinct from the kebab universal-action entry).
   await expect(frame.getByRole('button', { name: 'Settings' })).toBeVisible();
+  await expect(frame.getByRole('button', { name: 'Starter rules' })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Rules' })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Scan email now' })).toBeVisible();
 });

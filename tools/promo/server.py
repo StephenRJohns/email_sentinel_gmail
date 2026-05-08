@@ -41,6 +41,16 @@ app.jinja_env.auto_reload = True
 
 client = AppsScriptClient(config.PROMO_SERVICE_URL, config.PROMO_ADMIN_TOKEN)
 
+SHEET_URL = (
+    f"https://docs.google.com/spreadsheets/d/{config.PROMO_SHEET_ID}/edit"
+    if config.PROMO_SHEET_ID else ""
+)
+
+
+@app.context_processor
+def _inject_sheet_url():
+    return {"sheet_url": SHEET_URL}
+
 
 def _list_codes(batch: str | None = None) -> list[dict]:
     return client.list_codes(batch=batch)

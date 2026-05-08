@@ -21,8 +21,8 @@
 #                      error description; the description is inserted
 #                      on the next line as
 #                      `<span style="color:darkred">DESC</span>`
-#   s  skip            leaves `- [ ]` untouched (e.g. for [Optional]
-#                      items you did not run, or items to come back to)
+#   s  skip            marks item `- [⏭]` and auto-skips the rest of the
+#                      section; skipped items are not re-walked on re-run
 #   q  quit            exits early; everything answered so far is saved
 #
 # Run from the repo root or anywhere — paths are resolved relative to
@@ -64,6 +64,10 @@ insert_after() {
   awk -v n="$lineno" -v ins="$insert" \
     'NR==n{print; print ins; next} {print}' "$file" > "${file}.tmp" \
     && mv "${file}.tmp" "$file"
+}
+
+save_checkpoint() {
+  awk '{print}' "$1" > "${1}.tmp" && mv "${1}.tmp" "$1"
 }
 
 offer_suite_and_exit() {
@@ -109,7 +113,7 @@ walk() {
   echo "$total unchecked item(s). Answer p(ass) / f(ail) / s(kip) / q(uit) for each."
   echo ""
 
-  local last_section="" skip_section="" answered=0 lineno=0
+  local last_section="" skip_section="" answered=0 since_save=0 lineno=0
 
   while true; do
     mapfile -t lines < "$filepath"
@@ -149,7 +153,14 @@ walk() {
       echo ""
       echo "  $text"
       echo "  → skipped"
+      replace_line "$filepath" "$(( lineno + 1 ))" "${indent}- [⏭] ${text}"
       answered=$(( answered + 1 ))
+      since_save=$(( since_save + 1 ))
+      if (( since_save >= 5 )); then
+        save_checkpoint "$filepath"
+        since_save=0
+        echo "  Checkpoint saved."
+      fi
       lineno=$(( lineno + 1 ))
       continue
     fi
@@ -171,6 +182,8 @@ walk() {
     case "$ans" in
       s)
         skip_section="$current_section"   # skip the rest of this section
+        replace_line "$filepath" "$sed_lineno" "${indent}- [⏭] ${text}"
+        since_save=0
         answered=$(( answered + 1 ))
         lineno=$(( lineno + 1 ))
         ;;
@@ -193,8 +206,16 @@ walk() {
         answered=$(( answered + 1 ))
         ;;
     esac
+
+    since_save=$(( since_save + 1 ))
+    if (( since_save >= 5 )); then
+      save_checkpoint "$filepath"
+      since_save=0
+      echo "  Checkpoint saved."
+    fi
   done
 
+  save_checkpoint "$filepath"
   echo ""
   echo "Answered $answered/$total. Saved to $relpath."
 }

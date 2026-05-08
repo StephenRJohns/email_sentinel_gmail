@@ -13,7 +13,7 @@
         "userSymbol": "NotifyLib",
         "version": "2",
         "libraryId": "1YG_5kjmABwYex868cdE6IXXF1Il6ofJnvxXkZ5WDWd3hQo2TozwcQr7R",
-        "developmentMode": false
+        "developmentMode": true
       }
     ]
   },
@@ -32,7 +32,8 @@
     "https://es-demo-mcp.jjjjj-enterprises-llc.workers.dev/",
     "https://app.asana.com/",
     "https://mcp.asana.com/",
-    "https://graph.microsoft.com/"
+    "https://graph.microsoft.com/",
+    "https://script.google.com/"
   ],
   "oauthScopes": [
     "https://www.googleapis.com/auth/gmail.addons.execute",
@@ -53,13 +54,34 @@
         "enabled": true
       },
       "universalActions": [
-        { "label": "Home",                  "runFunction": "actionShowHome" },
-        { "label": "Rules",                 "runFunction": "actionShowRules" },
-        { "label": "Settings",              "runFunction": "actionShowSettings" },
-        { "label": "Activity Log",          "runFunction": "actionShowActivity" },
-        { "label": "Help",                  "runFunction": "actionShowHelp" },
-        { "label": "Community discussions", "runFunction": "actionOpenDiscussions" },
-        { "label": "Scan email now",        "runFunction": "actionRunCheckNow" }
+        {
+          "label": "Home",
+          "runFunction": "actionShowHome"
+        },
+        {
+          "label": "Rules",
+          "runFunction": "actionShowRules"
+        },
+        {
+          "label": "Settings",
+          "runFunction": "actionShowSettings"
+        },
+        {
+          "label": "Activity Log",
+          "runFunction": "actionShowActivity"
+        },
+        {
+          "label": "Help",
+          "runFunction": "actionShowHelp"
+        },
+        {
+          "label": "Community discussions",
+          "runFunction": "actionOpenDiscussions"
+        },
+        {
+          "label": "Scan email now",
+          "runFunction": "actionRunCheckNow"
+        }
       ],
       "openLinkUrlPrefixes": [
         "https://textbelt.com/",

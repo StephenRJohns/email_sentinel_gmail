@@ -121,8 +121,8 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 1. In Gmail, click **Compose**. Send yourself an email that should trigger the rule (e.g., subject line `DEMO test 1`).
 2. Wait about 10 seconds for the email to land in your inbox.
-3. Open the emAIl Sentinel add-on again. Open the kebab "⋮" menu and click **Scan email now**.
-4. After a few seconds you should see a result card: *"Scan complete — 1 new email, 1 match"* in green.
+3. Open the emAIl Sentinel add-on again. Open the kebab "⋮" menu and click **Scan email now**. A card titled **Scan email now** opens — read the description, then click the purple **Run scan now** button.
+4. The button shows a spinner while the scan runs (10–60 seconds). When it finishes, a result card appears: *"Scan complete — 1 new email, 1 match"* in green.
 5. Verify the alert in **each of the five surfaces** — open them in browser tabs and check for a new entry from around the current time:
    - **Calendar** (`calendar.google.com`) — a new event titled *"[emAIl Sentinel] My first rule: DEMO test 1"*.
    - **Sheets** — open the spreadsheet titled *"emAIl Sentinel Log"* in your Drive (`drive.google.com`) — a new row appended.
@@ -141,6 +141,12 @@ Please answer these aloud:
 3. **What did you expect to happen** that didn't?
 4. The product will cost **$4.99/month** (or $39/year) for unlimited rules and Pro-only alert channels (Google Chat, custom MCP, custom webhooks). The free tier covers 3 rules and SMS, Calendar, Sheets, Tasks, and Docs alerts — but NOT Chat. Today's session was on the **paid Pro tier** (the promo code we gave you unlocked it), so you experienced Chat alerts. **Would you pay $4.99/month for the Pro version you just used?** Or would the free tier (no Chat, max 3 rules) be enough? Why?
 5. **Who do you know** who would benefit from this product? (Optional — names not needed, just job titles or scenarios.)
+
+---
+
+## Questions?
+
+If you run into a technical problem during the session or have a question for the developer, email **dev@jjjjjenterprises.com**.
 
 ---
 

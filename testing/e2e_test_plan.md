@@ -73,8 +73,8 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *Establish the seen-message baseline so the next run detects exactly the new test email.*
 
-- [ ] From the kebab menu, click "Scan email now".
-- [ ] Toast shows check result (typically "0 new emails, 0 matches" or baseline messages).
+- [ ] From the kebab menu, click "Scan email now". A **pre-scan card** titled "Scan email now" opens — click **Run scan now**.
+- [ ] A result card shows the scan result (typically "Scan complete — 0 new emails, 0 matches" or the baseline count).
 - [ ] Click "Activity log". Newest entry is the manual check.
 - [ ] INBOX entry shows either "baseline set (N existing messages). Watching for new mail." or "no new messages."
 - [ ] No MATCH lines appear in the log.
@@ -98,8 +98,8 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *Verify Gemini evaluates the email and the activity log records a match.*
 
-- [ ] From the kebab menu, click "Scan email now".
-- [ ] Toast shows: "Check complete: 1 new email, 1 match." (numbers and pluralization vary with actual counts — `0 new emails, 0 matches`, `1 new email, 1 match`, `2 new emails, 2 matches` etc.).
+- [ ] From the kebab menu, click "Scan email now". A **pre-scan card** titled "Scan email now" opens — click **Run scan now**.
+- [ ] A result card shows: "Scan complete — 1 new email, 1 match." (numbers and pluralization vary with actual counts — `0 new emails, 0 matches`, `1 new email, 1 match`, `2 new emails, 2 matches` etc.).
 - [ ] Click "Activity log".
 - [ ] Log shows: Label "INBOX": 1 new message.
 - [ ] Log shows: From: [your address] | Subject: SENTINEL_TEST…
@@ -285,7 +285,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 - [ ] Click Help from the home card nav or the universal "⋮" menu.
 - [ ] Help card header reads: "emAIl Sentinel™ Help".
-- [ ] **Search help** section appears at the top with a "Search all topics" input and a filled blue **Search** button.
+- [ ] **Search help** section appears at the top with a "Search all topics" input and a filled purple **Search** button.
 - [ ] Type `Reset baseline` in the search box and click **Search**. A results card opens with header `Search: "Reset baseline"`, a grey "1 topic matched." line, and the **Settings & troubleshooting** topic listed with a snippet that has "Reset baseline" bolded. Click **Open: Settings & troubleshooting** — the full topic loads.
 - [ ] Tap back, then type `scan` in the search box and click **Search**. Results card lists multiple topics matching, each with a snippet around the first occurrence.
 - [ ] Tap back, then click **Search** with the box empty. Toast: "Enter a search term first." (no results card pushed).
@@ -308,14 +308,17 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *Install the background trigger and confirm it appears in Apps Script.*
 
+> **Time commitment: at least 1 hour (Pro) or 3 hours (Free) to verify the trigger fires.**
+> Before starting this section, send at least one test email to yourself that matches an active rule (e.g., subject `SENTINEL_TEST`) so there is a match waiting when the trigger runs. Then start scheduled scans and wait a full trigger interval before checking the activity log for the automatic run entry. The setup and trigger-presence steps below take only a few minutes; the "Wait one full trigger interval" step is the real time gate.
+
 - [ ] Ensure the Gemini API key is configured (confirmed in Section 2).
 - [ ] From the home card, a "Scan email every" dropdown is visible above a filled "Start scheduled scans" button. The dropdown's selected value matches `settings.pollMinutes` — Pro tier minimum is `1 hour`, Free tier minimum is `3 hours`. Tier-disallowed options (1 / 2 hours on Free) are hidden from the home dropdown.
-- [ ] **Persistence: change interval from home card and click Start.** With the dropdown set to a non-default value (e.g. Pro tier, change `1 hour` → `4 hours`), click Start scheduled scans. Toast: "Scheduled scans started."
+- [ ] **Persistence: change interval from home card and click Start.** With the dropdown set to a non-default value (e.g. Pro tier, change `1 hour` → `4 hours`), click Start scheduled scans. Toast: "Scheduled scans started. Scanning every 4 hours."
 - [ ] Open Settings — the scan-interval dropdown now reads `4 hours` (the home-card choice was saved into `settings.pollMinutes`).
 - [ ] Re-open the home card, click Stop scheduled scans, then re-open it — the home dropdown still reads `4 hours` (the saved value pre-selects on next render).
 - [ ] **Auto-save on change without clicking Start.** Stop scheduled scans first. On the home card, change the dropdown from the current value to a different one (e.g. `4 hours` → `6 hours`). Do NOT click Start scheduled scans — instead navigate directly to Settings via the kebab "⋮" menu. The Settings scan-interval dropdown reads `6 hours`. (CardService doesn't auto-submit form inputs on navigation; the home dropdown wires `setOnChangeAction` → `handleHomePollChange` to persist the value silently the moment the user picks a new option, so the choice sticks even if the user navigates away before clicking Start.)
 - [ ] Home card refreshes: Scanning row shows "Active". Quick setup checklist disappears (or collapses to ✓ entries).
-- [ ] (In Apps Script editor) Open Triggers (left-rail clock icon). "runMailCheck" trigger is listed using `everyHours()` — matches the dropdown value selected on Start (Pro `1 hour` → every 1 hour; `4 hours` → every 4 hours; Free `3 hours` → every 3 hours; Free `6 hours` → every 6 hours).
+- [ ] (In Apps Script editor) Open Triggers (left-rail clock icon). The Triggers table shows one row: **Function = `runMailCheck`**, **Event = `Time-based`**, **Deployment = Head**. (The trigger is owned by the add-on user, so the ⋮ menu offers only "Project details / Executions / Failed executions" — the hour interval is not visible here. Verify the correct interval via the activity log: it should contain an entry like "Installed time-driven trigger: every N hours" matching the dropdown value you selected before clicking Start.)
 - [ ] Wait one full trigger interval, then check Activity log — a new automatic run entry appears. Or click "Scan email now" anytime for an immediate scan that bypasses the cadence.
 
 ### 15.1 · Scan-Interval Floor Clamp at Scheduled-Scan Start
@@ -323,12 +326,12 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 *Verify the tier-min poll floor is enforced when monitoring starts, not only when settings are saved (regression guard for the Pro→Free downgrade path).*
 
 - [ ] While on Pro, select `1 hour` in the Settings scan-schedule dropdown and Save. Confirm the dropdown still shows `1 hour` after reload.
-- [ ] Flip back to Free: in `LicenseManager.gs`, run **`setTierFree`** from the Apps Script editor.
+- [ ] Flip back to Free: in `LicenseManager.gs`, run **`setTierFree`** from the Apps Script editor. Then **reload the Gmail tab** (F5) — the add-on panel caches card state and will not reflect the new tier until the tab is reloaded.
 - [ ] Open the home card. The "Scan email every" dropdown should no longer offer 1- or 2-hour options (tier filter); the displayed value falls back to the Free minimum of `3 hours` since the saved `1 hour` is no longer in the option list.
 - [ ] **Without changing the dropdown**, click "Stop scheduled scans" (if running) then "Start scheduled scans" from the home card.
-- [ ] Toast or activity log indicates the scan interval was clamped to the Free minimum on start ("Scheduled scans started. Set to every 3 hours (free plan minimum)." or equivalent).
+- [ ] Toast reads: "Scheduled scans started. Scanning every 3 hours (free plan minimum)."
 - [ ] Open Settings — scan-schedule dropdown now shows `3 hours` (the Free minimum); options below 3 hours (1 hour, 2 hours) are no longer offered.
-- [ ] Apps Script editor Triggers — "runMailCheck" trigger is installed at every 3 hours, not every 1 hour.
+- [ ] Apps Script editor Triggers — the row still shows `runMailCheck` / `Time-based`. Confirm the activity log contains "Installed time-driven trigger: every 3 hours" (not every 1 hour).
 
 ---
 
@@ -365,7 +368,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 - [ ] **Rule editor.** Rules → "+ New rule". Top section is an amber notice reading roughly: "⚠ Click Save below before tapping the back arrow — the back arrow discards unsaved changes without warning." Same notice appears when editing an existing rule.
 - [ ] **Settings card.** Open Settings. Same amber notice is the first section above the Gemini key block.
-- [ ] **MCP server editor.** Settings → **External integrations** → "Add external integration" (Pro tier; if on Free, flip to Pro temporarily via `setTierPro` in the Apps Script editor). Same amber notice appears at the top. Repeat with an existing server via Edit.
+- [ ] **MCP server editor.** Settings → **External integrations** → "Add external integration" (Pro tier; if on Free, flip to Pro temporarily via `setTierPro` in the Apps Script editor, then reload the Gmail tab before continuing). Same amber notice appears at the top. Repeat with an existing server via Edit.
 - [ ] **SMS recipient editor.** Settings → SMS recipients → "Add recipient". Amber notice at the top. Repeat with Edit on an existing recipient.
 - [ ] **Chat space editor.** Settings → Google alert channels → "Add Chat space" (Pro tier). Amber notice at the top. Repeat with Edit on an existing space.
 - [ ] **Behavior on back arrow (negative test).** In the rule editor for "Test rule — E2E", change the rule name to `Test rule — E2E (modified)` but do NOT click Save. Tap the system back arrow at the top-left of the card. Verify (a) no confirmation dialog appears, (b) the rule list shows the original name unchanged. (This is the documented limitation the notice exists to mitigate.)
@@ -376,7 +379,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *Root cards do not carry an in-card Home button. The kebab "⋮" menu's first universal action — **Home** → `actionShowHome` — is the sole escape hatch back to the home card from any state, including the no-back-arrow states (kebab-replaced nav, popToRoot after delete/clear, updateCard refreshes). Removing the in-card duplicate avoids cluttering the top of every root card; the kebab entry covers all the same paths.*
 
-- [ ] **Via home-card buttons (stacked nav, back arrow visible).** From the home card, click each sub-card button in turn — Settings, Rules, Activity log, Help. Gmail's native back arrow (←) is visible at the top-left of each card. No in-card "Home" button is rendered. Open the "⋮" menu and pick **Home** — returns to the home card. The native back arrow also works as a one-step return.
+- [ ] **Via home-card buttons (stacked nav, back arrow visible).** From the home card, click each sub-card button in turn — Settings, Rules, Activity log, Help. Gmail's native back arrow (←) is visible at the top-left of each card. No in-card "Home" button is rendered. Open the "⋮" menu and pick **Home** — returns to the home card. The native back arrow also works as a one-step return. (The **Community** button is an exception — it opens an external GitHub Discussions page in a new browser tab rather than pushing a sub-card, so no back arrow or Home navigation is involved.)
 - [ ] **Via kebab menu (replaced nav, no back arrow).** Click the "⋮" menu in the add-on header, then in turn pick Rules, Settings, Activity Log, Help. The Gmail back arrow at the top-left of the card is **NOT** shown — the stack was replaced rather than pushed. Re-open the "⋮" menu and pick **Home**; the home card replaces the current card. (This is the no-back-arrow case the Home item exists for.) Note: the kebab menu also contains **Community discussions** and **Scan email now** — those use different navigation models and are covered in Sections 17d and 17e.
 - [ ] **After delete-rule (popToRoot path).** Open Rules (via either entry), click Delete on any rule, confirm. The Rules card re-renders without a back arrow (popToRoot replaced the stack). Open the "⋮" menu and pick **Home** — returns to the home card.
 - [ ] **After clear-activity-log (popToRoot path).** Open Activity log, click Clear, confirm. The card re-renders without a back arrow. Open the "⋮" menu and pick **Home** — returns to the home card.
@@ -405,7 +408,16 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *An ON rule with no alert channels will fire on matches but produce nothing useful. The Channels row in the Rules list flags this misconfiguration in bold dark red; OFF rules in the same state stay plain (they aren't acting on anything).*
 
-- [ ] Create or pick a rule, ensure it is **ON** and has zero channels checked (no SMS, Chat, MCP, Calendar, Sheets, Tasks). Open Rules and locate that rule's summary section. The **Channels** row reads "None configured" in **bold** with **dark red** color (~`#b00020`).
+*The "Test rule — E2E" rule was deleted in Section 17. Recreate it here before running the warning-color checks.*
+
+- [ ] Open the kebab "⋮" menu and pick **Rules**. Click **+ New rule**.
+- [ ] Fill in the editor:
+  - **Rule name:** `Test rule — E2E`
+  - **Gmail labels to watch:** `INBOX`
+  - **Rule text:** `Any email with SENTINEL_TEST anywhere in the subject line.`
+  - **Alert channels:** leave **all channels unchecked** (no SMS, Chat, MCP, Calendar, Sheets, Tasks, Docs).
+- [ ] Click **Save**. The Rules list shows "Test rule — E2E" as ✅ ON.
+- [ ] Locate the "Test rule — E2E" summary section in the Rules list. The **Channels** row reads "None configured" in **bold** with **dark red** color (~`#b00020`).
 - [ ] Click the "Off" toggle on the same rule (status flips to ⏸ OFF; the toggle button now reads "On"). The Channels row now reads "None configured" in **plain** styling (no bold, no red).
 - [ ] Click "On" to re-enable the rule (status flips back to ✅ ON; the toggle button now reads "Off"). Tick at least one channel in the editor and Save. The Channels row now lists the configured channel(s) and is no longer flagged.
 
@@ -493,7 +505,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 ## 21 · Pro Plan Unlocks (run only when testing Pro)
 
-*Requires a Pro license entitlement. For pre-launch testing, in `LicenseManager.gs` run **`setTierPro`** from the Apps Script editor's function dropdown to flip tier; **`setTierFree`** to revert.*
+*Requires a Pro license entitlement. For pre-launch testing, in `LicenseManager.gs` run **`setTierPro`** from the Apps Script editor's function dropdown to flip tier; **`setTierFree`** to revert. After running either function, **reload the Gmail tab** (F5) before checking the add-on — the panel caches card state and will not reflect the tier change until reloaded.*
 
 - [ ] Home card shows "Plan: Pro" and the "Upgrade to Pro" button is no longer displayed.
 - [ ] **Unlimited rules.** Create a 4th, 5th, 6th rule — all save successfully.
@@ -502,7 +514,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 - [ ] **MCP channel available.** Rule editor shows the MCP server selection widget (or the prompt to configure MCP in Settings).
 - [ ] **AI Help me write the rule text works.** The "Help me write the rule text" button no longer displays "(Pro)"; clicking it opens a card with a multi-line text input where you describe what kinds of emails should match. Clicking Generate sends it to Gemini and produces a suggestion card with **Use this** / **Try again** buttons.
 - [ ] **AI Help me write the alert text — channel-aware.** Open a rule with at least one alert channel ticked, then click "Help me write the alert text". The new card shows the selected channels in bold at the top (e.g. "Selected channels: Google Sheets log row, Google Docs entry, SMS text message"), a description input pre-populated with the existing alert prompt, and Generate / Cancel buttons. Click Generate — the suggestion card returned by Gemini reflects the channel context (e.g. brief for SMS, richer for Sheets/Docs).
-- [ ] **Downgrade path.** Run **`setTierFree`**. Home card reverts to Free. Existing Pro-only channel selections on rules are ignored but preserved; verify by re-flipping to Pro and confirming selections still present on rules. The scan interval is clamped to 3 hours on the next scheduled-scan start.
+- [ ] **Downgrade path.** Run **`setTierFree`**, then reload the Gmail tab. Home card reverts to Free. Existing Pro-only channel selections on rules are ignored but preserved; verify by re-flipping to Pro and confirming selections still present on rules. The scan interval is clamped to 3 hours on the next scheduled-scan start.
 - [ ] **License survives Settings save (regression).** While on Pro, open Settings, change any field (e.g. the scan interval), Save. Reload home card — Plan still shows "Pro". (Earlier bug: handleSaveSettings would silently drop `settings.license` on save, reverting tier to Free.)
 
 ---
@@ -515,11 +527,11 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 - [ ] Open the **standalone admin/service Apps Script project** at script.google.com — NOT the add-on project. (The add-on only ever reads `PROMO_SERVICE_URL` from its own Script Properties; the redemption service and tests live in the developer's private project.)
 - [ ] Open `PromoCodeServiceTests.gs`. In the function dropdown above the editor, pick **`runPromoServiceTests`**. Click **Run**. (First run prompts for OAuth consent on the Spreadsheets scope — approve.)
-- [ ] Wait ~10–20 seconds for the function to complete (one Sheet round-trip per assertion). The Executions panel shows the function returning `{passed: 18, total: 18, allPassed: true, results: [...]}`.
+- [ ] Wait ~10–20 seconds for the function to complete (one Sheet round-trip per assertion). The Executions panel shows the function returning `{passed: 19, total: 19, allPassed: true, results: [...]}`.
 - [ ] In the same editor, open **View → Logs**. The output should contain:
   - `=== Promo service self-test ===` header line.
-  - One `[PASS]` line per assertion across three layers: 7 `redeemCode_` data-layer branches, 7 `doPost` auth/parse branches, 4 `normalizeCode_` pure-logic branches.
-  - Final summary: `Promo service self-test: 18/18 passed`.
+  - One `[PASS]` line per assertion across three layers: 8 `redeemCode_` data-layer branches, 7 `doPost` auth/parse branches, 4 `normalizeCode_` pure-logic branches.
+  - Final summary: `Promo service self-test: 19/19 passed`.
 - [ ] Open the spreadsheet referenced by `PROMO_SHEET_ID` and confirm the `_PromoTest_` worksheet is no longer present (the test creates it at start and deletes it in `finally`). If a tab named `_PromoTest_` is still present, a previous run crashed mid-flight; delete it manually before re-running, or re-run the test (it auto-cleans orphan tabs at the start of every run).
 - [ ] **Failure interpretation.** A `[FAIL]` line names the assertion and shows the offending JSON-RPC reply or row contents. Common failure causes:
   - `valid first redemption` fails with `"Service busy"` → another script execution holds `LockService.getScriptLock()`. Wait 30 s and re-run.

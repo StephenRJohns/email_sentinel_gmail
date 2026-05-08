@@ -42,6 +42,9 @@
 {% if current_batch %}
 <section class="batch-actions">
   <h2>Batch: {{ current_batch }}</h2>
+  {% if sheet_url %}
+  <p><a href="{{ sheet_url }}" target="_blank" rel="noopener">Open spreadsheet in new tab</a></p>
+  {% endif %}
   <form method="post" action="{{ url_for('void_batch', batch=current_batch) }}"
         onsubmit="return confirm('Void all unused codes in batch {{ current_batch }}? Redeemed codes are kept.');">
     <button class="btn-danger" type="submit">Void all unused in this batch</button>
