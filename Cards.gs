@@ -640,7 +640,7 @@ function buildRuleEditorCard(rule) {
       .setText('<font color="#581c87">Upgrade to Pro to use AI assistance for generating rule text.</font>'));
     ruleTextSection.addWidget(CardService.newTextButton()
       .setText('Upgrade to Pro')
-      .setOnClickAction(navAction_('buildSettingsCard')));
+      .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
   }
 
   // ── Section 2: Alert channels ──────────────────────────────────────────────
@@ -686,7 +686,7 @@ function buildRuleEditorCard(rule) {
       .setText('<font color="#581c87">External integrations (Microsoft Teams, Asana, custom MCP, custom webhooks) \u2014 upgrade to Pro to use this channel.</font>'));
     channelsSection.addWidget(CardService.newTextButton()
       .setText('Upgrade to Pro')
-      .setOnClickAction(navAction_('buildSettingsCard')));
+      .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
   } else {
     const configuredMcpServers = loadMcpServers();
     if (configuredMcpServers.length === 0) {
@@ -714,7 +714,7 @@ function buildRuleEditorCard(rule) {
       .setText('<font color="#581c87">Google Chat webhooks \u2014 upgrade to Pro to use this channel.</font>'));
     channelsSection.addWidget(CardService.newTextButton()
       .setText('Upgrade to Pro')
-      .setOnClickAction(navAction_('buildSettingsCard')));
+      .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
   } else {
     const chatRegistry = parseChatSpaces_(settings.chatSpaces);
     const configuredChatNames = Object.keys(chatRegistry);
@@ -1327,7 +1327,7 @@ function handleRedeemPromoCode(e) {
   activityLog('Pro plan activated via promo code.');
 
   return CardService.newActionResponseBuilder()
-    .setNavigation(CardService.newNavigation().updateCard(buildSettingsCard()))
+    .setNavigation(CardService.newNavigation().updateCard(buildHomeCard()))
     .setNotification(CardService.newNotification().setText('Pro plan activated. Welcome!'))
     .build();
 }

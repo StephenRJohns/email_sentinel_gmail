@@ -102,7 +102,7 @@ This is the most important step. You run Script A end-to-end against the deploye
 - A stopwatch (your phone is fine).
 - The fresh test account must have **Google Chat enabled** (Script A's Round 1 screener requires Chat-enabled testers). Verify by visiting `chat.google.com` and confirming the Spaces sidebar appears.
 - A **single-use Pro promo code** minted for this self-test run (one of the codes you generated in Step 1e). Use a different code than the ten codes you reserve for paying testers.
-- `PROMO_SERVICE_URL` must be set as a Script Property on the test-deployment Apps Script project — without it the Settings card hides the promo redemption section and Task 2b is impossible.
+- `PROMO_SERVICE_URL` must be set as a Script Property on the test-deployment Apps Script project — without it the home card hides the promo redemption section at the bottom and Task 2b is impossible.
 
 ### 3b. Procedure
 
@@ -121,7 +121,7 @@ This is the most important step. You run Script A end-to-end against the deploye
 ### 3d. Things to specifically spot-check during pre-flight
 
 - Does the home card communicate "what is this product?" within 30 seconds of opening the add-on for the first time? (Script A Task 1 hinges on this.)
-- Does the **Promo code** section appear in Settings when on Free tier with `PROMO_SERVICE_URL` set, and disappear after redemption? (If it persists after redemption, the post-redeem `updateCard` regressed.)
+- Does the **"Enter a promo code to upgrade to Pro"** section appear at the bottom of the home card when on Free tier with `PROMO_SERVICE_URL` set, and disappear after redemption? (If it persists after redemption, the post-redeem `updateCard` regressed.)
 - Does Task 2c's chat.google.com walkthrough work as written? Specifically: does **Apps & integrations ▸ Webhooks** still exist in the space-name dropdown, or has Google moved it again? Update Task 2c step 4 if the menu has shifted.
 - Do all five Google channels actually fire from a single rule? Check Calendar, Sheets, Tasks, Docs, Chat each show an alert within ~30 seconds of the manual scan — alert dispatch order is sequential, so missing tail-end channels (Docs, Chat) usually mean the run hit `MAX_RUN_MS` before they got their turn. If so, simplify the rule prompt to reduce Gemini latency.
 - Does the unverified-app consent warning's wording match what's in your task scripts ("Continue → Allow")? Google occasionally tweaks the consent UI; if the buttons are renamed, update the scripts before submitting.
@@ -161,7 +161,7 @@ Either path auto-creates a tracking file at `promo_codes/<batch>.txt` with all c
 3. Pick `runGenerateBatch` from the function dropdown; click Run.
 4. Logger output lists the new codes; the Sheet has new rows. **Revert** the constants before any future commit.
 
-Either path: generate **11 codes** total (10 for testers + 1 reserved for your own pre-flight self-test in Step 3a). Save them outside git — `promo_codes/<batch>.txt` is auto-created and gitignored if you used the Python tool, or your password manager for the editor path. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties (not the standalone project) — without it the redemption section in Settings does not render.
+Either path: generate **11 codes** total (10 for testers + 1 reserved for your own pre-flight self-test in Step 3a). Save them outside git — `promo_codes/<batch>.txt` is auto-created and gitignored if you used the Python tool, or your password manager for the editor path. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties (not the standalone project) — without it the redemption section at the bottom of the home card does not render.
 
 ### 4b. Fill placeholders
 

@@ -77,15 +77,14 @@ test('Task 2b · promo code redeems and flips account to Pro', async ({ page }) 
   const code = process.env.TEST_PROMO_CODE;
   test.skip(!code, 'TEST_PROMO_CODE not set — mint one with tools/promo and add to e2e.config.env');
   const frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  const f = getFrame(page);
-  const promoInput = f.getByLabel('Enter promo code', { exact: false });
+  // Promo section is on the home card (bottom). No navigation needed.
+  const promoInput = frame.getByLabel('Enter promo code', { exact: false });
   // Section is double-gated: hidden on Pro, hidden when PROMO_SERVICE_URL not set.
   if (!(await promoInput.isVisible({ timeout: 10_000 }).catch(() => false))) {
     test.skip(true, 'Promo section not rendered (already Pro, or PROMO_SERVICE_URL unset)');
   }
-  await fillField(f, 'Enter promo code', code);
-  await clickButton(f, 'Redeem code');
+  await fillField(frame, 'Enter promo code', code);
+  await clickButton(frame, 'Redeem code');
   await expectToast(page, /Pro plan activated|Welcome/i, 30_000);
 });
 

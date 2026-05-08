@@ -64,7 +64,7 @@ Please **think aloud the entire time** — narrate what you're looking at, what 
 
 **Tell us out loud:** What did you expect to see when the icon opened? What does the home card look like? In your own words, what does this product do?
 
-### Task 2 — Settings setup: Gemini key, redeem Pro code, add a Chat space (8 min)
+### Task 2 — Setup: Gemini key, redeem Pro code, add a Chat space (8 min)
 
 This is the longest task. Take your time and narrate as you go — the order of these sub-tasks reflects how a real new user would set things up before writing rules.
 
@@ -77,10 +77,9 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 #### 2b. Redeem the Pro promo code
 
-1. Still in Settings, scroll down until you find the **Promo code** section.
+1. Return to the home card (open the kebab "⋮" menu and pick **Home**, or tap the back arrow if visible). At the bottom of the home card you should see a section titled **Enter a promo code to upgrade to Pro**.
 2. Paste the code the moderator gave you into the **Enter promo code** field: `<TESTER_PROMO_CODE>`.
-3. Click **Redeem code**. You should see a toast: *"Pro plan activated. Welcome!"* The Settings card refreshes and the Promo code section is no longer visible (your account is now Pro).
-4. Open the kebab "⋮" menu and pick **Home** (or tap the back arrow if visible). The home card should now read *"Plan: Pro"* near the top instead of *"Plan: Free"*.
+3. Click **Redeem code**. You should see a toast: *"Pro plan activated. Welcome!"* The home card refreshes; the **Plan** row at the top now reads *"Pro"* instead of *"Free"* and the promo code section is no longer visible (your account is now Pro).
 
 #### 2c. Add a Google Chat space
 
@@ -97,7 +96,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 **Tell us out loud:**
 - (2a) Did you understand what a "Gemini API key" is from the on-card text alone?
-- (2b) Was the promo redemption smooth? Did anything about the Promo code section feel out of place or hidden?
+- (2b) Was the promo redemption smooth? Did anything about the promo code section at the bottom of the home card feel out of place or hidden?
 - (2c) How easy was it to find the webhook setting in Google Chat? At any point did you feel lost? If so, where?
 
 ### Task 3 — Create your first rule with all five Google channels (4 min)
@@ -106,7 +105,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 2. Click **Rules** → **+ New rule**.
 3. Give the rule any name you want (e.g. "My first rule").
 4. In **Gmail labels to watch**, type `INBOX`.
-5. In **Rule text**, write a plain-English description of what kind of email should trigger this rule. Type one yourself — for example: *"Any email with the word DEMO in the subject line."* You will also see a button labeled **Help me write the rule text (Pro)** below the text field. **Note your reaction to the "(Pro)" tag.** Even though you redeemed Pro in Task 2, the AI rule-writer button may still display the "(Pro)" suffix from a cached state — do not click it; just observe what the labelling tells you.
+5. In **Rule text**, write a plain-English description of what kind of email should trigger this rule. Type one yourself — for example: *"Any email with the word DEMO in the subject line."* Below the text field you will also see a button labeled **Help me write the rule text** (because you are on Pro). Do not click it for this task; just note that it is there.
 6. Under **Alert channels**, tick **all five Google channels**:
    - **Google Calendar — create an event**
    - **Google Sheets — append a log row**
@@ -155,7 +154,7 @@ If you run into a technical problem during the session or have a question for th
 - The "unverified app" warning will be Google's standard consent screen until OAuth verification clears. Don't try to skip it — that bail rate is a useful pre-launch signal.
 - Pre-supplied Gemini key should be on a dedicated dev account with a $5–10 billing cap. Rotate after the round.
 - **Promo codes are dev-mint, tester-redeem-only.** Testers can never create promo codes — the add-on UI exposes only the redemption section (input + Redeem code button), and code minting lives in the separate standalone admin/service Apps Script project that testers have no access to. Mint one unique code per tester (10 codes for a 10-session round) via that standalone project — see `scripts/PromoCodeAdmin.gs`. Each tester's code substitutes for `<TESTER_PROMO_CODE>` in their copy of this script. Codes are single-use; reusing one across two testers will lock the second tester out of Pro. Unredeemed codes are voided at the round close as part of the same secret-rotation pass that revokes the Gemini key.
-- The `PROMO_SERVICE_URL` Script Property must be set on the test-deployment Apps Script project — without it the Promo code section in Settings will not render and Task 2b is impossible.
+- The `PROMO_SERVICE_URL` Script Property must be set on the test-deployment Apps Script project — without it the promo code section at the bottom of the home card will not render and Task 2b is impossible.
 - **Chat-setup is the highest-friction task.** Real testers will struggle with the chat.google.com Apps & integrations menu. Before declaring the test broken: a tester who narrates getting stuck at webhook creation but completes Tasks 3 and 4 with the four free Google channels still produces a complete-enough session to count for Round 1. The Chat-completion rate is itself the metric we're measuring on this task.
 - If a tester closes Gmail mid-task or the add-on icon doesn't appear after install, that's a finding — don't coach them around it.
 - Watching the recordings: pay particular attention to Task 1 ("what does this product do") — if the home card doesn't communicate the value prop in 30 seconds without explanation, that's the highest-priority fix. Also watch Task 2c (Chat setup) closely — that step has the highest expected difficulty and the most variance per tester.

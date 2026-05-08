@@ -103,7 +103,7 @@ test('S3: starter rules preview opens and lists creatable starter rules', async 
 
 // ─── S5 · Run Check Now ───────────────────────────────────────────────────────
 
-test('S5: scan email now produces a result toast', async ({ page }) => {
+test('S5: scan email now produces a result card', async ({ page }) => {
   // The default 120s per-test timeout is too tight: handleRunCheckNow is
   // synchronous and can take 30-90s when Gemini is in the loop. The
   // post-action toast lands as transient text inside the iframe body — once
@@ -319,11 +319,11 @@ test('S20: founding-member scarcity counter appears on home card', async ({ page
   await expect(frame.getByText(/of 500 remaining/i)).toBeVisible();
 });
 
-// The promo code section in Settings is double-gated: only Free users see it,
-// and only when the PROMO_SERVICE_URL Script Property is set on the add-on
-// project. On test accounts where the property is not set, the section is not
-// rendered and there is nothing to assert — the test exits cleanly. When
-// rendered, the test asserts internal consistency (input + button + hint
+// The promo code section on the home card is double-gated: only Free users
+// see it, and only when the PROMO_SERVICE_URL Script Property is set on the
+// add-on project. On test accounts where the property is not set, the section
+// is not rendered and there is nothing to assert — the test exits cleanly.
+// When rendered, the test asserts internal consistency (input + button + hint
 // must all be present together — partial rendering would indicate a UI bug).
 // Server-side redemption logic (`runPromoServiceTests`) lives in the
 // standalone admin/service project and is exercised by manual section 22.
@@ -331,10 +331,8 @@ test('S20: founding-member scarcity counter appears on home card', async ({ page
 test('S20: promo redemption section renders consistently when configured', async ({ page }) => {
   test.skip(process.env.TEST_TIER === 'pro', 'Free-tier-only — the promo section is gated on !isPro().');
   const frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  const f = getFrame(page);
-  const promoInput = f.getByLabel('Enter promo code', { exact: false });
+  const promoInput = frame.getByLabel('Enter promo code', { exact: false });
   if (!(await promoInput.isVisible().catch(() => false))) return;
-  await expect(f.getByRole('button', { name: 'Redeem code' })).toBeVisible();
-  await expect(f.getByText(/SENT-XXXX-XXXX/)).toBeVisible();
+  await expect(frame.getByRole('button', { name: 'Redeem code' })).toBeVisible();
+  await expect(frame.getByText(/SENT-XXXX-XXXX/)).toBeVisible();
 });
