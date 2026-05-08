@@ -58,7 +58,7 @@ npm run report
 | S2 | Home card, Settings nav, polling field validation (Free), max-age field presence | 7 |
 | S3 | Starter rules preview + creation toast | 1 |
 | S5 | "Scan email now" produces a result toast | 1 |
-| S8 | Activity log UI, in-card Home button present on every root card | 2 |
+| S8 | Activity log UI, kebab "Home" item returns to the home card | 2 |
 | S14 | Help card navigation, footer credit, support links (Discussions + Issues), keyword search, Community home-card button | 6 |
 | S18 | Business hours checkbox visibility | 1 |
 | S19 | Max email age field persistence + validation | 3 |

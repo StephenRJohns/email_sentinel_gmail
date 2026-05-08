@@ -80,7 +80,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 1. Still in Settings, scroll down until you find the **Promo code** section.
 2. Paste the code the moderator gave you into the **Enter promo code** field: `<TESTER_PROMO_CODE>`.
 3. Click **Redeem code**. You should see a toast: *"Pro plan activated. Welcome!"* The Settings card refreshes and the Promo code section is no longer visible (your account is now Pro).
-4. Tap the **Home** button or back arrow. The home card should now read *"Plan: Pro"* near the top instead of *"Plan: Free"*.
+4. Open the kebab "⋮" menu and pick **Home** (or tap the back arrow if visible). The home card should now read *"Plan: Pro"* near the top instead of *"Plan: Free"*.
 
 #### 2c. Add a Google Chat space
 
@@ -102,7 +102,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 ### Task 3 — Create your first rule with all five Google channels (4 min)
 
-1. Return to the home card (use the Home button or back arrow).
+1. Return to the home card (open the kebab "⋮" menu and pick **Home**, or use the back arrow if visible).
 2. Click **Rules** → **+ New rule**.
 3. Give the rule any name you want (e.g. "My first rule").
 4. In **Gmail labels to watch**, type `INBOX`.
@@ -121,7 +121,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 1. In Gmail, click **Compose**. Send yourself an email that should trigger the rule (e.g., subject line `DEMO test 1`).
 2. Wait about 10 seconds for the email to land in your inbox.
-3. Open the emAIl Sentinel add-on again. Click **Scan email now** on the home card.
+3. Open the emAIl Sentinel add-on again. Open the kebab "⋮" menu and click **Scan email now**.
 4. After a few seconds you should see a result card: *"Scan complete — 1 new email, 1 match"* in green.
 5. Verify the alert in **each of the five surfaces** — open them in browser tabs and check for a new entry from around the current time:
    - **Calendar** (`calendar.google.com`) — a new event titled *"[emAIl Sentinel] My first rule: DEMO test 1"*.

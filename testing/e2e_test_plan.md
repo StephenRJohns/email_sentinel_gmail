@@ -73,7 +73,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *Establish the seen-message baseline so the next run detects exactly the new test email.*
 
-- [ ] From the home card, click "Scan email now".
+- [ ] From the kebab menu, click "Scan email now".
 - [ ] Toast shows check result (typically "0 new emails, 0 matches" or baseline messages).
 - [ ] Click "Activity log". Newest entry is the manual check.
 - [ ] INBOX entry shows either "baseline set (N existing messages). Watching for new mail." or "no new messages."
@@ -98,7 +98,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 *Verify Gemini evaluates the email and the activity log records a match.*
 
-- [ ] From the home card, click "Scan email now".
+- [ ] From the kebab menu, click "Scan email now".
 - [ ] Toast shows: "Check complete: 1 new email, 1 match." (numbers and pluralization vary with actual counts — `0 new emails, 0 matches`, `1 new email, 1 match`, `2 new emails, 2 matches` etc.).
 - [ ] Click "Activity log".
 - [ ] Log shows: Label "INBOX": 1 new message.
@@ -118,7 +118,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 - [ ] **Local timezone consistency.** Compare an activity-log timestamp to the **Timestamp** column of the same alert's Sheets row (Section 12) and the date in the Calendar event description (Section 11). All three should show the same local-timezone wall-clock time within seconds of each other. If they disagree, the user's primary Calendar timezone is wrong — fix it in [calendar.google.com](https://calendar.google.com/calendar/u/0/r/settings) ▸ Time zone.
 - [ ] "Refresh" button reloads the log without navigating away.
 - [ ] If log has more than 20 entries, "Show older (N more)" button appears and loads additional entries.
-- [ ] **Home button present on every root card.** Open Rules, Settings, Help, and Activity log via both home-card buttons (stacked nav, Gmail's native back arrow visible) and via the kebab "⋮" menu universal actions (replaced nav, no native back arrow). Each root card's first section is a "Home" button; clicking it returns to the home card from either entry path. The Starter rules card is the one nav target without a Home button — it's only reachable via push from home, so the back arrow is always available. (See Section 17c for the full coverage matrix.)
+- [ ] **Kebab "Home" item returns to the home card.** Open Rules, Settings, Help, and Activity log via both home-card buttons (stacked nav, Gmail's native back arrow visible) and via the kebab "⋮" menu universal actions (replaced nav, no native back arrow). From any of these cards, open the "⋮" menu and pick **Home** — it returns to the home card from either entry path. Root cards no longer carry an in-card Home button; the kebab Home item is the sole escape hatch. The Starter rules card is the one nav target reachable only via push from home, so the back arrow is always available there too. (See Section 17c for the full coverage matrix.)
 
 ---
 
@@ -372,16 +372,17 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 
 ---
 
-## 17c · Home Button on Root Cards (always shown)
+## 17c · Kebab "Home" Item (escape hatch on every card)
 
-*The four root navigation cards — Rules, Settings, Activity Log, Help — unconditionally prepend an in-card Home button as their first section. This is intentional: Apps Script doesn't expose navigation-stack depth at handler time, so we can't reliably re-detect the no-back-arrow state on subsequent updateCard calls (rule toggle, log refresh, settings save). Always-on Home guarantees an escape hatch regardless of how the user arrived. When Gmail's native back arrow is also rendered, this is mild redundancy: back arrow steps one card up, Home jumps to root.*
+*Root cards do not carry an in-card Home button. The kebab "⋮" menu's first universal action — **Home** → `actionShowHome` — is the sole escape hatch back to the home card from any state, including the no-back-arrow states (kebab-replaced nav, popToRoot after delete/clear, updateCard refreshes). Removing the in-card duplicate avoids cluttering the top of every root card; the kebab entry covers all the same paths.*
 
-- [ ] **Via home-card buttons (stacked nav, back arrow visible).** From the home card, click each sub-card button in turn — Settings, Rules, Activity log, Help. Gmail's native back arrow (←) is visible at the top-left of each card. The in-card "Home" button **IS** shown as the first section. Both work: tapping the back arrow returns to the home card, and clicking Home also returns to the home card.
-- [ ] **Via kebab menu (replaced nav, no back arrow).** Click the "⋮" menu in the add-on header, then in turn pick Rules, Settings, Activity Log, Help. The Gmail back arrow at the top-left of the card is **NOT** shown — the stack was replaced rather than pushed. The first section on each card is a "Home" button. Clicking it returns to the home card. (This is the no-back-arrow case the Home button exists for.) Note: the kebab menu also contains **Community discussions** and **Scan email now** — those use different navigation models and are covered in Sections 17d and 17e.
-- [ ] **After delete-rule (popToRoot path).** Open Rules (via either entry), click Delete on any rule, confirm. The Rules card re-renders without a back arrow (popToRoot replaced the stack), but the Home button is still the first section and clicking it returns to the home card.
-- [ ] **After clear-activity-log (popToRoot path).** Open Activity log, click Clear, confirm. The card re-renders without a back arrow but with the Home button. Click it — returns to the home card.
-- [ ] **After updateCard refreshes (rule toggle / settings save / log refresh).** On any root card, trigger an in-place update: tap a rule's On/Off toggle on the Rules card; click Save on Settings; click Refresh on Activity log. The Home button stays visible across the re-render. (This is the case that drove the always-on choice — conditional rendering would have hidden the Home button on these updates because the navigation stack doesn't change.)
-- [ ] **Starter rules card** has no Home button. It's only reachable via push from the home card, so Gmail's back arrow is always rendered. Verify this by opening Starter rules from the home card: back arrow visible, no in-card Home button.
+- [ ] **Via home-card buttons (stacked nav, back arrow visible).** From the home card, click each sub-card button in turn — Settings, Rules, Activity log, Help. Gmail's native back arrow (←) is visible at the top-left of each card. No in-card "Home" button is rendered. Open the "⋮" menu and pick **Home** — returns to the home card. The native back arrow also works as a one-step return.
+- [ ] **Via kebab menu (replaced nav, no back arrow).** Click the "⋮" menu in the add-on header, then in turn pick Rules, Settings, Activity Log, Help. The Gmail back arrow at the top-left of the card is **NOT** shown — the stack was replaced rather than pushed. Re-open the "⋮" menu and pick **Home**; the home card replaces the current card. (This is the no-back-arrow case the Home item exists for.) Note: the kebab menu also contains **Community discussions** and **Scan email now** — those use different navigation models and are covered in Sections 17d and 17e.
+- [ ] **After delete-rule (popToRoot path).** Open Rules (via either entry), click Delete on any rule, confirm. The Rules card re-renders without a back arrow (popToRoot replaced the stack). Open the "⋮" menu and pick **Home** — returns to the home card.
+- [ ] **After clear-activity-log (popToRoot path).** Open Activity log, click Clear, confirm. The card re-renders without a back arrow. Open the "⋮" menu and pick **Home** — returns to the home card.
+- [ ] **After updateCard refreshes (rule toggle / settings save / log refresh).** On any root card, trigger an in-place update: tap a rule's On/Off toggle on the Rules card; click Save on Settings; click Refresh on Activity log. The kebab "⋮" menu still shows **Home** as its first item across the re-render, and clicking it returns to the home card. (This is the case that motivated keeping a single always-available Home entry — conditional rendering on a per-card basis would have been unreliable here because the navigation stack doesn't change on updateCard.)
+- [ ] **Starter rules card.** Open Starter rules from the home card: Gmail's native back arrow is rendered (push, not replace) and no in-card Home button is present. The kebab "⋮" menu's **Home** item also returns to the home card from this state.
+- [ ] **No in-card Home button anywhere.** Spot-check Rules, Settings, Activity Log, Help, and Starter rules — none of them render a "Home" button as their first (or any) section. The single source of truth for "go home" is the kebab menu.
 
 ---
 
@@ -390,9 +391,9 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
 *The kebab menu's "Scan email now" entry uses UniversalActionResponseBuilder, which can't show toast notifications and (per empirical testing) provides NO platform-level loading feedback if the handler runs the scan directly. The user therefore lands on an intermediate **pre-scan card** with a "Run scan now" button — the button-attached spinner is the only loading indicator the user sees during the 10–60 s scan. Removing this intermediate step has been tried and reverted; do not regress it. The home card's "Scan email now" button is itself a button, so it goes directly to `handleRunCheckNow` and gets the spinner naturally.*
 
 - [ ] Open the kebab "⋮" menu and click **Scan email now**.
-- [ ] **Pre-scan card opens** with title "Scan email now", a paragraph explaining the scan, and a single filled brand-purple **Run scan now** button. The first section is the standard Home button.
+- [ ] **Pre-scan card opens** with title "Scan email now", a paragraph explaining the scan, and a single filled brand-purple **Run scan now** button. No in-card Home button — the kebab "⋮" menu's **Home** item is the escape hatch.
 - [ ] Click **Run scan now**. The button shows a spinner while `runMailCheck` runs.
-- [ ] After the scan completes, a **Scan result** card pushes on top. The first section is the standard Home button.
+- [ ] After the scan completes, a **Scan result** card pushes on top. No in-card Home button — same as above, the kebab Home item handles return-to-root.
 - [ ] The result section shows a green ✅ banner reading "Scan complete — N new email(s), M match(es)." (text in green, e.g. `#1e7e34`). On a baseline-only run with no rules matching, the typical text is "Scan complete — 0 new emails, 0 matches."
 - [ ] A "View activity log" button below the banner navigates to the Activity log card; the most recent entry there is `Manual scan: N new email(s), M match(es).`.
 - [ ] **Failure path (optional, hard to force).** If the scan throws (e.g. Gemini quota exhausted with rules enabled), the banner is red ⚠ with "Scan failed: …" and the activity log shows `Manual scan failed: …`.

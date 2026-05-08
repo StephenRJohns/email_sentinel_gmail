@@ -97,7 +97,7 @@ Please **think aloud the entire time** — narrate what you're looking at, what 
 
 1. In Gmail, click **Compose**. Send yourself an email with the subject line `DEMO test 1` (the trigger word from your rule).
 2. Wait about 10 seconds for delivery.
-3. Open the emAIl Sentinel add-on. Click **Scan email now**.
+3. Open the emAIl Sentinel add-on. Open the kebab "⋮" menu and click **Scan email now**.
 4. After a few seconds you should see *"Scan complete — 1 new email, 1 match"*.
 5. Within ~30 seconds, you should receive a text message on your phone reading something like *"[emAIl Sentinel] Important demo emails — Date: ... — From: yourself — Subject: DEMO test 1 — ..."*.
 
