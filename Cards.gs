@@ -102,6 +102,11 @@ function buildHomeCard() {
     statusSection.addWidget(CardService.newTextButton()
       .setText('Stop scheduled scans')
       .setOnClickAction(action_('handleStopMonitoring')));
+    const activePollMins = parseInt(settings.pollMinutes, 10) || limits.minPollMinutes;
+    const HOME_POLL_LABELS = {60:'1 hour',120:'2 hours',180:'3 hours',240:'4 hours',360:'6 hours',480:'8 hours',720:'12 hours',1440:'24 hours'};
+    const activePollLabel = HOME_POLL_LABELS[activePollMins] || (Math.round(activePollMins / 60) + ' hours');
+    statusSection.addWidget(CardService.newTextParagraph()
+      .setText('<font color="#888888">Scanning every ' + activePollLabel + '.</font>'));
   } else {
     const pollVal = parseInt(settings.pollMinutes, 10) || limits.minPollMinutes;
     // Inline polling-interval dropdown so the user can change cadence without
