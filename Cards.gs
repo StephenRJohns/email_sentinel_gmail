@@ -950,12 +950,7 @@ function buildSettingsCard() {
   const pollSection = CardService.newCardSection()
     .setHeader('<b>Scan schedule</b>');
   const tierLimits = getTierLimits();
-  // Polling intervals are constrained to whole hours (Workspace add-on
-  // time-driven triggers don't fire faster than once per hour). Render a
-  // dropdown of hour options at or above the active tier's minimum so the
-  // user cannot enter an invalid value. enforcePollFloor() in
-  // handleSaveSettings remains the defense-in-depth check for any
-  // non-UI code path that writes pollMinutes.
+  const currentPollMins = parseInt(s.pollMinutes, 10) || tierLimits.minPollMinutes;
   const POLL_HOUR_OPTIONS_ = [
     { mins: 60,   label: '1 hour' },
     { mins: 120,  label: '2 hours' },
@@ -966,37 +961,54 @@ function buildSettingsCard() {
     { mins: 720,  label: '12 hours' },
     { mins: 1440, label: '24 hours' }
   ];
-  const currentPollMins = parseInt(s.pollMinutes, 10) || tierLimits.minPollMinutes;
-  const pollSelect = CardService.newSelectionInput()
-    .setType(CardService.SelectionInputType.DROPDOWN)
-    .setFieldName('pollMinutes')
-    .setTitle('Scan email every');
-  let anyPollSelected = false;
-  POLL_HOUR_OPTIONS_.forEach(function(opt) {
-    if (opt.mins < tierLimits.minPollMinutes) return;
-    const selected = opt.mins === currentPollMins;
-    if (selected) anyPollSelected = true;
-    pollSelect.addItem(opt.label, String(opt.mins), selected);
-  });
-  // Edge case: a legacy pollMinutes value not in the option list (e.g. a
-  // pre-grid 45 or 90) — fall back to selecting the tier minimum so the
-  // dropdown isn't shown without a value.
-  if (!anyPollSelected) {
-    pollSelect.addItem(
-      String(tierLimits.minPollMinutes / 60) + ' hour' + (tierLimits.minPollMinutes === 60 ? '' : 's'),
-      String(tierLimits.minPollMinutes),
-      true
-    );
+  if (isMonitoringActive()) {
+    // Interval cannot be changed while the trigger is installed — changing it
+    // here has no effect until Stop + Start. Show a read-only label matching
+    // the home card's pattern of hiding the control when scanning is active.
+    const activeLabel = POLL_HOUR_OPTIONS_.find(o => o.mins === currentPollMins);
+    const activeDisplay = activeLabel ? activeLabel.label : (currentPollMins / 60) + ' hours';
+    pollSection.addWidget(CardService.newTextParagraph()
+      .setText('Scanning every ' + activeDisplay + '.'));
+    pollSection.addWidget(CardService.newTextParagraph()
+      .setText('<font color="#888888">Stop scheduled scans to change the interval.</font>'));
+  } else {
+    // Polling intervals are constrained to whole hours (Workspace add-on
+    // time-driven triggers don't fire faster than once per hour). Render a
+    // dropdown of hour options at or above the active tier's minimum so the
+    // user cannot enter an invalid value. enforcePollFloor() in
+    // handleSaveSettings remains the defense-in-depth check for any
+    // non-UI code path that writes pollMinutes.
+    const pollSelect = CardService.newSelectionInput()
+      .setType(CardService.SelectionInputType.DROPDOWN)
+      .setFieldName('pollMinutes')
+      .setTitle('Scan email every');
+    let anyPollSelected = false;
+    POLL_HOUR_OPTIONS_.forEach(function(opt) {
+      if (opt.mins < tierLimits.minPollMinutes) return;
+      const selected = opt.mins === currentPollMins;
+      if (selected) anyPollSelected = true;
+      pollSelect.addItem(opt.label, String(opt.mins), selected);
+    });
+    // Edge case: a legacy pollMinutes value not in the option list (e.g. a
+    // pre-grid 45 or 90) — fall back to selecting the tier minimum so the
+    // dropdown isn't shown without a value.
+    if (!anyPollSelected) {
+      pollSelect.addItem(
+        String(tierLimits.minPollMinutes / 60) + ' hour' + (tierLimits.minPollMinutes === 60 ? '' : 's'),
+        String(tierLimits.minPollMinutes),
+        true
+      );
+    }
+    pollSection.addWidget(pollSelect);
+    // The "Scan email now" button itself lives on the home card and on the
+    // kebab "⋮" menu — Settings just points users at it via this hint so we
+    // do not duplicate the same CTA on three cards.
+    const pollHint = isPro()
+      ? 'Pro plan: minimum 1 hour. The 60-minute limit is a Google Workspace add-on platform limit; faster scanning is not possible. For an immediate scan, click <b>Scan email now</b> in the kebab "⋮" menu.'
+      : 'Free plan: minimum 3 hours. Pro lowers it to 1 hour. The 60-minute limit is a Google Workspace add-on platform limit. For an immediate scan, click <b>Scan email now</b> in the kebab "⋮" menu.';
+    pollSection.addWidget(CardService.newTextParagraph()
+      .setText('<font color="#888888">' + pollHint + '</font>'));
   }
-  pollSection.addWidget(pollSelect);
-  // The "Scan email now" button itself lives on the home card and on the
-  // kebab "⋮" menu — Settings just points users at it via this hint so we
-  // do not duplicate the same CTA on three cards.
-  const pollHint = isPro()
-    ? 'Pro plan: minimum 1 hour. The 60-minute limit is a Google Workspace add-on platform limit; faster scanning is not possible. For an immediate scan, click <b>Scan email now</b> on the home card or in the kebab "⋮" menu.'
-    : 'Free plan: minimum 3 hours. Pro lowers it to 1 hour. The 60-minute limit is a Google Workspace add-on platform limit. For an immediate scan, click <b>Scan email now</b> on the home card or in the kebab "⋮" menu.';
-  pollSection.addWidget(CardService.newTextParagraph()
-    .setText('<font color="#888888">' + pollHint + '</font>'));
   pollSection.addWidget(CardService.newTextInput()
     .setFieldName('maxEmailAgeDays')
     .setTitle('Only scan emails newer than (days)')
@@ -1316,7 +1328,10 @@ function handleSaveSettings(e) {
   const smsProvider = get('smsProvider') || 'none';
 
   const pollRaw = get('pollMinutes');
-  const pollEnforced = enforcePollFloor(pollRaw || String(getTierLimits().minPollMinutes));
+  // When scanning is active the interval dropdown is hidden, so pollRaw is
+  // empty — preserve the stored value rather than clobbering it with the
+  // tier minimum.
+  const pollEnforced = enforcePollFloor(pollRaw || prev.pollMinutes || String(getTierLimits().minPollMinutes));
   if (pollEnforced.invalid) {
     return notificationResponse_('Scan interval must be a positive whole number of minutes.');
   }
