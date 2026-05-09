@@ -4,6 +4,7 @@
 #
 # Usage:
 #   ./testing/run_free_e2e_tests.sh                 # full Free suite
+#   ./testing/run_free_e2e_tests.sh --last-failed   # re-run failures only (skips setup prompts)
 #   ./testing/run_free_e2e_tests.sh --grep "S7"     # any args pass through to Playwright
 #
 # What it does:
@@ -18,6 +19,10 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Detect --last-failed so prompts that don't apply to a re-run can be skipped.
+LAST_FAILED=false
+for _arg in "$@"; do [ "$_arg" = "--last-failed" ] && LAST_FAILED=true && break; done
 PLAYWRIGHT_DIR="$SCRIPT_DIR/playwright"
 RESULTS_JSON="$SCRIPT_DIR/.last_run_results.json"
 ARCHIVE_SCRIPT="$SCRIPT_DIR/archive_run.js"
@@ -46,25 +51,30 @@ GOOGLE_EMAIL="$(read_env GOOGLE_EMAIL)"
 # resolution BEFORE continuing — once Chrome launches, the geometry is fixed
 # for the run.
 
-echo "============================================================"
-echo "  PRE-LAUNCH DISPLAY CHECK"
-echo "============================================================"
-echo "  Tests open a Chrome window sized to your largest connected"
-echo "  monitor. Before continuing:"
-echo "    1. Connect any external monitor you intend to test on."
-echo "    2. Set it to its MAXIMUM (native) resolution in your"
-echo "       OS display settings."
-echo "    3. Confirm it is larger than any built-in laptop panel."
-echo ""
-if command -v xrandr > /dev/null 2>&1; then
-  echo "  Currently connected displays (per xrandr):"
-  xrandr 2>/dev/null | awk '/ connected / {print "    " $0}'
+if $LAST_FAILED; then
+  echo "  --last-failed: skipping display check (Chrome already running from prior run)."
+  echo ""
+else
+  echo "============================================================"
+  echo "  PRE-LAUNCH DISPLAY CHECK"
+  echo "============================================================"
+  echo "  Tests open a Chrome window sized to your largest connected"
+  echo "  monitor. Before continuing:"
+  echo "    1. Connect any external monitor you intend to test on."
+  echo "    2. Set it to its MAXIMUM (native) resolution in your"
+  echo "       OS display settings."
+  echo "    3. Confirm it is larger than any built-in laptop panel."
+  echo ""
+  if command -v xrandr > /dev/null 2>&1; then
+    echo "  Currently connected displays (per xrandr):"
+    xrandr 2>/dev/null | awk '/ connected / {print "    " $0}'
+    echo ""
+  fi
+  echo "============================================================"
+  echo "Press Enter when displays are ready (or Ctrl+C to abort)."
+  read -r _
   echo ""
 fi
-echo "============================================================"
-echo "Press Enter when displays are ready (or Ctrl+C to abort)."
-read -r _
-echo ""
 
 # ── Launch Chrome if not already on the debug port ──────────────────────────
 
@@ -242,26 +252,31 @@ fi
 
 # ── State-reset reminder ────────────────────────────────────────────────────
 
-echo "============================================================"
-echo "  CLEAR STATE BEFORE RE-RUNNING"
-echo "============================================================"
-echo "  Tests assume a clean add-on state. Accumulated rules,"
-echo "  settings, or monitoring triggers from previous runs will"
-echo "  cause cascade failures (S3 starter rules, S4 rule save,"
-echo "  S15 monitoring start, S17 confirmations, etc.)."
-echo ""
-echo "  In the Apps Script editor (script.google.com):"
-echo "    1. Run resetUserPropertiesForTesting()"
-echo "    2. Re-paste your Gemini API key in add-on Settings"
-echo "    3. Reload the add-on card in Gmail"
-echo ""
-echo "  Skip if state is already clean (first run, or previous"
-echo "  run did not create rules / start monitoring)."
-echo "============================================================"
-echo ""
-echo "Press Enter when ready (or Ctrl+C to abort)."
-read -r _
-echo ""
+if $LAST_FAILED; then
+  echo "  --last-failed: skipping state-reset reminder (re-running failures only)."
+  echo ""
+else
+  echo "============================================================"
+  echo "  CLEAR STATE BEFORE RE-RUNNING"
+  echo "============================================================"
+  echo "  Tests assume a clean add-on state. Accumulated rules,"
+  echo "  settings, or monitoring triggers from previous runs will"
+  echo "  cause cascade failures (S3 starter rules, S4 rule save,"
+  echo "  S15 monitoring start, S17 confirmations, etc.)."
+  echo ""
+  echo "  In the Apps Script editor (script.google.com):"
+  echo "    1. In Code.gs, run resetUserPropertiesForTesting()"
+  echo "    2. Re-paste your Gemini API key in add-on Settings"
+  echo "    3. Reload the add-on card in Gmail"
+  echo ""
+  echo "  Skip if state is already clean (first run, or previous"
+  echo "  run did not create rules / start monitoring)."
+  echo "============================================================"
+  echo ""
+  echo "Press Enter when ready (or Ctrl+C to abort)."
+  read -r _
+  echo ""
+fi
 
 # ── Run the suite ────────────────────────────────────────────────────────────
 

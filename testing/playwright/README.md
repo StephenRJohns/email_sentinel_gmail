@@ -55,16 +55,20 @@ npm run report
 
 | Section | Description | Tests |
 |----------|-------------|-------|
-| S2 | Home card, Settings nav, polling field validation (Free), max-age field presence | 7 |
+| S2 | Home card, Settings nav, polling field validation (Free), max-age field presence | 3 |
 | S3 | Starter rules preview + creation toast | 1 |
 | S5 | "Scan email now" produces a result card | 1 |
-| S8 | Activity log UI, kebab "Home" item returns to the home card | 2 |
-| S14 | Help card navigation, footer credit, support links (Discussions + Issues), keyword search, Community home-card button | 6 |
+| S8 | Activity log UI — Refresh + Clear button presence | 2 |
+| S12 | Google Docs ID field presence in Settings | 1 |
+| S13 | External integrations editor opens with renamed Type labels | 1 |
+| S14 | Help card navigation, footer credit, support links, keyword search (find/empty/no-match), per-topic content fingerprint, trademark-footer Slack-omission guard, Community home-card button | 9 |
+| S17 | Reset baseline confirmation card opens + Cancel pops cleanly | 1 |
+| S17b | Unsaved-changes notice on Settings card | 1 |
 | S18 | Business hours checkbox visibility | 1 |
 | S19 | Max email age field persistence + validation | 3 |
-| S20 | Free-plan home-card visibility (plan label, founding-member counter) | 2 |
+| S20 | Free-plan home-card visibility (plan label, Upgrade button, founding-member counter, promo section consistency) | 3 |
 
-**Total: 23 automated tests.**
+**Total: 27 automated tests in `e2e.spec.js`.** Plus 7 in `script_a.spec.js` and 5 in `script_b.spec.js` (the latter is RETIRED — see file header).
 
 ---
 

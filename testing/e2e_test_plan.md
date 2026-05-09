@@ -300,7 +300,7 @@ Sections 9–13 are optional alert-channel tests. Section 21 is required only wh
   - Support: `support@jjjjjenterprises.com`
   - Legal / privacy: `legal@jjjjjenterprises.com`
   - Billing: `billing@jjjjjenterprises.com`
-- [ ] Below the Contact block, a grey trademark-attribution paragraph names Google, Slack, Microsoft, and Asana as trademark owners and states the project is not affiliated with or endorsed by any of these companies.
+- [ ] Below the Contact block, a grey trademark-attribution paragraph names Google, Microsoft, and Asana as trademark owners and states the project is not affiliated with or endorsed by any of these companies. Slack is intentionally absent — it was removed as a named MCP type because Slack does not host an MCP server (Slack users now go via Custom webhook with their incoming-webhook URL).
 
 ---
 

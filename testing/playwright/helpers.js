@@ -48,8 +48,8 @@ async function expectToast(page, text, timeout = 15_000) {
 // alongside the current card's, producing duplicate matches.
 // force: true bypasses the ge6pde-uMX1Ee-bBybbf loading overlay that
 // intercepts pointer events between card transitions.
-async function clickButton(frame, label) {
-  await frame.getByRole('button', { name: label }).first().click({ force: true, timeout: 30_000 });
+async function clickButton(frame, label, opts = {}) {
+  await frame.getByRole('button', { name: label, ...opts }).first().click({ force: true, timeout: 30_000 });
 }
 
 // Fill a text input identified by its label.

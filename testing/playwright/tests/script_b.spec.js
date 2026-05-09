@@ -78,7 +78,7 @@ test('Task 1 · home card loads with the value-prop content', async ({ page }) =
   // regardless of scan state — distinct from the kebab universal-action entry).
   await expect(frame.getByRole('button', { name: 'Settings' })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Starter rules' })).toBeVisible();
-  await expect(frame.getByRole('button', { name: 'Rules' })).toBeVisible();
+  await expect(frame.getByRole('button', { name: 'Rules', exact: true })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Scan email now' })).toBeVisible();
 });
 
@@ -161,12 +161,12 @@ test('Task 2 · Gemini key + SMS test number save and Send test SMS reports OK',
 test('Task 3 · create rule with SMS recipient ticked', async ({ page }) => {
   test.setTimeout(180_000);
   const frame = await openAddon(page);
-  await clickButton(frame, 'Rules');
+  await clickButton(frame, 'Rules', { exact: true });
   await clickButton(getFrame(page), '+ New rule');
   const f = getFrame(page);
   await fillField(f, 'Rule name', SCRIPT_B_RULE_NAME);
   await fillField(f, 'Gmail labels to watch', SCRIPT_B_LABEL);
-  await fillField(f, 'Rule text', SCRIPT_B_RULE_TEXT);
+  await fillField(f, 'Rule text (plain English)', SCRIPT_B_RULE_TEXT);
 
   // The rule-editor SMS section renders one checkbox per configured
   // recipient. Label format: '<name> (<E.164 number>)' (Cards.gs

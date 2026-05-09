@@ -130,6 +130,16 @@ test('S8: activity log has Refresh button', async ({ page }) => {
   await expect(getFrame(page).getByRole('button', { name: 'Refresh' })).toBeVisible();
 });
 
+// Both Refresh and Clear share a ButtonSet at the top of the Activity log
+// card. The Clear flow itself (confirm card → toast → log emptied) stays
+// manual per S17 — multi-step modal sequences flake on toast detection here.
+// This test only asserts the entry-point button renders.
+test('S8: activity log has Clear button', async ({ page }) => {
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Activity log');
+  await expect(getFrame(page).getByRole('button', { name: 'Clear' })).toBeVisible();
+});
+
 // ─── S12 · Google Docs Alert Channel ─────────────────────────────────────────
 // Full alert dispatch (Docs append + auto-create on first alert) is covered
 // manually in plan section 12 — it requires a fired rule and a real Doc. The
@@ -181,6 +191,52 @@ test('S14: Help card loads with all five topic buttons', async ({ page }) => {
   }
 });
 
+// Each topic button pushes a topic-content card via handleShowHelpTopic.
+// Several topic titles match their button label exactly (e.g. 'Alert channel
+// setup'), so getByText on the title would resolve to both the now-hidden
+// help-card button and the new content card. Anchor on a distinctive content
+// fragment that only exists inside that topic's body — these strings are
+// effectively a fingerprint that the topic loaded.
+//
+// One topic is reached fresh per iteration via re-openAddon → click Help →
+// click topic, because CardService's pushCard stack does not give Playwright
+// a reliable in-iframe back path. The Settings & troubleshooting topic is
+// already covered by 'S14: Settings & troubleshooting topic shows both
+// support links', so it is omitted here.
+test('S14: each remaining help topic loads with distinctive content', async ({ page }) => {
+  test.setTimeout(180_000);
+  const checks = [
+    { button: 'Quick start & writing rules', fingerprint: /Be specific about senders/i },
+    { button: 'Rule examples by channel',    fingerprint: /Wire transfer/i },
+    { button: 'Alert channel setup',         fingerprint: /Generic webhook/i },
+    { button: 'Gemini pricing & models',     fingerprint: /calls Gemini twice/i }
+  ];
+  for (const { button, fingerprint } of checks) {
+    const f = await openAddon(page);
+    await clickButton(f, 'Help');
+    await clickButton(getFrame(page), button);
+    await expect(getFrame(page).getByText(fingerprint).first()).toBeVisible();
+  }
+});
+
+// Trademark attribution sync guard. Slack was removed as a named MCP type
+// (it does not host an MCP server; Slack users now go via Custom webhook
+// with an incoming-webhook URL) and was correspondingly dropped from the
+// help footer's trademark line. The body still contains Slack mentions in
+// other topics ('Slack channel via webhook' in Examples; 'Slack, Discord,
+// n8n' in Channels), but those topics are not loaded by this flow — only
+// home → Help → Settings & troubleshooting are pushed, none of which
+// mention Slack anywhere in their content.
+test('S14: trademark footer omits Slack on Settings & troubleshooting topic', async ({ page }) => {
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Help');
+  await clickButton(getFrame(page), 'Settings & troubleshooting');
+  const body = getFrame(page).locator('body');
+  await expect(body).toContainText(/Microsoft and Teams are trademarks/i);
+  await expect(body).toContainText(/Asana is a trademark/i);
+  await expect(body).not.toContainText(/Slack/i);
+});
+
 test('S14: help footer shows JJJJJ Enterprises credit', async ({ page }) => {
   const frame = await openAddon(page);
   await clickButton(frame, 'Help');
@@ -227,6 +283,41 @@ test('S14: help search empty query shows toast prompt', async ({ page }) => {
   // Click Search without typing anything.
   await clickButton(getFrame(page), 'Search');
   await expectToast(page, 'Enter a search term first');
+});
+
+// Negative-path coverage for handleSearchHelp: an obviously-bogus query
+// pushes a results card with the empty-state message instead of a topic
+// list. Catches regressions where the no-match branch silently falls
+// through to a results card with zero sections (which would render as an
+// empty card and read as broken).
+test('S14: help search no-match shows empty-result message', async ({ page }) => {
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Help');
+  await fillField(getFrame(page), 'Search all topics', 'xyzzy123nonexistent');
+  await clickButton(getFrame(page), 'Search');
+  await expect(getFrame(page).getByText(/No matches in any help topic/i)).toBeVisible();
+});
+
+// ─── S17 · Confirmation Dialog: Reset Baseline ───────────────────────────────
+// The Clear-log and Delete-rule confirmation flows remain manual per
+// playwright/README.md (multi-step Clear→Cancel→Clear→Clear sequences flake
+// on toast detection). The Reset-baseline path is reachable from the
+// Settings card via a plain TEXT button ('Reset baseline'), pushes a
+// confirmation card with the title 'Confirm reset', and exposes a plain
+// 'Cancel' button — the whole flow uses non-FILLED buttons, so it is
+// stable for automation. This test asserts the confirm card opens and
+// cancels cleanly. The destructive path (clicking 'Reset' to clear
+// settings.seen) stays manual to avoid wiping the test account's
+// per-label seen-ID baseline mid-suite.
+test('S17: Reset baseline confirmation card opens and Cancel pops it', async ({ page }) => {
+  const frame = await openAddon(page);
+  await clickButton(frame, 'Settings');
+  await clickButton(getFrame(page), 'Reset baseline');
+  await expect(getFrame(page).getByText(/Reset the seen-message baseline\?/i)).toBeVisible();
+  await clickButton(getFrame(page), 'Cancel');
+  // Settings card should be back on top after Cancel — assert the
+  // Gemini section header that buildSettingsCard always renders.
+  await expect(getFrame(page).getByText('Gemini (rule evaluation)')).toBeVisible();
 });
 
 // ─── S17b · Unsaved-Changes Notice on Editor Cards ──────────────────────────

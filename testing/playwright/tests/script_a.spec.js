@@ -50,7 +50,7 @@ test('Task 1 · home card loads with the value-prop content', async ({ page }) =
   // regardless of scan state — distinct from the kebab universal-action entry).
   await expect(frame.getByRole('button', { name: 'Settings' })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Starter rules' })).toBeVisible();
-  await expect(frame.getByRole('button', { name: 'Rules' })).toBeVisible();
+  await expect(frame.getByRole('button', { name: 'Rules', exact: true })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Scan email now' })).toBeVisible();
 });
 
@@ -62,7 +62,7 @@ test('Task 2a · Gemini key saves and Test Gemini reports OK', async ({ page }) 
   test.setTimeout(180_000); // Test Gemini round-trip can be slow.
   const frame = await openAddon(page);
   await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Gemini API key', key);
+  await fillField(getFrame(page), 'API key', key);
   await clickButton(getFrame(page), 'Save settings');
   await expectToast(page, /Settings saved|No changes/);
   await clickButton(getFrame(page), 'Test Gemini');
@@ -105,7 +105,7 @@ test('Task 2c · add Chat space saves with the supplied webhook URL', async ({ p
   await fillField(f, 'Space name', name);
   await fillField(f, 'Webhook URL', url);
   await clickButton(f, 'Save');
-  await expectToast(page, /Chat space (saved|added|updated)/i, 15_000);
+  await expectToast(page, /Chat space .*(saved|added|updated)/i, 15_000);
 });
 
 // ─── Task 3 · Create rule with all five Google channels ──────────────────────
@@ -117,12 +117,12 @@ test('Task 2c · add Chat space saves with the supplied webhook URL', async ({ p
 test('Task 3 · create rule with all five Google channels ticked', async ({ page }) => {
   test.setTimeout(180_000);
   const frame = await openAddon(page);
-  await clickButton(frame, 'Rules');
+  await clickButton(frame, 'Rules', { exact: true });
   await clickButton(getFrame(page), '+ New rule');
   const f = getFrame(page);
   await fillField(f, 'Rule name', SCRIPT_A_RULE_NAME);
   await fillField(f, 'Gmail labels to watch', SCRIPT_A_LABEL);
-  await fillField(f, 'Rule text', SCRIPT_A_RULE_TEXT);
+  await fillField(f, 'Rule text (plain English)', SCRIPT_A_RULE_TEXT);
   // Tick the four ungated Google channels (Calendar, Sheets, Tasks, Docs).
   // Each is a CardService SelectionInput.CHECK_BOX rendered as a Material
   // checkbox; .check() targets the [role="checkbox"] node inside the row.

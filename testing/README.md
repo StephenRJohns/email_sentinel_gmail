@@ -16,7 +16,7 @@ This directory holds the end-to-end test plan and the tooling to run it.
 
 ## Running the E2E suite
 
-The automated suite covers ~20 reliably-passing tests (S2 polling validation, S3 starter rules preview, S5 Run-check-now toast, S8 activity log UI, S14 Help card, S18 business hours visibility, S19 max-email-age validation, S20 home-card visibility). The rest of the test plan is manual.
+The automated suite covers ~27 reliably-passing tests in `e2e.spec.js` (S2 home/Settings nav, S3 starter rules preview, S5 Run-check-now toast, S8 activity-log Refresh + Clear, S12 Docs ID field, S13 External integrations editor labels, S14 Help card + per-topic fingerprints + search variants + trademark Slack-omission guard, S17 Reset-baseline confirm, S17b unsaved-changes notice, S18 business hours, S19 max-email-age validation, S20 Free-tier home-card visibility). The rest of the test plan is manual.
 
 ```bash
 ./run_free_e2e_tests.sh                         # run automated suite

@@ -6,6 +6,7 @@
 #
 # Usage:
 #   ./testing/run_pro_e2e_tests.sh                 # full Pro suite
+#   ./testing/run_pro_e2e_tests.sh --last-failed   # re-run failures only (skips setup prompts)
 #   ./testing/run_pro_e2e_tests.sh --grep "S21"    # one section; args pass through
 #
 # Before running, in the Apps Script editor (script.google.com):
@@ -13,16 +14,21 @@
 #   2. Reload the add-on card in Gmail
 # When done testing, run setTierFree in Apps Script to revert.
 
-echo "============================================================"
-echo "  PRO-TIER TEST RUN"
-echo "============================================================"
-echo "  Before continuing, in the Apps Script editor:"
-echo "    1. Open LicenseManager.gs and run setTierPro"
-echo "    2. Reload the add-on card in Gmail"
-echo ""
-echo "  When done, run setTierFree to revert."
-echo "============================================================"
-echo ""
+LAST_FAILED=false
+for _arg in "$@"; do [ "$_arg" = "--last-failed" ] && LAST_FAILED=true && break; done
+
+if ! $LAST_FAILED; then
+  echo "============================================================"
+  echo "  PRO-TIER TEST RUN"
+  echo "============================================================"
+  echo "  Before continuing, in the Apps Script editor:"
+  echo "    1. Open LicenseManager.gs and run setTierPro"
+  echo "    2. Reload the add-on card in Gmail"
+  echo ""
+  echo "  When done, run setTierFree to revert."
+  echo "============================================================"
+  echo ""
+fi
 
 export TEST_TIER=pro
 exec "$(dirname "$0")/run_free_e2e_tests.sh" "$@"
