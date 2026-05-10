@@ -10,26 +10,28 @@ Per-round triage docs and summaries derived from watching the recordings. **No P
 
 ```
 findings/
-├── round_1_<YYYY-MM-DD>_findings.md   # filled-in triage table
-├── round_1_summary.md                  # post-round summary, action items
-├── round_2_<YYYY-MM-DD>_findings.md
-├── round_2_summary.md
+├── round_001_<YYYY-MM-DD>_findings.md   # filled-in triage table
+├── round_001_summary.md                  # post-round summary, action items
+├── round_002_<YYYY-MM-DD>_findings.md
+├── round_002_summary.md
 └── …
 ```
+
+Round numbers are always 3 digits, zero-padded (`round_001` … `round_010` … `round_100`) — matches the format the preflight scripts produce so directory listings sort correctly.
 
 The date in the findings filename is the start date of the triage pass (when you copy the template), not the date sessions completed.
 
 ## How to start a new round's findings file
 
 ```bash
-cp ../docs/triage_template.md round_$(echo N)_$(date +%Y-%m-%d)_findings.md
+cp ../docs/triage_template.md round_$(printf '%03d' N)_$(date +%Y-%m-%d)_findings.md
 ```
 
-Replace `N` with the round number. Then open the new file and fill in the table as you watch each recording.
+Replace `N` with the round number (the `printf '%03d'` zero-pads it to 3 digits). Then open the new file and fill in the table as you watch each recording.
 
 ## Round summary
 
-After all recordings for a round are watched and the findings file is complete, write a `round_<N>_summary.md` that captures:
+After all recordings for a round are watched and the findings file is complete, write a `round_NNN_summary.md` that captures:
 
 - Number of sessions completed vs abandoned
 - Top 3 critical issues (by tester count)

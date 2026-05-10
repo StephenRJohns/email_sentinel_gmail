@@ -1,5 +1,7 @@
 # UserTesting Round N — Pre-flight setup
 
+> **Round number convention:** every directory and filename writes the round number as 3-digit zero-padded — `round_001`, `round_010`, `round_100`. The preflight scripts in `tools/preflight/` enforce this via `printf '%03d'`. References below that say `round_<NNN>` or `round_NNN` mean "fill in your round number, padded to 3 digits."
+
 One-time setup work the developer does before submitting a round to UserTesting. Each step has a time budget and a "validate before continuing" check. Do not pay for sessions until Step 3 (pre-flight self-test) passes.
 
 **Prerequisites (one-time, not per-round):**
@@ -20,7 +22,7 @@ bash tools/preflight/step1_create_sandbox.sh ROUND_NUM
 ```
 
 **What it does automatically:**
-- Creates GCP project `emailsentinel-usertesting-r<N>`
+- Creates GCP project `emailsentinel-usertesting-r<NNN>`
 - Links your billing account
 - Enables the Generative Language API
 - Creates a `$5` budget alert (notifies at 50 %, 90 %, 100 % of spend)
@@ -29,7 +31,7 @@ bash tools/preflight/step1_create_sandbox.sh ROUND_NUM
 
 **One manual step the script cannot do** (Cloud Console UI only):
 
-> Cloud Console → `emailsentinel-usertesting-r<N>` → APIs & Services → Generative Language API → **Quotas** → set **Requests per day** to **200**.
+> Cloud Console → `emailsentinel-usertesting-r<NNN>` → APIs & Services → Generative Language API → **Quotas** → set **Requests per day** to **200**.
 >
 > The budget alert notifies but does not hard-kill spending. The quota cap does. 10 testers × ~10 calls each = 100 calls; 200 gives headroom but caps a runaway loop.
 
@@ -150,10 +152,10 @@ Time budget: 30 min self-test + up to 60 min fixes. Fix and re-run pre-flight if
 Generate **11 codes** total — 10 for testers, 1 reserved for the Step 3 self-test. Use the promo CLI from repo root:
 
 ```bash
-python -m tools.promo.cli mint usertest-round-00N 11 --label "Round N — minted YYYY-MM-DD"
+python -m tools.promo.cli mint usertest-round-NNN 11 --label "Round N — minted YYYY-MM-DD"
 ```
 
-This writes `promo_codes/usertest-round-00N.txt` with all codes. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties — without it the home card hides the promo redemption section and Task 2b is impossible.
+This writes `promo_codes/usertest-round-NNN.txt` with all codes. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties — without it the home card hides the promo redemption section and Task 2b is impossible.
 
 Fallback (no Python tool): edit `BATCH_NAME` / `BATCH_QTY` / `BATCH_LABEL` in `scripts/PromoCodeAdmin.gs`, run `runGenerateBatch` from the Apps Script editor, copy codes from Logger output. Revert the constants before any future commit.
 
@@ -165,7 +167,7 @@ bash tools/preflight/step4b_fill_scripts.sh ROUND GEMINI_KEY DEPLOY_URL BATCH_FI
 # bash tools/preflight/step4b_fill_scripts.sh 1 AIza... https://workspace.google.com/... promo_codes/usertest-round-001.txt
 ```
 
-All four arguments can be omitted — the script prompts for each (and auto-detects the most recent batch file). It writes one filled file per tester to `usertesting/outgoing/round_N/` (gitignored). Every file has a unique promo code; never reuse a code across two testers.
+All four arguments can be omitted — the script prompts for each (and auto-detects the most recent batch file). It writes one filled file per tester to `usertesting/outgoing/round_NNN/` (gitignored). Every file has a unique promo code; never reuse a code across two testers.
 
 ### 4c. Sign up for UserTesting
 
@@ -183,7 +185,7 @@ If you don't have an account: **https://www.usertesting.com/** → sign up.
    - US-based
    - Google Chat enabled (`chat.google.com` — Spaces sidebar visible)
    - Has installed a browser extension before, OR comfortable installing software when given a link
-6. Tasks: paste Script A tasks 1–5 from the per-tester filled file in `usertesting/outgoing/round_N/`. Clone the test 10 times and use a different filled file each time — the only difference between sessions is the `TESTER_PROMO_CODE` line in Task 2b.
+6. Tasks: paste Script A tasks 1–5 from the per-tester filled file in `usertesting/outgoing/round_NNN/`. Clone the test 10 times and use a different filled file each time — the only difference between sessions is the `TESTER_PROMO_CODE` line in Task 2b.
 7. Session count: **10 sessions**
 8. Submit
 
@@ -201,7 +203,7 @@ UserTesting emails you when each session completes. Recordings trickle back over
 
 ```bash
 cp usertesting/docs/triage_template.md \
-   usertesting/findings/round_N_$(date +%Y-%m-%d)_findings.md
+   usertesting/findings/round_NNN_$(date +%Y-%m-%d)_findings.md
 ```
 
 Watch each recording at 1.5× speed. Fill the findings table as you go — one row per distinct issue, verbatim quotes when possible.
@@ -214,7 +216,7 @@ After all 10 sessions, sort by severity (5+ testers = critical, 2–4 = importan
 
 ```bash
 # Void unredeemed promo codes
-python -m tools.promo.cli void-batch usertest-round-00N
+python -m tools.promo.cli void-batch usertest-round-NNN
 
 # Revoke the Gemini key
 # GCP Console → emailsentinel-usertesting-rN → APIs & Services → Credentials

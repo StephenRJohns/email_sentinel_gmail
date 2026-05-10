@@ -4,13 +4,14 @@
 # Usage (all args can be omitted — script prompts for anything missing):
 #   bash tools/preflight/step4b_fill_scripts.sh ROUND GEMINI_KEY DEPLOY_URL BATCH_FILE
 #
-#   ROUND       — round number, e.g. 1
+#   ROUND       — round number, e.g. 1 (the script zero-pads to 3 digits internally)
 #   GEMINI_KEY  — the API key from step 1 output
 #   DEPLOY_URL  — the Marketplace install URL from step 2e
 #   BATCH_FILE  — path to the promo_codes/<batch>.txt file from the promo mint step
 #                 (e.g. promo_codes/usertest-round-001.txt)
 #
-# Output: usertesting/outgoing/round_<N>/script_a_filled_tester_<NNN>.md
+# Output: usertesting/outgoing/round_<NNN>/script_a_filled_tester_<NNN>.md
+#         (round number always written as 3-digit zero-padded — round_001, round_010, etc.)
 #         One file per tester, one unique promo code per file.
 # These files are gitignored — do not commit them.
 

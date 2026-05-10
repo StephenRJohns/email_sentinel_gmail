@@ -1,6 +1,6 @@
 # UserTesting — Round triage template
 
-Copy this file to `usertesting/findings/round_<N>_<YYYY-MM-DD>_findings.md` at the start of each triage pass and fill it in as you watch the recordings.
+Copy this file to `usertesting/findings/round_<NNN>_<YYYY-MM-DD>_findings.md` at the start of each triage pass (round number is always 3-digit zero-padded — `round_001`, `round_010`, …) and fill it in as you watch the recordings.
 
 ---
 

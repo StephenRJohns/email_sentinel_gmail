@@ -4,13 +4,13 @@
 
 ## What goes here
 
-Per-round downloads from the UserTesting platform. As each session completes, fetch its artifacts and drop them under `round_N/`.
+Per-round downloads from the UserTesting platform. As each session completes, fetch its artifacts and drop them under `round_NNN/` (3-digit zero-padded round number, matching the format the preflight scripts produce).
 
 ## Convention
 
 ```
 incoming/
-├── round_1/
+├── round_001/
 │   ├── recordings/
 │   │   ├── 01_<tester_id_or_session_id>.mp4
 │   │   ├── 02_<tester_id_or_session_id>.mp4
@@ -19,7 +19,7 @@ incoming/
 │   │   ├── 01_<session_id>.txt   # if auto-transcribed by UserTesting
 │   │   └── …
 │   └── platform_notes.md         # any structured notes the platform exposes
-├── round_2/
+├── round_002/
 │   └── …
 ```
 

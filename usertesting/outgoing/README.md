@@ -10,13 +10,15 @@ Per-round filled copies of the task scripts from `../docs/`. The `<DEV_GEMINI_KE
 
 ```
 outgoing/
-├── round_1/
+├── round_001/
 │   ├── script_a_core_filled.md
 │   ├── script_b_power_filled.md
 │   └── notes.md          # any per-round prep notes (Gemini key location, deployment URL, etc.)
-├── round_2/
+├── round_002/
 │   └── …
 ```
+
+Round numbers are always 3 digits, zero-padded (`round_001`, `round_002`, …, `round_010`, `round_100`). The preflight scripts in `tools/preflight/` enforce this format via `printf '%03d'`.
 
 ## Why this is gitignored
 
@@ -24,4 +26,4 @@ The filled scripts contain a working Gemini API key. Even though it's a sandbox-
 
 ## When you're done with a round
 
-Rotate the Gemini key (revoke the Round-N key in the GCP project, generate a fresh one for Round N+1). Either delete the round's `outgoing/round_N/` directory or move it elsewhere. The historical context is preserved by the matching `findings/round_N_*` files which ARE committed.
+Rotate the Gemini key (revoke the Round-N key in the GCP project, generate a fresh one for Round N+1). Either delete the round's `outgoing/round_NNN/` directory or move it elsewhere. The historical context is preserved by the matching `findings/round_NNN_*` files which ARE committed.

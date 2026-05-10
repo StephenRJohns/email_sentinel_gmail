@@ -2,6 +2,8 @@
 
 Developer setup work before running a Script C (SMS provider validation) round. Script C sessions are **direct-recruited** — you find testers yourself rather than buying them through UserTesting.com. Testers must already have an active account with the SMS provider you assign to them.
 
+> **Round number convention:** every directory and filename writes the round number as 3-digit zero-padded — `round_001`, `round_010`, `round_100`. References below that say `round_NNN` mean "fill in your round number, padded to 3 digits."
+
 **Prerequisites (one-time, not per-round):**
 - `gcloud` CLI installed and authenticated (needed only if you are creating a fresh Gemini sandbox for this round; skip if reusing a key from an active Script A round)
 - `tools/preflight/sms_preflight.env` created and filled — see Step 1 below
@@ -151,7 +153,7 @@ bash tools/preflight/step4c_fill_sms_scripts.sh ROUND GEMINI_KEY DEPLOY_URL
 # bash tools/preflight/step4c_fill_sms_scripts.sh 1 AIza... https://workspace.google.com/...
 ```
 
-All three arguments can be omitted — the script prompts for each. It shows a live availability board (each provider has a 2-session cap) and lets you assign interactively. It writes one filled script per tester to `usertesting/outgoing/round_N/` (gitignored):
+All three arguments can be omitted — the script prompts for each. It shows a live availability board (each provider has a 2-session cap) and lets you assign interactively. It writes one filled script per tester to `usertesting/outgoing/round_NNN/` (gitignored):
 
 ```
 script_c_sms_tester_001_twilio.md
@@ -176,7 +178,7 @@ Unlike Script A (which goes through UserTesting.com's panel), Script C is direct
 
 ```bash
 cp usertesting/docs/triage_template.md \
-   usertesting/findings/round_N_$(date +%Y-%m-%d)_sms_findings.md
+   usertesting/findings/round_NNN_$(date +%Y-%m-%d)_sms_findings.md
 ```
 
 Watch each recording at 1.5×. One row per distinct issue. Tag each row with the provider so provider-specific bugs are easy to spot.
@@ -195,7 +197,7 @@ High-signal things to watch for across all providers:
 After all sessions complete:
 
 1. **Revoke the sandbox Gemini key** (if created for this round):
-   GCP Console → `emailsentinel-usertesting-r<N>` → APIs & Services → Credentials → find "UserTesting Round N — Gemini key" → Delete.
+   GCP Console → `emailsentinel-usertesting-r<NNN>` → APIs & Services → Credentials → find "UserTesting Round N — Gemini key" → Delete.
 
 2. **Create a fresh deploy URL** for the next round if needed (new Marketplace SDK deployment).
 

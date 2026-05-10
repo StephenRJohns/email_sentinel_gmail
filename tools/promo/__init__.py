@@ -36,7 +36,7 @@ USAGE
 
 CLI examples (run from repo root):
 
-  python -m tools.promo.cli mint usertest-round-002 10 --label "round 2"
+  python -m tools.promo.cli mint usertest-round-002 10 --label "round 002"
   python -m tools.promo.cli list --batch usertest-round-002
   python -m tools.promo.cli assign SENT-22ZB-CM8U \\
       --name "Jane Doe" --email jane@example.com --ut-session UT-12345

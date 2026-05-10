@@ -7,7 +7,8 @@
 # The script interactively assigns one provider per tester slot (up to 2 per
 # provider) and writes a filled script for each.
 #
-# Output: usertesting/outgoing/round_<N>/script_c_sms_tester_<NNN>_<provider>.md
+# Output: usertesting/outgoing/round_<NNN>/script_c_sms_tester_<NNN>_<provider>.md
+#         (round number always written as 3-digit zero-padded — round_001, round_010, etc.)
 # These files are gitignored — do not commit them.
 
 set -euo pipefail
