@@ -1,238 +1,243 @@
-# UserTesting Round 1 — Pre-flight setup
+# UserTesting Round N — Pre-flight setup
 
-One-time setup work the developer does before submitting Round 1 to UserTesting. Each step has a time budget and a "validate before continuing" check. Run all four in order; don't pay for sessions until Step 3 (pre-flight self-test) passes.
+One-time setup work the developer does before submitting a round to UserTesting. Each step has a time budget and a "validate before continuing" check. Do not pay for sessions until Step 3 (pre-flight self-test) passes.
 
-Round-1 plan reference: `project_pre_launch_todo.md` (memory) and the locked plan at `~/.claude/plans/should-i-run-a-wondrous-hollerith.md`.
+**Prerequisites (one-time, not per-round):**
+- `gcloud` CLI installed and authenticated: `gcloud auth login && gcloud auth application-default login`
+- Python promo tool configured: see `tools/promo/.env.example`
 
 ---
 
-## Step 1 — Dedicated Gemini API key with a $5 billing cap (~10 min)
+## Step 1 — Dedicated Gemini API key with a $5 billing cap (~5 min)
 
-The point: you don't want a runaway tester loop draining your real Gemini budget, and you don't want the dev key tied to your primary email/billing account.
+The point: a sandboxed key on a separate GCP project with a spend cap so a runaway tester loop cannot drain your real Gemini budget.
 
-### 1a. Create a sandbox GCP project
+### Run the script
 
-1. Sign into **https://console.cloud.google.com/** with the Google account that owns the email_sentinel Apps Script project.
-2. Top header → project picker dropdown → **New Project**.
-3. Project name: `emailsentinel-usertesting-r1` (or similar). Leave organization default. **Create**.
+```bash
+bash tools/preflight/step1_create_sandbox.sh ROUND_NUM
+# e.g.: bash tools/preflight/step1_create_sandbox.sh 1
+```
 
-### 1b. Set the budget cap before generating the key
+**What it does automatically:**
+- Creates GCP project `emailsentinel-usertesting-r<N>`
+- Links your billing account
+- Enables the Generative Language API
+- Creates a `$5` budget alert (notifies at 50 %, 90 %, 100 % of spend)
+- Creates an API key scoped to the Generative Language API
+- Validates the key with a live Gemini call
 
-1. Once the new project loads, hamburger menu → **Billing**. Link a billing account if it isn't already linked.
-2. Hamburger → **Billing** → **Budgets & alerts** → **Create budget**.
-3. Scope: this project only.
-4. Amount: **$5** total budget (USD).
-5. Threshold rules: check 50 %, 90 %, 100 % so you get email alerts as testers consume quota.
+**One manual step the script cannot do** (Cloud Console UI only):
 
-> ⚠ The budget alerts you, but does NOT auto-kill spending. To hard-cap, also reduce the daily quota: hamburger → **APIs & Services** → enable **Generative Language API** (Gemini) on this project → **Quotas** → set the daily request quota to **200 requests/day**. (10 testers × ~10 calls each = 100 calls; 200 gives headroom but caps a runaway loop.)
+> Cloud Console → `emailsentinel-usertesting-r<N>` → APIs & Services → Generative Language API → **Quotas** → set **Requests per day** to **200**.
+>
+> The budget alert notifies but does not hard-kill spending. The quota cap does. 10 testers × ~10 calls each = 100 calls; 200 gives headroom but caps a runaway loop.
 
-### 1c. Generate the API key
-
-1. Open **https://aistudio.google.com/app/apikey** (the consumer-facing AI Studio).
-2. Top right, click your account avatar, switch to the new project (`emailsentinel-usertesting-r1`).
-3. **Create API key** → select your new sandbox project as the host.
-4. Copy the key. Save it in your password manager labeled `UserTesting Round 1 — Gemini key — created <YYYY-MM-DD>`.
-
-### 1d. Validate the key works
-
-1. In emAIl Sentinel running on your dev account, open Settings → paste this key as a temporary test → **Test Gemini** → confirm the toast reads *"Gemini OK — model responded."*
-2. **Replace your real dev key after the test** so the throwaway isn't sitting in your own settings.
+**Save the key** that the script prints to your password manager:
+`UserTesting Round N — Gemini key — created YYYY-MM-DD`
 
 ---
 
 ## Step 2 — Marketplace SDK install URL (~2–3 hours, NOT 10 min)
 
-> ⚠ **Correction over an earlier draft of this walkthrough.** The Apps Script Editor's "Test deployments" dialog only installs the add-on for the currently-signed-in (dev) account — it does NOT generate a public install URL the way Web App test deployments do. Workspace add-ons distribute exclusively through the Google Workspace Marketplace, so external testers need a Marketplace SDK install URL even for unverified pre-launch testing. This makes Step 2 substantially heavier than originally scoped.
+> ⚠ The Apps Script Editor's "Test deployments" dialog only installs the add-on for the currently-signed-in (dev) account — it does NOT generate a public install URL. External testers need a Marketplace SDK install URL even for unverified pre-launch testing. This makes Step 2 substantially heavier than originally scoped; it is pull-forward of pre-launch critical-path work that has to happen for the public launch anyway.
 
-The 2–3 hour setup is "free" pull-forward of pre-launch critical-path work — it has to happen for the public launch anyway. Walk through `docs/marketplace_checklist.txt` Parts 1–3 in order:
+### 2a. Enable the SDK (automated)
 
-### 2a. Enable the Marketplace SDK
+```bash
+bash tools/preflight/step2a_enable_sdk.sh APPS_SCRIPT_GCP_PROJECT_ID
+```
 
-1. **https://console.cloud.google.com** → top bar → select the Cloud project linked to your Apps Script project. (Verify in the Apps Script editor → Project Settings → Google Cloud Platform (GCP) Project section if unsure.)
-2. Hamburger → **APIs & Services** → **Library** → search "Google Workspace Marketplace SDK" → **Enable**.
-3. Hamburger → **APIs & Services** → **Enabled APIs & services** → click **Google Workspace Marketplace SDK**. You'll use three tabs: OVERVIEW, APP CONFIGURATION, STORE LISTING.
+The project ID is the GCP project **linked to the email_sentinel Apps Script project** — find it in the Apps Script editor under **Project Settings → Google Cloud Platform (GCP) Project**. This is NOT the sandbox project from Step 1.
 
-### 2b. App Configuration tab
+The script enables `appsmarket.googleapis.com` and then prints a checklist of the remaining manual steps with a direct Cloud Console URL.
 
-Paste in everything from `docs/marketplace_checklist.txt` Part 2:
+### 2b–2c. App Configuration + Store Listing (manual, ~2 hr)
 
+In Cloud Console → Marketplace SDK → **APP CONFIGURATION** tab, fill in:
 - App name (must match OAuth consent screen exactly)
 - Icon, banner, screenshots
 - OAuth scopes (must match `appsscript.json`)
-- Developer details
-- ToS URL, Privacy URL
-- Detailed description
+- Developer details, ToS URL (`emailsentinel.jjjjjenterprises.com/legal/terms`), Privacy URL (`emailsentinel.jjjjjenterprises.com/legal/privacy`)
 
-### 2c. Store Listing tab
-
-- Short description
-- Category
+In the **STORE LISTING** tab:
+- Short description, Category
 - Regions: **United States only** (matches `legal/TERMS.md` §2)
-- Languages: English
+- Language: English
 
-### 2d. OAuth consent screen — set publishing status to "In Production"
+### 2d. Publish the OAuth consent screen
 
-Hamburger → **APIs & Services** → **OAuth consent screen**. If publishing status is "Testing", click **Publish App** to move to "In Production". This allows external Google accounts to install (with the unverified-app warning) up to a 100-user lifetime cap until OAuth verification clears.
+APIs & Services → **OAuth consent screen** → **Publish App** (moves from Testing → In Production). This allows external Google accounts to install (with the unverified-app warning) up to a 100-user lifetime cap until OAuth verification clears.
 
 ### 2e. Get the install URL
 
-After saving the SDK draft (don't click "Publish to Marketplace" — that triggers Google's listing review on top of OAuth review), the SDK gives you a pre-publication install URL. Format and exact location of this URL varies with the current Cloud Console UI; verify by navigating Marketplace SDK → OVERVIEW or APP CONFIGURATION → look for "Install URL" or "Direct install link".
+After saving the SDK draft (**do not** click "Publish to Marketplace" — that triggers Google's listing review on top of OAuth review), retrieve the pre-publication install URL from the APP CONFIGURATION or OVERVIEW tab. Save it — it is required for Step 4b.
 
-### 2f. Validate the URL works
+### 2f. Validate the URL
 
-1. On a different device or browser (Incognito, signed into a fresh non-dev Google account that is NOT in your Workspace org), paste the URL.
-2. You should see Google's "unverified app" consent screen → **Continue** → **Allow**.
-3. Reload Gmail. The emAIl Sentinel icon should appear in the right rail. Open it. Home card should load.
-4. **If anything fails here, fix it before Round 1.** Testers cannot get past install issues you haven't already discovered.
+Open it in Incognito signed into a non-dev Google account. Accept the unverified-app consent. Reload Gmail. Confirm the emAIl Sentinel icon appears in the right rail. **Fix any failures before Round 1 — testers cannot get past install issues you haven't already discovered.**
 
 ### 2g. Skip-this-step alternative
 
-If you don't have 2–3 hours for SDK setup right now, an acceptable temporary path is to share the Apps Script project as **Viewer** with each tester's Gmail address. They install via script.google.com. Trade-off: testers get source-code access. Acceptable for a small one-time UserTesting cohort, but the LICENSE-protected proprietary stance is weakened. If you take this path, **flip `email_sentinel` to private on GitHub first** (after the icon migration documented elsewhere) so the source the testers see is also the only source publicly visible.
+If you don't have 2–3 hours right now, share the Apps Script project as **Viewer** with each tester's Gmail address — they install via script.google.com. Trade-off: testers get source-code access. Flip `email_sentinel` to private on GitHub first if you take this path.
 
 ---
 
 ## Step 3 — Pre-flight self-test on a fresh Google account (~30 min)
 
-This is the most important step. You run Script A end-to-end against the deployed add-on as if you were a UserTesting tester, with a stopwatch — including the Pro promo redemption and Chat-webhook setup.
+This is the most important step. You run Script A end-to-end as if you were a paying tester, with a stopwatch.
 
 ### 3a. What you need
 
-- A Google account that **isn't your dev account**. Easiest: create a free Gmail (`yourname-test+1@gmail.com` or similar) just for this. Or use a personal account separate from the dev one.
-- A clean browser session signed into that account.
-- A stopwatch (your phone is fine).
-- The fresh test account must have **Google Chat enabled** (Script A's Round 1 screener requires Chat-enabled testers). Verify by visiting `chat.google.com` and confirming the Spaces sidebar appears.
-- A **single-use Pro promo code** minted for this self-test run (one of the codes you generated in Step 1e). Use a different code than the ten codes you reserve for paying testers.
-- `PROMO_SERVICE_URL` must be set as a Script Property on the test-deployment Apps Script project — without it the home card hides the promo redemption section at the bottom and Task 2b is impossible.
+- A Google account that is NOT your dev account (create a throwaway Gmail or use a personal account)
+- A clean browser session signed into that account
+- The fresh account must have Google Chat enabled (verify at `chat.google.com` — Spaces sidebar visible)
+- A single-use Pro promo code minted for this self-test (one of the +1 reserve codes from Step 4a — mint those first, keep one aside)
 
-### 3b. Procedure
+### 3b. Run the automated portion first
 
-1. Open `usertesting/docs/script_a_core.md` fresh — read it through once before starting. (20-min target. `script_b_power.md` is **retired** — see its banner. Do not pre-flight Script B.)
-2. Start the stopwatch.
-3. Run Task 1 → 2 → 3 → 4 → 5 in order, doing exactly what the script says. No shortcuts a real tester wouldn't take. Read each task aloud as if you were a UserTesting participant thinking out loud.
-4. Note any moment of confusion, broken behavior, or dead-end. Even minor ones — a verbal "wait, what is this asking me to do?" is a finding worth fixing.
-5. Stop the timer at the end of Task 5.
+The Playwright suite covers Tasks 1–4 of Script A. Run it against the test-deployment using the dedicated E2E Chrome profile (see `testing/playwright/e2e.config.env` — point `GOOGLE_EMAIL` and `TEST_PROMO_CODE` at the fresh test account and self-test reserve code):
 
-### 3c. Pass thresholds
+```bash
+bash testing/run_script_a.sh
+```
+
+Tasks that need env vars set in `e2e.config.env` before running:
+
+| Env var | Used by |
+|---|---|
+| `GEMINI_API_KEY` | Task 2a — paste the Round N sandbox key here |
+| `TEST_PROMO_CODE` | Task 2b — the self-test reserve code |
+| `CHAT_WEBHOOK_URL` | Task 2c — a webhook from your own Chat Space |
+| `GOOGLE_EMAIL` | Task 4 — the fresh test account address |
+
+### 3c. Walk Tasks 3–5 manually
+
+Tasks 3 (rule creation observation), 4 (multi-channel alert verification), and 5 (wrap-up interview) require human observation. After the Playwright run, walk them using:
+
+```bash
+bash testing/walk_script_a.sh --resume
+```
+
+### 3d. Pass thresholds
 
 | Script | Self-test target | If you go over |
 |---|---|---|
-| Script A (core + 5 Google channels) | ≤ 14 min as developer | Real testers will go ~50 % longer = > 21 min and may not finish. Task 2c (Chat webhook) is the most variable — if it consistently runs > 5 min in self-test, consider pre-supplying a webhook URL instead and reducing Task 2c to a paste step. |
+| Script A (core + 5 Google channels) | ≤ 14 min as developer | Real testers go ~50 % longer → > 21 min. If Task 2c (Chat webhook) consistently runs > 5 min, pre-supply a webhook URL and reduce 2c to a paste step. |
 
-### 3d. Things to specifically spot-check during pre-flight
+### 3e. Things to spot-check during pre-flight
 
-- Does the home card communicate "what is this product?" within 30 seconds of opening the add-on for the first time? (Script A Task 1 hinges on this.)
-- Does the **"Enter a promo code to upgrade to Pro"** section appear at the bottom of the home card when on Free tier with `PROMO_SERVICE_URL` set, and disappear after redemption? (If it persists after redemption, the post-redeem `updateCard` regressed.)
-- Does Task 2c's chat.google.com walkthrough work as written? Specifically: does **Apps & integrations ▸ Webhooks** still exist in the space-name dropdown, or has Google moved it again? Update Task 2c step 4 if the menu has shifted.
-- Do all five Google channels actually fire from a single rule? Check Calendar, Sheets, Tasks, Docs, Chat each show an alert within ~30 seconds of the manual scan — alert dispatch order is sequential, so missing tail-end channels (Docs, Chat) usually mean the run hit `MAX_RUN_MS` before they got their turn. If so, simplify the rule prompt to reduce Gemini latency.
-- Does the unverified-app consent warning's wording match what's in your task scripts ("Continue → Allow")? Google occasionally tweaks the consent UI; if the buttons are renamed, update the scripts before submitting.
-- After the alert fires, is the activity log line clear and reassuring to a non-technical tester? ("Calendar event created" is fine; "MCP alert sent to: …" is jargon.)
-- Does the home card show a **Scan email every** dropdown above a filled **Start scheduled scans** button? Confirm Script A's briefing tells testers to ignore both — they may otherwise click Start scheduled scans and burn your $5 Gemini sandbox budget by leaving monitoring on after the session ends.
+- Does the home card communicate "what is this product?" within 30 seconds? (Task 1 hinges on this.)
+- Does the promo code section appear on Free tier and disappear after redemption?
+- Does the chat.google.com webhook walkthrough match current Google Chat UI? Update Task 2c step 4 if the menu has shifted.
+- Do all five Google channels fire from a single rule? Missing tail-end channels (Docs, Chat) usually mean the run hit `MAX_RUN_MS` — simplify the rule prompt to reduce Gemini latency.
+- Does the unverified-app consent warning match your scripts ("Continue → Allow")?
+- Is the activity log line clear to a non-technical tester?
+- Does the home card show the Scan email every dropdown above Start scheduled scans? Script A's briefing tells testers to ignore both — confirm the copy is still accurate.
 
-### 3e. Fix what you find before Step 4
+### 3f. Fix what you find before Step 4
 
-Time budget: 30 min self-test + up to 60 min script trimming / minor add-on edits. If you find structural issues (e.g., the install flow is broken, Gemini key entry is unintuitive), it's better to fix and re-run pre-flight than to ship those issues to 10 paid sessions.
+Time budget: 30 min self-test + up to 60 min fixes. Fix and re-run pre-flight if you find structural issues (broken install flow, unintuitive Gemini key entry).
 
 ---
 
-## Step 4 — Fill placeholders + submit Round 1 to UserTesting (~30 min)
+## Step 4 — Mint codes + fill scripts + submit to UserTesting (~30 min)
 
-> **Round 1 scope (decided 2026-04-29, expanded 2026-05-07):** All 10 sessions run **Script A** (core install + first rule + all five Google channels including Chat). SMS-path testing (Script B) is **retired** for all rounds — see `script_b_power.md` banner. The "Start scheduled scans" / auto-trigger path is also out of scope (it cannot deliver a result inside a 20-min session).
+> **Round scope:** All sessions run **Script A** (core install + first rule + all five Google channels including Chat). Script B is retired for all rounds. The "Start scheduled scans" path is out of scope (cannot deliver a result inside a 20-min session).
 
 ### 4a. Mint per-tester promo codes
 
-Each tester needs a **unique single-use Pro promo code** so Task 2b's redemption flow flips them to Pro and unlocks the Google Chat channel. Two ways to mint:
-
-**Recommended — local Python admin tool at `tools/promo/`** (one-time `.env` + `ADMIN_TOKEN` setup; see `tools/promo/__init__.py` docstring):
+Generate **11 codes** total — 10 for testers, 1 reserved for the Step 3 self-test. Use the promo CLI from repo root:
 
 ```bash
-# CLI:
-python -m tools.promo.cli mint usertest-round-002 11 --label "Round 2 — minted YYYY-MM-DD"
-
-# Or web UI (Mint form + per-row Assign buttons):
-python -m tools.promo.server   # http://127.0.0.1:5057
+python -m tools.promo.cli mint usertest-round-00N 11 --label "Round N — minted YYYY-MM-DD"
 ```
 
-Either path auto-creates a tracking file at `promo_codes/<batch>.txt` with all codes pre-populated. The web UI's per-row Assign button lets you click into a row and enter Name / Email / UT session — both the Sheet and the local file update in one shot.
+This writes `promo_codes/usertest-round-00N.txt` with all codes. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties — without it the home card hides the promo redemption section and Task 2b is impossible.
 
-**Fallback — Apps Script editor** (works without Python tool setup):
+Fallback (no Python tool): edit `BATCH_NAME` / `BATCH_QTY` / `BATCH_LABEL` in `scripts/PromoCodeAdmin.gs`, run `runGenerateBatch` from the Apps Script editor, copy codes from Logger output. Revert the constants before any future commit.
 
-1. Open the standalone admin/service project at script.google.com — same project that hosts `PromoCodeService.gs`.
-2. In `scripts/PromoCodeAdmin.gs`, edit `BATCH_NAME`, `BATCH_QTY`, `BATCH_LABEL` at the top of the file.
-3. Pick `runGenerateBatch` from the function dropdown; click Run.
-4. Logger output lists the new codes; the Sheet has new rows. **Revert** the constants before any future commit.
+### 4b. Fill placeholders (automated)
 
-Either path: generate **11 codes** total (10 for testers + 1 reserved for your own pre-flight self-test in Step 3a). Save them outside git — `promo_codes/<batch>.txt` is auto-created and gitignored if you used the Python tool, or your password manager for the editor path. Confirm `PROMO_SERVICE_URL` is set in the **add-on project's** Script Properties (not the standalone project) — without it the redemption section at the bottom of the home card does not render.
+```bash
+bash tools/preflight/step4b_fill_scripts.sh ROUND GEMINI_KEY DEPLOY_URL BATCH_FILE
+# e.g.:
+# bash tools/preflight/step4b_fill_scripts.sh 1 AIza... https://workspace.google.com/... promo_codes/usertest-round-001.txt
+```
 
-### 4b. Fill placeholders
-
-The Script A file (`script_a_core.md`) contains `<DEV_GEMINI_KEY>`, `<TEST_DEPLOYMENT_URL>`, and `<TESTER_PROMO_CODE>` placeholders. Don't replace them in the repo — those values are per-round (and per-tester for the promo code) secrets and shouldn't end up in git history.
-
-Instead:
-
-1. Copy the full text of `script_a_core.md`.
-2. Paste into a temp file per tester (`usertesting/outgoing/round_1/script_a_filled_tester_<N>.md` — the `outgoing/` directory is gitignored) OR paste directly into UserTesting's task editor and submit each session individually.
-3. In each per-tester copy, replace `<DEV_GEMINI_KEY>` with the key from Step 1, `<TEST_DEPLOYMENT_URL>` with the URL from Step 2, and `<TESTER_PROMO_CODE>` with **a different one** of the 10 codes minted in Step 4a — never reuse the same code across two testers (single-use enforcement will lock the second tester out of Pro).
-4. After the round closes (and definitely before any future round), rotate the Gemini key (revoke old, generate new in the same sandbox project), create a fresh test deployment URL, and **void any unredeemed promo codes** via the standalone admin project — Round-1 testers shouldn't retain working access.
+All four arguments can be omitted — the script prompts for each (and auto-detects the most recent batch file). It writes one filled file per tester to `usertesting/outgoing/round_N/` (gitignored). Every file has a unique promo code; never reuse a code across two testers.
 
 ### 4c. Sign up for UserTesting
 
-If you don't already have an account: **https://www.usertesting.com/** → sign up. Onboarding asks about your company / use case; free-text answers are fine.
+If you don't have an account: **https://www.usertesting.com/** → sign up.
 
 ### 4d. Configure the test — Script A only, 10 sessions
 
-1. Create a new test → **Unmoderated** / **Self-serve**.
-2. Devices: **Desktop only** (the add-on is desktop Gmail).
-3. Browser: any (Chrome and Firefox both work for Gmail).
-4. Session length: **20 minutes** (UserTesting prices the same up to 30 min; this gives testers headroom for the Chat-webhook step).
-5. Tester profile filters (paste from Script A's "Screener questions" section):
+1. Create a new test → **Unmoderated / Self-serve**
+2. Devices: **Desktop only**
+3. Browser: any (Chrome and Firefox both work)
+4. Session length: **20 minutes**
+5. Tester profile filters (from Script A's screener questions section):
    - Heavy Gmail user (50+ emails/day)
    - One of: small business owner / freelancer / salesperson / real estate agent / paralegal / recruiter
    - US-based
-   - **Google Chat enabled** in their Google account (verifiable at chat.google.com — Spaces sidebar visible). School / enterprise accounts with Chat disabled do NOT qualify.
-   - Has installed a Gmail add-on or browser extension before, OR comfortable installing software when given a link
-6. Tasks: paste Script A's 5 tasks, one per task field. Use the filled-in text from Step 4b. **Each session must use a different promo code** — UserTesting's "duplicate test" flow makes this easy: clone the test 10 times, edit only the `<TESTER_PROMO_CODE>` line in Task 2b for each.
-7. Session count: **10 sessions** (one per per-tester filled script).
-8. Submit.
+   - Google Chat enabled (`chat.google.com` — Spaces sidebar visible)
+   - Has installed a browser extension before, OR comfortable installing software when given a link
+6. Tasks: paste Script A tasks 1–5 from the per-tester filled file in `usertesting/outgoing/round_N/`. Clone the test 10 times and use a different filled file each time — the only difference between sessions is the `TESTER_PROMO_CODE` line in Task 2b.
+7. Session count: **10 sessions**
+8. Submit
 
 ### 4e. Pay
 
-Roughly **$49 × 10 = $490** total. UserTesting charges per session at submission.
+~$49 × 10 = **~$490** total. UserTesting charges per session at submission.
 
 ---
 
 ## Step 5 — When sessions return (1–2 weeks later)
 
-UserTesting emails you when each session completes. Recordings come back gradually over 1–2 weeks; some testers are fast, some take days.
+UserTesting emails you when each session completes. Recordings trickle back over 1–2 weeks.
 
 ### 5a. Watch and note
 
-```
-cp usertesting/docs/triage_template.md usertesting/findings/round_1_$(date +%Y-%m-%d)_findings.md
+```bash
+cp usertesting/docs/triage_template.md \
+   usertesting/findings/round_N_$(date +%Y-%m-%d)_findings.md
 ```
 
-Open the new findings file. Watch each recording at 1.5 × speed. Fill in the findings table as you go — one row per distinct issue, with verbatim quotes when possible.
+Watch each recording at 1.5× speed. Fill the findings table as you go — one row per distinct issue, verbatim quotes when possible.
 
 ### 5b. Group and fix
 
-After all 10 sessions are watched, sort the findings table by severity (5+ testers = critical, 2–4 = important, 1 = backlog). Fix critical + important findings in priority order. Push fixes to the live test deployment (`clp`). Update the **Fix status** column in the findings file as each is shipped.
+After all 10 sessions, sort by severity (5+ testers = critical, 2–4 = important, 1 = backlog). Fix critical + important in priority order. Push with `clp`. Update the **Fix status** column as each ships.
 
-### 5c. Optional Round 2
+### 5c. Rotate credentials (required before Round N+1)
 
-After fixes ship, optionally run a smaller Round 2 (~5 sessions, ~$245, unmoderated) to verify the regressions are gone before Marketplace submission. Use the same scripts (no changes unless you also revised them based on Round 1 feedback) and a fresh sandbox-project Gemini key.
+```bash
+# Void unredeemed promo codes
+python -m tools.promo.cli void-batch usertest-round-00N
+
+# Revoke the Gemini key
+# GCP Console → emailsentinel-usertesting-rN → APIs & Services → Credentials
+# → find "UserTesting Round N — Gemini key" → Delete
+
+# Create a fresh deploy URL for next round (new Marketplace SDK deployment)
+```
+
+### 5d. Optional Round N+1
+
+After fixes ship, run a smaller round (~5 sessions, ~$245) to verify regressions are gone before Marketplace submission. Use the same scripts; mint a fresh batch of codes and a new sandbox Gemini key.
 
 ---
 
-## Round-1 cost & time budget (locked)
+## Round cost & time budget
 
-| Item | Cost | Time |
+| Step | Cost | Time |
 |---|---|---|
-| Step 1 — Sandbox GCP project + capped Gemini key | $0 (until tester usage; capped at $5) | ~10 min hands-on + hours/days waiting on Google's project-quota approval if your account hits that limit |
-| Step 2 — Marketplace SDK setup + install URL | $0 | **~2–3 hours** (pull-forward of pre-launch critical-path work; the SDK has to be configured for public launch anyway) |
-| Step 3 — Pre-flight self-test on fresh Google account | $0 | ~30 min + ≤60 min trim/fix |
-| Step 4 — Mint per-tester promo codes + UserTesting account + Round 1 submission (10 sessions, all Script A, 20-min) | ~$490 | ~30 min (10 min code minting + 20 min test setup) |
-| Wait for sessions to come back | $0 | 1–2 weeks (your time: 0) |
-| Step 5 — Triage + fix | $0 | ~3–4 hr review + 4–10 hr fixes |
-| Optional Round 2 | ~$245 | ~2 hr review |
+| Step 1 — sandbox GCP + capped Gemini key (`step1_create_sandbox.sh`) | $0 (until tester usage; capped at $5) | ~5 min |
+| Step 2 — Marketplace SDK setup + install URL (`step2a_enable_sdk.sh` + manual) | $0 | **~2–3 hours** (pull-forward of launch critical-path) |
+| Step 3 — pre-flight self-test (`run_script_a.sh` + `walk_script_a.sh`) | $0 | ~30 min + ≤60 min fixes |
+| Step 4 — mint codes (`promo CLI`) + fill scripts (`step4b_fill_scripts.sh`) + UserTesting submission | ~$490 | ~30 min |
+| Wait for sessions | $0 | 1–2 weeks (your time: 0) |
+| Step 5 — triage + fix | $0 | ~3–4 hr review + 4–10 hr fixes |
+| Optional Round N+1 | ~$245 | ~2 hr review |
 | **Total Round 1 only** | **~$490** | **~12–14 hr of dev time over ~3 weeks** |
-
-Calendar runs in parallel with the OAuth-verification wait, so launch date isn't pushed. Step 2's Marketplace SDK setup also satisfies a launch requirement — you're not adding work to the launch path, just sequencing it earlier.

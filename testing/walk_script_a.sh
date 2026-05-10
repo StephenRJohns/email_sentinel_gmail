@@ -294,13 +294,15 @@ main() {
   fi
 
   if [[ -z "$tester" ]]; then
-    read -rp "Tester number (e.g. 1): " tester
+    read -rp "Tester number (e.g. 1 → saved as 001): " tester
     tester="${tester// /}"
     if [[ -z "$tester" ]]; then
       echo "Tester number required." >&2
       exit 1
     fi
   fi
+
+  tester=$(printf '%03d' "$tester")
 
   local filepath
   filepath=$(create_session_file "$tester")

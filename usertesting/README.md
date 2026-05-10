@@ -33,7 +33,19 @@ The directories themselves are kept (with `.gitkeep`) so the structure is obviou
 ## Reference
 
 - **Pre-flight walkthrough:** `docs/preflight_setup.md`
-- **Task script — core flow:** `docs/script_a_core.md`
+- **Task script — core flow (UserTesting.com):** `docs/script_a_core.md`
+- **Task script — SMS provider validation (direct-recruited):** `docs/script_c_sms_providers.md`
+- **Pre-flight walkthrough (SMS round):** `docs/preflight_sms.md`
 - **Task script — SMS path (RETIRED, historical reference only):** `docs/script_b_power.md`
 - **Triage template:** `docs/triage_template.md`
 - **Round-1 plan summary:** memory file `project_pre_launch_todo.md` (Testing section) and the locked plan at `~/.claude/plans/should-i-run-a-wondrous-hollerith.md`.
+
+## Scripts
+
+| Script | What it automates | Run |
+|---|---|---|
+| `tools/preflight/step1_create_sandbox.sh` | GCP sandbox project + capped Gemini key | Step 1 of preflight |
+| `tools/preflight/step2a_enable_sdk.sh` | Marketplace SDK enable + manual checklist | Step 2a of preflight |
+| `tools/preflight/step4b_fill_scripts.sh` | Fill Script A placeholders for all testers | Script A rounds |
+| `tools/preflight/step4c_fill_sms_scripts.sh` | Assign providers + fill Script C per tester | Script C SMS rounds |
+| `tools/preflight/validate_sms_providers.sh` | Credential check + live test SMS for all 6 providers | Script C preflight Step 2 |

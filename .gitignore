@@ -36,6 +36,10 @@ promo_codes/
 # Local Python admin tool — env file holds PROMO_ADMIN_TOKEN (a master key
 # that can mint / void / assign codes) and PROMO_SERVICE_URL.
 tools/promo/.env
+
+# SMS provider preflight credentials — contains API keys, auth tokens, and
+# the developer's personal mobile number for test SMS dispatch.
+tools/preflight/sms_preflight.env
 tools/promo/__pycache__/
 tools/promo/**/__pycache__/
 
