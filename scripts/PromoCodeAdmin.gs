@@ -42,9 +42,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Batch generation config — edit before running, revert before committing ──
-const BATCH_NAME  = 'my-batch';        // e.g. 'reviewers-may-2026'
-const BATCH_QTY   = 10;               // number of codes to generate
-const BATCH_LABEL = '';               // optional note stored alongside codes
+const BATCH_NAME   = 'my-batch';        // e.g. 'reviewers-may-2026'
+const BATCH_QTY    = 10;                // number of codes to generate
+const BATCH_LABEL  = '';                // optional note stored alongside codes
+// 4-char product prefix (A–Z, 0–9). One per consumer add-on so codes from
+// different products are visually distinguishable in the shared Codes Sheet:
+//   SENT  = emAIl Sentinel (Gmail)
+//   S365  = emAIl Sentinel 365 (Outlook)
+//   NATT  = Natty the Nocrastinator (Calendar)
+//   N365  = Natty 365 (future Outlook calendar)
+// Editor flow defaults to 'SENT' so legacy editor runs keep working; the
+// Python admin tool always sends an explicit prefix from each product's
+// tools/promo/.env (PROMO_CODE_PREFIX).
+const BATCH_PREFIX = 'SENT';
 
 // ── Listing config ────────────────────────────────────────────────────────────
 // Leave empty to list all batches/codes; set to a batch name to filter.
@@ -98,7 +108,7 @@ function runGenerateBatch() {
   if (BATCH_NAME === 'my-batch') {
     throw new Error('Set BATCH_NAME to something meaningful before running.');
   }
-  const codes = generateBatch_(BATCH_NAME, BATCH_QTY, BATCH_LABEL);
+  const codes = generateBatch_(BATCH_NAME, BATCH_QTY, BATCH_LABEL, BATCH_PREFIX);
   Logger.log('Generated ' + codes.length + ' codes in batch "' + BATCH_NAME + '":');
   codes.forEach(function(c) { Logger.log('  ' + c); });
 }
@@ -217,7 +227,8 @@ function runVoidBatch() {
 // PRIVATE HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function generateBatch_(batchName, quantity, label) {
+function generateBatch_(batchName, quantity, label, prefix) {
+  const safePrefix = validatePrefix_(prefix);
   const sheet = getCodesSheet_();
   const data = sheet.getDataRange().getValues();
   const existing = new Set(data.slice(1).map(function(r) { return r[COL_CODE_]; }));
@@ -227,7 +238,7 @@ function generateBatch_(batchName, quantity, label) {
   let attempts = 0;
   while (rows.length < quantity && attempts < quantity * 20) {
     attempts++;
-    const code = randomCode_();
+    const code = randomCode_(safePrefix);
     if (!existing.has(code)) {
       existing.add(code);
       rows.push([code, batchName, now, 'unused', '', '', label || '']);
@@ -239,8 +250,19 @@ function generateBatch_(batchName, quantity, label) {
   return rows.map(function(r) { return r[0]; });
 }
 
-function randomCode_() {
-  let code = 'SENT-';
+// Validate and normalize a 4-char product prefix. Defaults to 'SENT' so
+// callers that omit the argument (legacy editor flow, old admin tools that
+// don't yet send body.prefix) keep working.
+function validatePrefix_(prefix) {
+  const p = (prefix == null ? 'SENT' : String(prefix)).toUpperCase();
+  if (!/^[A-Z0-9]{4}$/.test(p)) {
+    throw new Error('Invalid prefix "' + prefix + '" — must be exactly 4 uppercase A–Z or 0–9 characters.');
+  }
+  return p;
+}
+
+function randomCode_(prefix) {
+  let code = validatePrefix_(prefix) + '-';
   for (let i = 0; i < 4; i++) {
     code += CODE_CHARS_[Math.floor(Math.random() * CODE_CHARS_.length)];
   }

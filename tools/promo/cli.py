@@ -33,8 +33,9 @@ def _client() -> AppsScriptClient:
 
 def cmd_mint(args: argparse.Namespace) -> int:
     client = _client()
-    codes = client.mint(args.batch, args.qty, label=args.label or "")
-    print(f"Minted {len(codes)} code(s) in batch '{args.batch}':")
+    prefix = args.prefix or config.PROMO_CODE_PREFIX
+    codes = client.mint(args.batch, args.qty, label=args.label or "", prefix=prefix)
+    print(f"Minted {len(codes)} code(s) in batch '{args.batch}' (prefix={prefix}):")
     for c in codes:
         print(f"  {c}")
 
@@ -151,6 +152,9 @@ def main(argv: list[str] | None = None) -> int:
     pm.add_argument("batch")
     pm.add_argument("qty", type=int)
     pm.add_argument("--label", default="")
+    pm.add_argument("--prefix", default="",
+                    help="Override the env-configured 4-char code prefix "
+                         "(default: PROMO_CODE_PREFIX from tools/promo/.env)")
     pm.set_defaults(func=cmd_mint)
 
     pv = sub.add_parser("void", help="Void a single unused/unredeemed code")

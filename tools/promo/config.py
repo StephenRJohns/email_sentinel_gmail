@@ -1,5 +1,6 @@
-"""Loads PROMO_SERVICE_URL, PROMO_ADMIN_TOKEN, and PROMO_CODES_DIR from a
-.env file alongside this module (or from the process environment).
+"""Loads PROMO_SERVICE_URL, PROMO_ADMIN_TOKEN, PROMO_CODE_PREFIX, and
+PROMO_CODES_DIR from a .env file alongside this module (or from the process
+environment).
 
 Fails fast with a clear error if the required values are missing — both the
 CLI and the Flask server import this module at startup and rely on the
@@ -9,6 +10,7 @@ Apps Script Web App.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -36,8 +38,21 @@ def _resolved_codes_dir() -> Path:
     return path
 
 
+def _validated_prefix(name: str) -> str:
+    value = _required(name).upper()
+    if not re.fullmatch(r"[A-Z0-9]{4}", value):
+        raise RuntimeError(
+            f"{name}={value!r} is invalid — must be exactly 4 uppercase "
+            f"A–Z or 0–9 characters (e.g. SENT, S365, NATT, N365). One per "
+            f"product so codes from different add-ons are visually "
+            f"distinguishable in the shared Codes Sheet."
+        )
+    return value
+
+
 PROMO_SERVICE_URL = _required("PROMO_SERVICE_URL")
 PROMO_ADMIN_TOKEN = _required("PROMO_ADMIN_TOKEN")
+PROMO_CODE_PREFIX = _validated_prefix("PROMO_CODE_PREFIX")
 PROMO_CODES_DIR = _resolved_codes_dir()
 PROMO_BIND_HOST = os.environ.get("PROMO_BIND_HOST", "127.0.0.1").strip()
 PROMO_BIND_PORT = int(os.environ.get("PROMO_BIND_PORT", "5057"))

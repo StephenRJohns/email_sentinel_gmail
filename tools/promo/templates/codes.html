@@ -31,6 +31,7 @@
 
 <section class="mint-form">
   <h2>Mint a new batch</h2>
+  <p class="mint-prefix-note">Codes will be generated as <code>{{ code_prefix }}-XXXX-XXXX</code> (prefix from <code>tools/promo/.env</code> <code>PROMO_CODE_PREFIX</code>).</p>
   <form method="post" action="{{ url_for('mint') }}">
     <label>Batch name <input name="batch" required placeholder="e.g. usertest-round-002"></label>
     <label>Qty <input name="qty" type="number" min="1" max="1000" value="10" required></label>

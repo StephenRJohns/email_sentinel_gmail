@@ -158,6 +158,71 @@ function runPromoServiceTests() {
       normalizeCode_(null) === '' &&
       normalizeCode_(undefined) === '');
 
+    // ── validatePrefix_ + per-product mint prefix branches ──────────────
+
+    record('validatePrefix_ accepts valid 4-char prefix',
+      validatePrefix_('NATT') === 'NATT' && validatePrefix_('S365') === 'S365');
+    record('validatePrefix_ uppercases lowercase input',
+      validatePrefix_('natt') === 'NATT');
+    record('validatePrefix_ defaults to SENT when undefined',
+      validatePrefix_(undefined) === 'SENT' && validatePrefix_(null) === 'SENT');
+
+    let threw = false;
+    try { validatePrefix_('SENT-'); } catch (_) { threw = true; }
+    record('validatePrefix_ rejects 5-char input with hyphen', threw);
+
+    threw = false;
+    try { validatePrefix_('SE'); } catch (_) { threw = true; }
+    record('validatePrefix_ rejects too-short input', threw);
+
+    threw = false;
+    try { validatePrefix_('AB!@'); } catch (_) { threw = true; }
+    record('validatePrefix_ rejects non-alphanumeric chars', threw);
+
+    // Use a fixed RegExp character class matching CODE_CHARS_ — visually
+    // distinct alphanumerics, no 0/O/1/I/L. Keep in sync with PromoCodeAdmin.
+    const CODE_CHAR_CLASS = '[A-HJ-NP-Z2-9]';
+
+    record('randomCode_ honors a custom prefix',
+      new RegExp('^NATT-' + CODE_CHAR_CLASS + '{4}-' + CODE_CHAR_CLASS + '{4}$')
+        .test(randomCode_('NATT')));
+    record('randomCode_ default prefix is SENT',
+      new RegExp('^SENT-' + CODE_CHAR_CLASS + '{4}-' + CODE_CHAR_CLASS + '{4}$')
+        .test(randomCode_()));
+
+    // generateBatch_ end-to-end with a custom prefix. Exercises the same
+    // path the Web App's handleMint_ takes when an admin tool sends
+    // body.prefix. Uses the production 'Codes' sheet (same as the
+    // legacy editor flow), then cleans up its inserted rows.
+    const mintBatchName = '_PromoTest_mintWithPrefix';
+    let mintCodes;
+    try {
+      mintCodes = generateBatch_(mintBatchName, 2, '', 'NATT');
+    } catch (e) {
+      mintCodes = null;
+      record('generateBatch_ with prefix=NATT runs without throwing', false,
+        'threw: ' + e);
+    }
+    if (mintCodes) {
+      record('generateBatch_ returns the requested quantity',
+        mintCodes.length === 2, 'codes=' + JSON.stringify(mintCodes));
+      record('generateBatch_ codes all start with the requested prefix',
+        mintCodes.every(function(c) { return /^NATT-/.test(c); }),
+        JSON.stringify(mintCodes));
+      const allRows = ss.getSheetByName('Codes');
+      if (allRows) {
+        const data = allRows.getDataRange().getValues();
+        for (let i = data.length - 1; i >= 1; i--) {
+          if (data[i][1] === mintBatchName) allRows.deleteRow(i + 1);
+        }
+      }
+    }
+
+    threw = false;
+    try { generateBatch_('_PromoTest_bad', 1, '', 'BAD!'); } catch (_) { threw = true; }
+    record('generateBatch_ rejects invalid prefix before any sheet write',
+      threw);
+
   } finally {
     const cleanup = ss.getSheetByName(TEST_SHEET_NAME_);
     if (cleanup) ss.deleteSheet(cleanup);

@@ -152,14 +152,23 @@ function doPost(e) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function handleMint_(body) {
-  const batch = (body.batch || '').trim();
-  const qty   = parseInt(body.qty, 10);
-  const label = (body.label || '').trim();
+  const batch  = (body.batch || '').trim();
+  const qty    = parseInt(body.qty, 10);
+  const label  = (body.label || '').trim();
+  // Optional. Older admin tools predate this field — fall back to 'SENT'
+  // (validatePrefix_'s default) so unupgraded clients keep minting cleanly.
+  const prefix = (body.prefix || '').trim() || undefined;
   if (!batch) return jsonError_('Missing batch name.');
   if (!qty || qty < 1 || qty > 1000) return jsonError_('qty must be 1..1000.');
-  // generateBatch_ lives in PromoCodeAdmin.gs — same Apps Script project,
-  // shared global scope.
-  const codes = generateBatch_(batch, qty, label);
+  // generateBatch_ + validatePrefix_ live in PromoCodeAdmin.gs — same
+  // Apps Script project, shared global scope. validatePrefix_ throws on
+  // bad input; surface that as a 'service error' style ok=false response.
+  let codes;
+  try {
+    codes = generateBatch_(batch, qty, label, prefix);
+  } catch (e) {
+    return jsonError_(e.message || String(e));
+  }
   return jsonOk_({ codes: codes });
 }
 

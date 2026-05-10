@@ -60,9 +60,17 @@ class AppsScriptClient:
 
     # ── Admin actions ─────────────────────────────────────────────────────
 
-    def mint(self, batch: str, qty: int, label: str = "") -> list[str]:
-        """Mint `qty` codes in `batch`. Returns the list of new code strings."""
-        result = self._post("mint", batch=batch, qty=qty, label=label)
+    def mint(self, batch: str, qty: int, label: str = "", prefix: str = "") -> list[str]:
+        """Mint `qty` codes in `batch`. Returns the list of new code strings.
+
+        `prefix` is the 4-char product code prefix (SENT/S365/NATT/N365).
+        Sent as `body.prefix` to the Web App; if empty the backend defaults
+        to 'SENT' for back-compat with admin tools that predate this field.
+        """
+        kwargs: dict = {"batch": batch, "qty": qty, "label": label}
+        if prefix:
+            kwargs["prefix"] = prefix
+        result = self._post("mint", **kwargs)
         return list(result.get("codes", []))
 
     def void(self, code: str) -> None:

@@ -49,7 +49,7 @@ SHEET_URL = (
 
 @app.context_processor
 def _inject_sheet_url():
-    return {"sheet_url": SHEET_URL}
+    return {"sheet_url": SHEET_URL, "code_prefix": config.PROMO_CODE_PREFIX}
 
 
 def _list_codes(batch: str | None = None) -> list[dict]:
@@ -199,7 +199,7 @@ def mint():
         return redirect(url_for("index"))
 
     try:
-        codes = client.mint(batch, qty, label=label)
+        codes = client.mint(batch, qty, label=label, prefix=config.PROMO_CODE_PREFIX)
     except AppsScriptError as exc:
         flash(f"Mint failed: {exc}", "error")
         return redirect(url_for("index"))
