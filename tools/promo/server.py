@@ -17,7 +17,7 @@ Run:
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
@@ -209,7 +209,7 @@ def mint():
             codes_dir=config.PROMO_CODES_DIR,
             batch=batch,
             codes=codes,
-            minted_at_iso=datetime.utcnow().isoformat() + "Z",
+            minted_at_iso=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             label=label,
         )
         flash(

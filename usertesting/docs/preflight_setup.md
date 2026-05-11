@@ -22,18 +22,18 @@ bash tools/preflight/step1_create_sandbox.sh ROUND_NUM
 ```
 
 **What it does automatically:**
-- Creates GCP project `emailsentinel-usertesting-r<NNN>`
+- Ensures shared GCP project `emailsentinel-usertesting-r001` exists (one project across all rounds; only the API key is per-round)
 - Links your billing account
 - Enables the Generative Language API
 - Creates a `$5` budget alert (notifies at 50 %, 90 %, 100 % of spend)
-- Creates an API key scoped to the Generative Language API
+- Creates a per-round API key scoped to the Generative Language API
 - Validates the key with a live Gemini call
 
-**One manual step the script cannot do** (Cloud Console UI only):
-
-> Cloud Console → `emailsentinel-usertesting-r<NNN>` → APIs & Services → Generative Language API → **Quotas** → set **Requests per day** to **200**.
->
-> The budget alert notifies but does not hard-kill spending. The quota cap does. 10 testers × ~10 calls each = 100 calls; 200 gives headroom but caps a runaway loop.
+**No manual quota cap step.** The original preflight doc instructed setting a `Requests per day = 200` quota in Cloud Console as a runaway-loop safety net. Google has since removed that user-configurable quota from the Gemini API (daily limits are now token-based, not request-based). The remaining safety layers are sufficient:
+- `$5` budget alert from the script
+- `MAX_EVALS_PER_RUN = 100` in code (caps per-trigger calls)
+- 60-minute polling floor (caps trigger frequency)
+- Theoretical worst-case daily spend stays well under `$5` on Gemini-flash
 
 **Save the key** that the script prints to your password manager:
 `UserTesting Round N — Gemini key — created YYYY-MM-DD`
@@ -219,7 +219,7 @@ After all 10 sessions, sort by severity (5+ testers = critical, 2–4 = importan
 python -m tools.promo.cli void-batch usertest-round-NNN
 
 # Revoke the Gemini key
-# GCP Console → emailsentinel-usertesting-rN → APIs & Services → Credentials
+# GCP Console → emailsentinel-usertesting-r001 → APIs & Services → Credentials
 # → find "UserTesting Round N — Gemini key" → Delete
 
 # Create a fresh deploy URL for next round (new Marketplace SDK deployment)

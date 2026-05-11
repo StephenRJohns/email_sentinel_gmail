@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from . import config
@@ -46,7 +46,7 @@ def cmd_mint(args: argparse.Namespace) -> int:
             codes_dir=config.PROMO_CODES_DIR,
             batch=args.batch,
             codes=codes,
-            minted_at_iso=datetime.utcnow().isoformat() + "Z",
+            minted_at_iso=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             label=args.label or "",
         )
         print(f"Local tracking file: {path}")

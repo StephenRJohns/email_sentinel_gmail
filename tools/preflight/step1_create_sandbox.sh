@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Step 1 — Create GCP sandbox project + capped Gemini API key for a UserTesting round.
+# Step 1 — Ensure shared GCP sandbox project exists and create a capped Gemini API key
+#           for a UserTesting round. One project is reused across all rounds; each round
+#           gets its own named API key (and its own quota hard-cap set manually).
 #
 # Usage:
 #   bash tools/preflight/step1_create_sandbox.sh          # prompts for round number
@@ -20,23 +22,24 @@ fi
 ROUND=$(printf '%d' "$ROUND" 2>/dev/null) || { echo "ERROR: Round must be a number." >&2; exit 1; }
 ROUND_PAD=$(printf '%03d' "$ROUND")
 
-PROJECT_ID="emailsentinel-usertesting-r${ROUND_PAD}"
+PROJECT_ID="emailsentinel-usertesting-r001"
 KEY_DISPLAY_NAME="UserTesting Round ${ROUND_PAD} — Gemini key"
 
 echo "============================================================"
-echo "  Step 1 — GCP sandbox project + capped Gemini key"
-echo "  Project : $PROJECT_ID"
+echo "  Step 1 — Shared GCP sandbox project + capped Gemini key"
+echo "  Project : $PROJECT_ID (shared across all rounds)"
+echo "  Round   : $ROUND_PAD"
 echo "============================================================"
 echo ""
 
-# ── 1a. Create project ────────────────────────────────────────────────────────
+# ── 1a. Create project (idempotent) ──────────────────────────────────────────
 
 echo "1a. GCP project..."
 if gcloud projects describe "$PROJECT_ID" --format="value(projectId)" &>/dev/null; then
   echo "    Already exists — skipping create."
 else
   gcloud projects create "$PROJECT_ID" \
-    --name="emAIl Sentinel UserTesting R${ROUND_PAD}"
+    --name="emAIl Sentinel UserTesting"
   echo "    Created."
 fi
 
@@ -61,37 +64,35 @@ else
   echo "    Linked: $BILLING_ACCOUNT"
 fi
 
-# ── 1b. Enable API ────────────────────────────────────────────────────────────
+# ── 1b. Enable API (idempotent) ───────────────────────────────────────────────
 
 echo ""
 echo "1b. Enabling Generative Language API..."
 gcloud services enable generativelanguage.googleapis.com --project="$PROJECT_ID"
 echo "    Enabled."
 
-# ── Budget alert ($5 cap) ─────────────────────────────────────────────────────
+# ── Budget alert ($5 cap — one-time, skipped if already exists) ──────────────
 
-echo "    Creating \$5 budget alert..."
+echo "    Checking budget alert..."
 gcloud billing budgets create \
   --billing-account="$BILLING_ACCOUNT" \
-  --display-name="emAIl Sentinel UserTesting R${ROUND_PAD}" \
+  --display-name="emAIl Sentinel UserTesting" \
   --budget-amount=5USD \
   --filter-projects="projects/$PROJECT_ID" \
   --threshold-rules=percent=0.5 \
   --threshold-rules=percent=0.9 \
   --threshold-rules=percent=1.0 2>/dev/null \
   && echo "    Budget alert set." \
-  || echo "    Budget creation skipped (may already exist or Billing Budget API not yet enabled)."
+  || echo "    Budget already exists or Billing Budget API not enabled — skipping."
 echo ""
 echo "    NOTE: Budget alerts notify but do NOT hard-cap spending."
-echo "    Manual quota hard-cap (still required):"
-echo "      Cloud Console → $PROJECT_ID → APIs & Services"
-echo "      → Generative Language API → Quotas"
-echo "      → set 'Requests per day' to 200."
+echo "    Other safety layers (code-level MAX_EVALS_PER_RUN + 60-min polling"
+echo "    floor + token-based daily limits) keep worst-case spend under \$5."
 
-# ── 1c. Create API key ────────────────────────────────────────────────────────
+# ── 1c. Create per-round API key ─────────────────────────────────────────────
 
 echo ""
-echo "1c. Creating Gemini API key..."
+echo "1c. Creating Gemini API key for Round ${ROUND_PAD}..."
 EXISTING_KEY=$(gcloud services api-keys list \
   --project="$PROJECT_ID" \
   --filter="displayName='$KEY_DISPLAY_NAME'" \
@@ -136,7 +137,7 @@ echo ""
 echo "============================================================"
 echo "  DONE — save this key to your password manager NOW:"
 echo ""
-echo "  Key   : $KEY_STRING"
-echo "  Label : $KEY_DISPLAY_NAME — $(date +%Y-%m-%d)"
+echo "  Key    : $KEY_STRING"
+echo "  Label  : $KEY_DISPLAY_NAME — $(date +%Y-%m-%d)"
 echo "  Project: $PROJECT_ID"
 echo "============================================================"
