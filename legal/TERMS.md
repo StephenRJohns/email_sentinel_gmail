@@ -80,6 +80,8 @@ When you configure SMS as an alert channel, **you**, not JJJJJ Enterprises, LLC,
 
 **We do not track, verify, document, or audit recipient consent on your behalf.** The Service does not manage opt-outs, maintain do-not-call lists, append regulatory disclosures, or file carrier registrations. You indemnify JJJJJ Enterprises, LLC for any claim, fine, settlement, or cost arising from your failure to comply with this Section — see Section 11.
 
+**Standard SMS program disclosure.** For SMS alerts dispatched through the Service: this is the *emAIl Sentinel* alert-notification program; recipients receive one-way email-alert notifications that you configure; **message frequency varies** with how many of your rules match incoming email; **message and data rates may apply**; recipients can **reply STOP to opt out** at any time and **reply HELP for help**; and consent to receive messages is not a condition of any purchase. Mobile phone numbers and SMS opt-in information are not shared with third parties for marketing — see our [Privacy Policy](privacy.html) § 5.
+
 ## 5. Third-Party Services
 
 The Service depends on, and transmits data to, third-party services that you choose to enable, including but not limited to:
