@@ -47,7 +47,7 @@
   ],
   "addOns": {
     "common": {
-      "name": "emAIl Sentinel",
+      "name": "emAIl Sentinel Lite",
       "logoUrl": "https://raw.githubusercontent.com/StephenRJohns/email_sentinel/main/images/ES_32.png",
       "homepageTrigger": {
         "runFunction": "onHomepage",

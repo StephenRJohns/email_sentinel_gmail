@@ -9,14 +9,21 @@
  * the Google Workspace Marketplace subscription API.
  */
 
+// This add-on is now the free **Lite** edition: fully featured, no caps. It scans
+// as fast as the Google add-on platform allows — time-based triggers can't fire
+// more than once an hour (a platform limit, not ours), so minPollMinutes is the
+// 60-minute floor for everyone. The thing Lite can't do is run continuously / in
+// real time — that automation is the self-hosted **Pro** product. Every limit
+// here is wide open; both tiers are identical (kept as a pair so the rest of the
+// code that reads getTierLimits()/isPro() keeps working).
 const TIERS = {
   free: {
-    maxRules: 3,
-    minPollMinutes: 180,
-    allowChat: false,
-    allowMcp: false,
-    allowAiSuggest: false,
-    logRetentionDays: 30
+    maxRules: Infinity,
+    minPollMinutes: 60,
+    allowChat: true,
+    allowMcp: true,
+    allowAiSuggest: true,
+    logRetentionDays: Infinity
   },
   pro: {
     maxRules: Infinity,
@@ -28,21 +35,18 @@ const TIERS = {
   }
 };
 
-const UPGRADE_URL = 'https://workspace.google.com/marketplace'; // updated at launch
+// Where the in-app "Upgrade to Pro" buttons send people: the self-hosted Pro
+// product (24/7 automation + real-time push). Update to the final landing page.
+const UPGRADE_URL = 'https://jjjjjenterprises.com/emailsentinel/pro';
 
-// Founding-member lifetime offer — $79 one-time, first 500 buyers only.
-// FOUNDING_MEMBERS_SOLD is bumped manually (or from the Marketplace subscription
-// API once wired up). When FOUNDING_MEMBERS_SOLD >= FOUNDING_MEMBERS_LIMIT, the
-// UI hides the offer and the Marketplace SKU should be paused.
-const FOUNDING_MEMBERS_LIMIT = 500;
-const FOUNDING_MEMBERS_SOLD  = 0;
-
+// Founding-member lifetime add-on offer — retired. Pro is now a separate
+// self-hosted subscription product, so there's no in-add-on lifetime unlock.
 function foundingMembersRemaining() {
-  return Math.max(0, FOUNDING_MEMBERS_LIMIT - FOUNDING_MEMBERS_SOLD);
+  return 0;
 }
 
 function isFoundingMemberOfferActive() {
-  return foundingMembersRemaining() > 0;
+  return false;
 }
 
 function getTier() {

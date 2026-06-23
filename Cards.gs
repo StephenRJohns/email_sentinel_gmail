@@ -69,9 +69,8 @@ function buildHomeCard() {
   const monitoring = isMonitoringActive();
   const enabledCount = rules.filter(r => r.enabled).length;
 
-  const tier = getTier();
   const limits = getTierLimits();
-  const planLabel = tier === 'pro' ? 'Pro' : 'Free (' + rules.length + '/' + limits.maxRules + ' rules)';
+  const planLabel = 'Lite';
 
   // Status rows: bold black title, brand dark purple (#581c87) value.
   // TextParagraph (rather than DecoratedText) so each row sits flush-left to
@@ -87,16 +86,15 @@ function buildHomeCard() {
     .addWidget(statusRow_('Rules', enabledCount + ' enabled / ' + rules.length + ' total'))
     .addWidget(statusRow_('Gemini API key', settings.geminiApiKey ? 'Configured' : 'NOT configured'));
 
-  if (tier === 'free') {
-    if (isFoundingMemberOfferActive()) {
-      statusSection.addWidget(CardService.newTextParagraph()
-        .setText('<b>Founding-member lifetime — $79</b><br>' +
-          '<font color="#888888">' + foundingMembersRemaining() + ' of ' + FOUNDING_MEMBERS_LIMIT + ' remaining. Retired after 500 sold.</font>'));
-    }
-    statusSection.addWidget(CardService.newTextButton()
-      .setText('Upgrade to Pro')
-      .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
-  }
+  // Lite → Pro automation upsell (this add-on is the free Lite edition; always shown).
+  statusSection.addWidget(CardService.newTextParagraph()
+    .setText('<b>Want 24/7 automatic monitoring?</b><br>' +
+      '<font color="#888888">Lite scans on a schedule, at most once an hour (a Google add-on ' +
+      'platform limit). emAIl Sentinel Pro is a self-hosted service that monitors continuously ' +
+      'with real-time alerts — across Gmail and Outlook, even when your computer is off.</font>'));
+  statusSection.addWidget(CardService.newTextButton()
+    .setText('Upgrade to Pro')
+    .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
 
   if (monitoring) {
     statusSection.addWidget(CardService.newTextButton()
@@ -221,7 +219,7 @@ function buildHomeCard() {
 
   var builder = CardService.newCardBuilder()
     .setHeader(CardService.newCardHeader()
-      .setTitle('emAIl Sentinel\u2122')
+      .setTitle('emAIl Sentinel Lite')
       // Served from the public GitHub repo so the icon is part of the source
       // tree, not a separate Drive asset that drifts. Use the 128 px asset
       // for the home-card header \u2014 CardService re-scales for the circle but
