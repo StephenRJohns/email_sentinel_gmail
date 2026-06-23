@@ -1739,9 +1739,29 @@ function handleCancelClearLog(e) {
 // Help
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildHelpCard() {
+function buildHelpCard(askAnswer, askQuestion) {
   var card = CardService.newCardBuilder()
-    .setHeader(CardService.newCardHeader().setTitle('emAIl Sentinel\u2122 Help'));
+    .setHeader(CardService.newCardHeader().setTitle('emAIl Sentinel Lite Help'));
+
+  // Ask AI \u2014 answered by the user's configured Gemini.
+  var askSection = CardService.newCardSection()
+    .setHeader('<b>Ask emAIl Sentinel</b>')
+    .addWidget(CardService.newTextParagraph()
+      .setText('<font color="#888888">Ask a question in plain English \u2014 answered by your Gemini.</font>'))
+    .addWidget(CardService.newTextInput()
+      .setFieldName('helpAskQuestion')
+      .setTitle('Your question')
+      .setValue(askQuestion || '')
+      .setHint('e.g. How do I send alerts to Google Chat?'))
+    .addWidget(CardService.newTextButton()
+      .setText(whiteText_('Ask'))
+      .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
+      .setBackgroundColor(BRAND_PURPLE_)
+      .setOnClickAction(action_('handleHelpAsk')));
+  if (askAnswer) {
+    askSection.addWidget(CardService.newTextParagraph().setText(formatHelpAnswer_(askAnswer)));
+  }
+  card.addSection(askSection);
 
   var searchSection = CardService.newCardSection()
     .setHeader('<b>Search help</b>')
