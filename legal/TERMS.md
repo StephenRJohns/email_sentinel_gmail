@@ -134,26 +134,8 @@ Without limiting the foregoing, we do not warrant that:
 
 **You must not rely on the Service for life-safety, medical, financial-trading, regulatory-compliance, or any other use where a missed or late alert could cause material harm.**
 
-## 10. Limitation of Liability
-
-**PLEASE READ THIS SECTION CAREFULLY. IT LIMITS OUR FINANCIAL LIABILITY TO YOU.**
-
-**To the fullest extent permitted by law, in no event will JJJJJ Enterprises, LLC or its officers, employees, or agents be liable to you for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for any loss of profits, revenue, data, goodwill, or business opportunity, arising out of or related to your use of or inability to use the Service, even if advised of the possibility of such damages.**
-
-**Our total cumulative liability to you for all claims arising out of or related to the Service is limited to the greater of (a) the amount you paid us for the Service in the twelve (12) months preceding the event giving rise to the claim, or (b) one hundred U.S. dollars (USD $100).**
-
-Some jurisdictions do not allow the exclusion or limitation of certain damages, so some of the above limitations may not apply to you.
-
-Nothing in this Section 10 excludes or limits liability that cannot be excluded or limited under the mandatory law of your jurisdiction, including (without limitation) liability for: (a) death or personal injury caused by negligence; (b) fraud or fraudulent misrepresentation; or (c) any other liability that cannot be lawfully excluded. If any limitation in this Section is held unenforceable in your jurisdiction, that limitation will not apply to you; the remaining limitations will continue in full force and effect.
-
-## 11. Indemnification
-
-You agree to indemnify, defend, and hold harmless JJJJJ Enterprises, LLC and its affiliates, officers, and employees from and against any claim, demand, loss, liability, damage, or expense (including reasonable attorneys' fees) arising out of or related to:
-- your use of the Service;
-- your violation of these Terms;
-- your violation of any law or third-party right; or
-- the email content, rules, or recipient lists you supply to the Service.
-
+{{include: terms-limitation-of-liability}}
+{{include: terms-indemnification}}
 ## 12. Termination
 
 You may stop using the Service at any time by uninstalling the add-on from your Google account. We may modify, suspend, or discontinue the Service, in whole or in part, at any time, with or without notice. Sections 4–11 and 13–21 survive termination.
@@ -164,12 +146,7 @@ We may update these Terms from time to time. For **material changes** (including
 
 We commit to **reviewing these Terms, the Privacy Policy, and the Disclaimer at least annually**, and more frequently if material changes to the Service or to applicable law require. Annual reviews do not necessarily result in textual changes; they confirm that the documents remain accurate.
 
-## 14. Governing Law
-
-These Terms are governed by the laws of the State of Texas, USA, without regard to its conflict-of-laws principles.
-
-Nothing in this Section affects mandatory consumer protection rights you may have under the law of your country of residence, which apply notwithstanding the choice of Texas law.
-
+{{include: terms-governing-law}}
 ## 15. Dispute Resolution
 
 ### 15.1 Informal Resolution
@@ -212,26 +189,14 @@ You acknowledge that:
 
 We do not currently hold SOC 2, ISO 27001, HIPAA, or PCI DSS certifications. Security documentation available on request at legal@jjjjjenterprises.com is limited to: the current CASA assessment summary, our OAuth scope justification, and our data handling representations in the Privacy Policy.
 
-## 17. Export Controls
-
-You may not use, export, or re-export the Service in violation of any U.S. or other applicable export control laws and regulations.
-
+{{include: terms-export-controls}}
 ## 18. Force Majeure
 
 Neither party will be liable for failure or delay in performance caused by circumstances beyond its reasonable control, including natural disasters, acts of government, pandemic, war, terrorism, labor disputes, power failures, internet or telecommunications outages, or failures of Google's infrastructure. This provision does not excuse payment obligations.
 
-## 19. Assignment
-
-You may not assign or transfer your rights under these Terms without our prior written consent. We may assign our rights and obligations under these Terms in connection with a merger, acquisition, reorganization, or sale of all or substantially all of our assets, provided the assignee agrees to be bound by these Terms. Any attempted assignment in violation of this Section is void.
-
-## 20. Severability
-
-If any provision of these Terms is held unenforceable, the remaining provisions will continue in full force and effect.
-
-## 21. Entire Agreement
-
-These Terms, together with the LICENSE (at the repository root), the [Privacy Policy](PRIVACY.md), and the [Disclaimer](DISCLAIMER.md), are the entire agreement between you and JJJJJ Enterprises, LLC concerning the Service and supersede any prior agreement on the subject. Our failure to enforce any right or provision is not a waiver of that right or provision.
-
+{{include: terms-assignment}}
+{{include: terms-severability}}
+{{include: terms-entire-agreement}}
 ---
 
 **Contact:**

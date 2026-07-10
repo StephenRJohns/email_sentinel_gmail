@@ -67,28 +67,9 @@ Feature descriptions, integration lists, pricing summaries, and other product re
 
 Our website may display links to other products operated by JJJJJ Enterprises, LLC, including Natty the Nocrastinator™ (a Google Calendar add-on for milestone-based deadline reminders), PilotTrainerHQ (pilottrainerhq.com), and PlaneFacts (planefacts.online). Those products are separate services and are governed by their own terms of service, privacy policies, and disclaimers, which are independent of emAIl Sentinel's legal documents. Links to related products do not imply any bundling of services, shared warranty coverage, or joint liability.
 
-## 8. No Professional Advice
-
-Nothing in emAIl Sentinel's output, documentation, or marketing materials constitutes legal, tax, financial, medical, or any other form of professional advice. Consult a qualified professional before making decisions based on information processed or presented by the Service.
-
-## 9. Limitation of Liability
-
-See Section 10 of the [Terms of Service](TERMS.md) for the full limitation of liability applicable to your use of the Service.
-
-## 10. Copyright / DMCA Notice and Takedown
-
-If you believe that any material made available through emAIl Sentinel (including marketing pages, documentation, or in-app content) infringes your copyright, you may submit a notice under the Digital Millennium Copyright Act, 17 U.S.C. § 512(c)(3), to:
-
-**Designated Copyright Agent**
-JJJJJ Enterprises, LLC
-legal@jjjjjenterprises.com
-
-Your notice must include (i) your physical or electronic signature; (ii) identification of the copyrighted work claimed to be infringed; (iii) identification of the allegedly infringing material and information reasonably sufficient for us to locate it; (iv) your address, telephone number, and email address; (v) a statement that you have a good-faith belief that the use of the material is not authorized by the copyright owner, its agent, or the law; and (vi) a statement, under penalty of perjury, that the information in your notice is accurate and that you are the copyright owner or are authorized to act on the copyright owner's behalf.
-
-We will respond to properly formed notices within **10 business days**. Counter-notices may be submitted per 17 U.S.C. § 512(g) to the same address.
-
-**Repeat infringer policy.** In appropriate circumstances we will terminate the accounts of users who are repeat copyright infringers, consistent with § 512(i).
-
+{{include: disc-no-professional-advice}}
+{{include: disc-limitation-of-liability}}
+{{include: disc-dmca}}
 ## 11. Accessibility
 
 JJJJJ Enterprises, LLC is committed to making emAIl Sentinel accessible to people with disabilities. We design our marketing website and legal pages to meet, where technically feasible, the **Web Content Accessibility Guidelines (WCAG) 2.1 Level AA**. The in-app experience is built on Google Workspace Add-on Cards Service, which inherits Gmail's accessibility behavior.
@@ -97,10 +78,7 @@ If you encounter an accessibility barrier — inability to read text, interact w
 
 This accessibility statement is provided in partial fulfillment of accessibility obligations under U.S. federal and state law (including, where applicable, the Americans with Disabilities Act, Section 508 of the Rehabilitation Act, and California's Unruh Civil Rights Act).
 
-## 12. Relationship to Other Documents
-
-This Disclaimer supplements and is incorporated into the [Terms of Service](TERMS.md). In the event of any conflict between this Disclaimer and the Terms of Service, the Terms of Service control.
-
+{{include: disc-relationship}}
 ---
 
 **Contact:**
