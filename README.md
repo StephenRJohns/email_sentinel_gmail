@@ -353,7 +353,7 @@ If you regularly hit the free limit:
 - **Watch specific labels** (e.g. `Vendors/Invoices`) instead of INBOX — only emails in that label are evaluated against the rule.
 - **Combine conditions** — one rule "Invoice OR purchase order from any vendor" is cheaper than two separate rules.
 - **Keep alert format prompts short** — concise format instructions produce shorter output responses and lower output-token costs.
-- **Raise the scan interval** — pick a longer interval in the Scan schedule dropdown (e.g. every 6 or 12 hours) instead of the tier minimum to reduce Gemini calls proportionally when email arrives in bursts.
+- **Raise the scan interval** — pick a longer interval in the Scan schedule dropdown (e.g. every 6 or 12 hours) instead of the 1-hour floor to reduce Gemini calls proportionally when email arrives in bursts.
 
 ---
 
@@ -395,7 +395,7 @@ These use your existing Google account — no third-party sign-up, no cost.
 
 | Channel | What it does | How to set up |
 |---|---|---|
-| **Google Chat** | Posts to a Google Chat Space via webhook — the direct equivalent of Teams webhooks. **Requires a Google Workspace paid account** (webhooks are not available on free Gmail accounts). Pro plan only. | Create a Space at [chat.google.com](https://chat.google.com). Open the space, click the space name in the top header bar ▸ Apps & integrations ▸ Webhooks ▸ create one. In **Settings ▸ Google alert channels**, click "Add Chat space", enter the space name, and paste the webhook URL. Select the space name in each rule. |
+| **Google Chat** | Posts to a Google Chat Space via webhook — the direct equivalent of Teams webhooks. **Requires a Google Workspace paid account** (webhooks are not available on free Gmail accounts). | Create a Space at [chat.google.com](https://chat.google.com). Open the space, click the space name in the top header bar ▸ Apps & integrations ▸ Webhooks ▸ create one. In **Settings ▸ Google alert channels**, click "Add Chat space", enter the space name, and paste the webhook URL. Select the space name in each rule. |
 | **Google Calendar** | Creates a 15-minute calendar event with the alert details. Phone/desktop notifications fire automatically if you have calendar notifications on. | (Optional) Enter a calendar ID in Settings, or leave blank for your primary calendar. In the rule editor, check "Create a Google Calendar event on match." |
 | **Google Sheets** | Appends a row (timestamp, rule, from, subject, received, message) to a spreadsheet. Both date columns are written in the user's local timezone (`yyyy-MM-dd h:mm:ss AM/PM TZ`) — never UTC/Zulu. Great for audit trails, searching past alerts, sharing with a team. | (Optional) Enter a spreadsheet ID in Settings, or leave blank — emAIl Sentinel auto-creates one called "emAIl Sentinel — Alert Log" on the first alert. In the rule editor, check "Log to Google Sheets on match." |
 | **Google Tasks** | Creates a task in Google Tasks with the alert subject and details. Shows in the Gmail sidebar and the Google Tasks app. | Leave the Tasks list ID blank for "My Tasks" (the default list). In the rule editor, check "Create a Google Task on match." |

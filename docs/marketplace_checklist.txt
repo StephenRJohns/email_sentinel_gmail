@@ -140,13 +140,9 @@ PART 2 — LISTING ASSETS (copy these into Cloud Console)
    IMPORTANT — POLLING PLATFORM LIMIT
    Google enforces a 1-hour minimum on time-based triggers in every
    Workspace add-on. This is a Google platform constraint, not a pricing
-   choice; we cannot poll faster than this on any plan. The Free 3-hour
-   vs. Pro 1-hour difference is a tier policy on top of that platform
-   floor.
-   • Founding-member lifetime ($79 one-time) — limited to the first 500
-     purchasers as recorded on the Google Workspace Marketplace. Once 500
-     lifetime purchases are logged on the Marketplace, this offer is
-     permanently retired. Pro features for the life of the Service.
+   choice; we cannot poll faster than this. The add-on is free with no
+   tiers, so this floor applies to everyone; "Scan email now" runs an
+   immediate scan any time.
 
    EXAMPLE RULES
    • "Any email from anyone @example.com with a PDF attachment that
@@ -526,11 +522,9 @@ LEGAL:
   [ ] Contact email legal@jjjjjenterprises.com is real and monitored
   [ ] Company name "JJJJJ Enterprises, LLC" correct throughout
 
-PAID TIER (if launching Pro simultaneously):
-  [ ] Pro monthly SKU configured in Marketplace SDK
-  [ ] Pro annual SKU configured
-  [ ] Founding-member lifetime SKU configured ($79, limited availability)
-  [ ] Subscription entitlement check wired in LicenseManager.gs
-      (or plan to do this in a follow-up deploy)
+PAID PRODUCT (separate — the add-on itself is free):
+  [ ] emAIl Sentinel Pro (self-hosted) is sold via Lemon Squeezy, NOT the
+      Workspace Marketplace — no add-on SKUs to configure here.
+  [ ] The add-on's "Upgrade to Pro" link points to the Pro landing page.
 
 ================================================================================
