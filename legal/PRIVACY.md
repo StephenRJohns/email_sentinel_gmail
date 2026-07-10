@@ -1,6 +1,6 @@
 # emAIl Sentinel™ — Privacy Policy
 
-**Effective date:** 2026-04-25
+**Effective date:** 2026-07-09
 **Operator:** JJJJJ Enterprises, LLC ("we", "us", "our")
 **Service:** emAIl Sentinel, a Google Workspace Add-on for Gmail (the "Service")
 
@@ -63,7 +63,7 @@ The Service uses the `gmail.readonly` OAuth scope, which Google classifies as a 
 - completes the annual **Cloud Application Security Assessment (CASA)** that Google requires for restricted-scope applications (CASA Tier 2 or higher, as Google prescribes);
 - submits updated assessment results to Google on the schedule Google requires;
 - submits to Google's OAuth verification re-review whenever Google requests; and
-- accepts that Google may, at its sole discretion, suspend, restrict, or revoke the Service's OAuth access or Marketplace listing at any time. A Google-initiated suspension will interrupt the Service; we are not liable for interruptions attributable to Google actions beyond the 90-day notice commitment in the Terms of Service (§ 6.11) for Founding-member lifetime holders.
+- accepts that Google may, at its sole discretion, suspend, restrict, or revoke the Service's OAuth access or Marketplace listing at any time. A Google-initiated suspension will interrupt the Service; we are not liable for interruptions attributable to Google actions.
 
 ### 4.2 Gemini API — Content Handling and Retention
 
@@ -112,13 +112,13 @@ A "subprocessor" is a third party that processes personal data on behalf of anot
 | Your chosen SMS provider | SMS message delivery (user-configured; not preselected) | Determined by the provider you select |
 | Any MCP server endpoint you configure | Alert dispatch via JSON-RPC 2.0 | Determined by the endpoint operator |
 
-We will notify registered users at least **30 days in advance** before we add or replace a Google-level subprocessor that processes email content (for example, if we introduce a non-Google model provider as an optional rule evaluator in a future release). Notice will be posted at the URL where this Privacy Policy is hosted and, if you have subscribed to a paid plan, emailed to the Google account associated with your subscription. You may terminate the Service, with a pro-rata refund of unused prepaid fees, if you object to a proposed subprocessor change before it takes effect.
+We will notify registered users at least **30 days in advance** before we add or replace a Google-level subprocessor that processes email content (for example, if we introduce a non-Google model provider as an optional rule evaluator in a future release). Notice will be posted at the URL where this Privacy Policy is hosted. You may stop using the Service if you object to a proposed subprocessor change before it takes effect.
 
 ### 5.3 Payment Data
 
-This subsection describes how payment data will be handled **once the Service launches paid plans on the Google Workspace Marketplace**. During private pre-launch testing (see Terms of Service § 1.1), no paid subscriptions are being offered and no payment data is collected or processed.
+The emAIl Sentinel add-in is free and collects no payment data. We do not process, receive, or store any payment card, bank, or other billing details through the add-in.
 
-At launch: if you subscribe to the Pro plan or purchase the Founding-member lifetime option, your payment will be processed by **Google LLC through the Google Workspace Marketplace**. We do not receive, collect, or store your credit card number, bank account, or other payment details. Google provides us with limited subscription metadata (a tier entitlement and subscription status) so the add-on can unlock paid features. Google's handling of your payment data is governed by [Google's Privacy Policy](https://policies.google.com/privacy) and the Google Workspace Marketplace terms.
+The separate, optional **emAIl Sentinel Pro** product (self-hosted) handles its own billing through its own payment processor under its own [Privacy Policy](https://jjjjjenterprises.com/emailsentinel/pro/legal/privacy.html); that billing is independent of this free add-in.
 
 ## 6. Data Retention
 
@@ -169,7 +169,7 @@ Your data is processed by Google (Apps Script, Gemini) and, if you enable SMS, b
 - **JJJJJ Enterprises, LLC acts as a service provider / processor** on your behalf, performing the rule evaluation and alert dispatch you directed. We do not independently decide what email content to process or where to send it.
 - **Google (Apps Script, Gmail, Gemini, and Google-native alert channels) and your chosen SMS provider act as subprocessors** (or, for SMS providers selected by you, as independent processors under a direct contract between you and them). See § 5.2.
 
-For **account-level data** (your subscription tier, billing entitlement status received from Google, support correspondence with us) JJJJJ Enterprises, LLC acts as a controller.
+For **account-level data** (support correspondence with us) JJJJJ Enterprises, LLC acts as a controller.
 
 Because all data is stored in `UserProperties` within your own Google account, you can exercise most data-rights requests directly by viewing, editing, or deleting your data through the Apps Script editor. To delete all stored data in one step, run this in the Apps Script editor:
 
@@ -188,16 +188,15 @@ If you are a California resident, the California Consumer Privacy Act (CCPA) as 
 | Category (CCPA §1798.140) | Specific data | Source | Purpose |
 |---|---|---|---|
 | Identifiers | Gmail email address (yours), sender email addresses in messages you monitor | Your Google account | Rule evaluation, alert delivery |
-| Commercial information | Subscription tier (Free or Pro) and billing status received from Google | Google Workspace Marketplace | Unlocking paid features |
 | Internet or network activity | None | — | — |
 | Geolocation data | None | — | — |
 | Professional/employment information | Potentially present in email content you monitor | Your Gmail | Rule evaluation |
 | Sensitive personal information (CPRA) | Potentially present in email body excerpts (first 2,000 chars) sent to Gemini for evaluation | Your Gmail | Rule evaluation only |
 | Inferences | Gemini-generated rule match decisions and alert summaries | Derived from your email content | Alerting |
 
-**Sources.** All personal information comes from your own Gmail account, from the rules, credentials, and settings you enter directly into the Service, or from Google LLC (subscription status only).
+**Sources.** All personal information comes from your own Gmail account, from the rules, credentials, and settings you enter directly into the Service.
 
-**Business purposes.** Rule evaluation, alert generation, alert delivery via the channels you configure, basic operation of the Service, and subscription entitlement. We do not use personal information for advertising, profiling, or any purpose beyond the Service functions you enable.
+**Business purposes.** Rule evaluation, alert generation, alert delivery via the channels you configure, basic operation of the Service. We do not use personal information for advertising, profiling, or any purpose beyond the Service functions you enable.
 
 **Third parties with whom we share.** Only those listed in Section 5 of this Policy, and only at your direction (i.e., only when you enable the relevant alert channel or integration).
 
@@ -257,7 +256,7 @@ We may update this Privacy Policy from time to time. For material changes that r
 | Privacy Policy questions and data-rights requests | legal@jjjjjenterprises.com |
 | CCPA requests | legal@jjjjjenterprises.com (subject: "CCPA Request") |
 | User support | support@jjjjjenterprises.com |
-| Billing and subscriptions | billing@jjjjjenterprises.com |
+| Billing (emAIl Sentinel Pro) | billing@jjjjjenterprises.com |
 | General inquiries | admin@jjjjjenterprises.com |
 
 For technical support you may also **[open an issue on GitHub](https://github.com/StephenRJohns/email_sentinel/issues)** — issues are tracked, searchable, and get the fastest response.
