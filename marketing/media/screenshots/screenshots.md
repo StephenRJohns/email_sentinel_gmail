@@ -76,7 +76,7 @@ Use a dedicated demo Gmail account for the screenshots so no real recipient name
 
 **Goal:** Communicate the app's purpose at a glance. This is the image Marketplace shows first and largest — spend the most effort here.
 
-**Capture:** Trigger a scan in screenshot mode so the green "Found 1 new alert" result banner is visible. Show the full Gmail chrome + emAIl Sentinel sidebar: logo, Pro badge, poll-interval status, "Scan email now" button, and the scan result banner.
+**Capture:** Trigger a scan in screenshot mode so the green "Found 1 new alert" result banner is visible. Show the full Gmail chrome + emAIl Sentinel sidebar: logo, poll-interval status, "Scan email now" button, and the scan result banner.
 
 **Suggested caption:** `Watch your inbox for what matters — AI-powered Gmail alerts`
 

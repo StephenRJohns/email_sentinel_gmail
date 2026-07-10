@@ -1,8 +1,8 @@
-# AI-assisted rule writing (Pro)
+# AI-assisted rule writing
 **Duration:** 90 s
 **Tool:** Descript (more talking, fewer clicks; voiceover-heavy)
 
-Show how Pro's AI rule-writing helper turns a vague intent
+Show how the AI rule-writing helper turns a vague intent
 ("alert me about angry customer emails") into a precise rule
 text Gemini can match accurately.
 
@@ -14,12 +14,12 @@ field filled with a polished rule.
 VOICEOVER:
 Describe what you want in a sentence. Gemini writes the rule.
 
-## Scene 1 — Pro gate (0:08–0:18)
-ON-SCREEN: Rule editor → "Help me write the rule text" button with the
-Pro-only badge.
+## Scene 1 — where it lives (0:08–0:18)
+ON-SCREEN: Rule editor → "Help me write the rule text" button.
 VOICEOVER:
-AI rule writing is a Pro-plan feature. The Free plan still writes
-rules. You just write the rule text yourself.
+AI rule writing is built in and free for everyone. You can always
+write the rule text yourself — but if you would rather describe it,
+this helper does the drafting.
 
 ## Scene 2 — the prompt (0:18–0:45)
 ON-SCREEN: Click "Help me write the rule text" → small input field opens
@@ -54,7 +54,7 @@ passing complaint.
 ## End card (1:30–1:35)
 ON-SCREEN: Logo + Marketplace URL
 VOICEOVER:
-Plain-English rules, written by Gemini. Pro plan. Get "e-mail
+Plain-English rules, written by Gemini. Get "e-mail
 Sentinel". Link below.
 
 ---
@@ -74,8 +74,7 @@ Sentinel". Link below.
 Marked Descript because of the heavier narration, but Guidde works
 fine for capturing the click sequence — just overdub.
 
-Before you start: Gmail open, demo account on Pro tier (run
-`setTierPro` in the Apps Script editor), Screenshot mode ON, a
+Before you start: Gmail open, demo account, Screenshot mode ON, a
 Gemini key already saved in Settings, side panel open on the home
 card, at least one Gmail label ready to pick (e.g. `INBOX`).
 
@@ -84,19 +83,17 @@ card, at least one Gmail label ready to pick (e.g. `INBOX`).
 3. Click **+ New rule**.
 4. Click the **Name** field, type `Angry customer`.
 5. Click the **Gmail label** dropdown, pick `INBOX`.
-6. Hover the **Help me write the rule text** button for ~1 s (showing the
-    Pro-only badge).
-7. Click **Help me write the rule text**.
-8. Click the suggestion-prompt field, type:
+6. Click **Help me write the rule text**.
+7. Click the suggestion-prompt field, type:
     `Alert me when a customer sounds angry or threatens to cancel`.
-9. Click **Generate**.
-10. Wait for the rule text to populate.
-11. (If the suggestion is awkward, click **Generate** again; that is
+8. Click **Generate**.
+9. Wait for the rule text to populate.
+10. (If the suggestion is awkward, click **Generate** again; that is
     realistic.)
-12. Click into the rule text field; edit `a customer` to
+11. Click into the rule text field; edit `a customer` to
     `a customer of our paid plan`.
-13. Click **Save**.
-14. Hit **Stop capture** in Guidde.
+12. Click **Save**.
+13. Hit **Stop capture** in Guidde.
 
 After capture: blur any visible Gemini key. Replace the auto-
 generated voiceover with the storyboard VOICEOVER lines.

@@ -72,7 +72,7 @@ VOICEOVER:
 Mix and match per rule. Customer escalations go to Tasks for action
 and to Sheets for the log. Security alerts go to Calendar so they
 show up in your day. Newsletters and feedback go to Docs for a
-narrative archive. There is no extra cost. These are all Free plan.
+narrative archive. There is no extra cost. These channels are free for everyone.
 
 ## End card (2:20–2:25)
 ON-SCREEN: Logo + Marketplace URL

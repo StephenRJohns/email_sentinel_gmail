@@ -1,4 +1,4 @@
-# External integrations (Pro)
+# External integrations
 **Duration:** ~3:05 min
 **Tool:** Guidde
 
@@ -34,12 +34,11 @@ MCP server you configure. If you have used Claude Desktop or
 another agent framework, you have already used the same protocol
 — this just wires your inbox to it.
 
-## Scene 2 — Pro gate (0:30–0:42)
-ON-SCREEN: Settings card → External integrations section showing
-the Pro plan badge.
+## Scene 2 — where it lives (0:30–0:42)
+ON-SCREEN: Settings card → External integrations section.
 VOICEOVER:
-External integrations are Pro-plan only. If you are on the
-Founding member tier, you have it included.
+External integrations live in Settings, and like every other
+channel they are free for everyone — no upgrade required.
 
 ## Scene 3 — the simplest MCP example (0:42–1:15)
 ON-SCREEN: Help card opened — shows the search box and Browse
@@ -114,7 +113,7 @@ still fire, so a broken MCP does not take your alerts down.
 ## End card (2:55–3:05)
 ON-SCREEN: Logo + Marketplace URL
 VOICEOVER:
-Connect anything that speaks MCP. Pro plan. Get "e-mail Sentinel" —
+Connect anything that speaks MCP. Get "e-mail Sentinel" —
 link below.
 
 ---
@@ -144,8 +143,7 @@ link below.
 
 ## Recording checklist (Guidde)
 
-Before you start: Gmail open, demo account on Pro tier (run
-`setTierPro` in the Apps Script editor), Screenshot mode ON, the
+Before you start: Gmail open, demo account, Screenshot mode ON, the
 Cloudflare Worker `es-demo-mcp` already deployed (per the Help
 card walkthrough — the Worker code paste is not on camera), the
 Cloudflare dashboard tab already open in another browser tab and
@@ -168,28 +166,27 @@ already saved, side panel open on the home card.
 9. Switch back to Gmail. **Click somewhere in Gmail** (e.g., the inbox area) so Guidde re-captures the Gmail tab.
 10. Click the **3-dot menu** → **Settings**.
 11. Scroll to the **External integrations** section.
-12. Hover the **Pro plan only** badge for ~1 s.
-13. Click **+ Add external integration**.
-14. Click the **Server name** field, type `Demo MCP`.
-15. Confirm the **Type** dropdown reads **Custom MCP** (default for new entries).
-16. Click **Load defaults**. The **Tool arguments (JSON)** field auto-fills to `{"message":"{{message}}"}`. Tool name field is blank for Custom MCP by default.
-17. Click the **Endpoint URL** field, paste the Worker URL from step 8.
-18. Click the **Authorization header value** field. Paste the full header literally — the word `Bearer`, a single space, then your Worker `SECRET` value. Example: `Bearer es_mcp_demo`.
-19. Click the **Tool name** field, type `log_alert`.
-20. Click **Save**.
-21. Click **3-dot menu** → **Rules**.
-22. Click an existing rule.
-23. Scroll to the **External integrations** section in the rule editor.
-24. Check **Demo MCP**.
-25. Click **Save**.
-26. Click **3-dot menu** → **Scan email now**.
-27. Click **Run scan now**.
-28. Wait for the green ✅ result card.
-29. Switch to the **Cloudflare** Observability tab. **Click on the live-events panel** (or click any of the new event rows) and **scroll down to the latest entry**. The new `[ALERT RECEIVED] <your alert text>` line is at the bottom of the live tail. The click + scroll forces Guidde to capture this tab.
-30. Switch back to Gmail. **Click somewhere in Gmail** (e.g., the side-panel header) so Guidde re-captures the Gmail tab.
-31. Click **3-dot menu** → **Activity Log**.
-32. Scroll to (or trigger separately) a red `MCP "Demo MCP" HTTP 401: Unauthorized` line.
-33. Hit **Stop capture** in Guidde.
+12. Click **+ Add external integration**.
+13. Click the **Server name** field, type `Demo MCP`.
+14. Confirm the **Type** dropdown reads **Custom MCP** (default for new entries).
+15. Click **Load defaults**. The **Tool arguments (JSON)** field auto-fills to `{"message":"{{message}}"}`. Tool name field is blank for Custom MCP by default.
+16. Click the **Endpoint URL** field, paste the Worker URL from step 8.
+17. Click the **Authorization header value** field. Paste the full header literally — the word `Bearer`, a single space, then your Worker `SECRET` value. Example: `Bearer es_mcp_demo`.
+18. Click the **Tool name** field, type `log_alert`.
+19. Click **Save**.
+20. Click **3-dot menu** → **Rules**.
+21. Click an existing rule.
+22. Scroll to the **External integrations** section in the rule editor.
+23. Check **Demo MCP**.
+24. Click **Save**.
+25. Click **3-dot menu** → **Scan email now**.
+26. Click **Run scan now**.
+27. Wait for the green ✅ result card.
+28. Switch to the **Cloudflare** Observability tab. **Click on the live-events panel** (or click any of the new event rows) and **scroll down to the latest entry**. The new `[ALERT RECEIVED] <your alert text>` line is at the bottom of the live tail. The click + scroll forces Guidde to capture this tab.
+29. Switch back to Gmail. **Click somewhere in Gmail** (e.g., the side-panel header) so Guidde re-captures the Gmail tab.
+30. Click **3-dot menu** → **Activity Log**.
+31. Scroll to (or trigger separately) a red `MCP "Demo MCP" HTTP 401: Unauthorized` line.
+32. Hit **Stop capture** in Guidde.
 
 After capture: blur the Authorization header value if the SECRET
 is something you do not want public. Replace the auto-generated

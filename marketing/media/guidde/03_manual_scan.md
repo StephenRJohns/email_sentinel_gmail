@@ -14,14 +14,12 @@ Do not wait for the scheduled check. Run a scan right now and see
 the result in seconds.
 
 ## Scene 1 — why it exists (0:05–0:18)
-ON-SCREEN: Settings card showing the scan interval ("every 3
-hours" on Free, "every 1 hour" on Pro). Highlight the "Scan email
-now" hint paragraph.
+ON-SCREEN: Settings card showing the scan interval ("every 1
+hour"). Highlight the "Scan email now" hint paragraph.
 VOICEOVER:
-"e-mail Sentinel" polls Gmail in the background — every three hours
-on the Free plan, every hour on Pro. That is a Google add-on
-platform limit, not a tier choice. But Scan email now bypasses
-the schedule entirely.
+"e-mail Sentinel" runs scheduled scans of Gmail once an hour — that
+one-hour floor is a Google add-on platform limit, not a choice we
+make. But Scan email now bypasses the schedule entirely.
 
 ## Scene 2 — from the home card (0:18–0:30)
 ON-SCREEN: Click Scan email now on the home card. The button shows

@@ -84,9 +84,8 @@ Plain English. No regex. Get "e-mail Sentinel" — link below.
 
 - Pre-create the "support/escalations" Gmail label before recording
   so it shows up in the dropdown.
-- Record on **Pro tier** (`setTierPro` in the Apps Script editor)
-  so the AI helpers open properly when clicked rather than showing
-  an upgrade prompt.
+- The AI helpers are available to everyone — they open when clicked
+  with no upgrade prompt.
 - When you click "Help me write the rule text" in Scene 4, the card
   pre-populates its input with whatever you typed in the rule field —
   that is intentional and looks natural on camera.
@@ -98,8 +97,7 @@ Plain English. No regex. Get "e-mail Sentinel" — link below.
 
 ## Recording checklist (Guidde)
 
-Before you start: Gmail open, demo account on **Pro tier** (run
-`setTierPro` in the Apps Script editor), Screenshot mode ON, a
+Before you start: Gmail open, demo account, Screenshot mode ON, a
 "support/escalations" Gmail label already created, the side panel
 open on the home card, a Gemini key already saved in Settings, at
 least one SMS recipient already added so the SMS checkbox section

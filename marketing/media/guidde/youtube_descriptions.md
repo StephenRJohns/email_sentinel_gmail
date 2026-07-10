@@ -78,11 +78,11 @@ Learn how to configure scan intervals, run on-demand scans, and review the activ
 
 In this tutorial you will learn how to:
 • Access the Settings panel in emAIl Sentinel
-• Choose your scan interval — every 3 hours on the Free plan, every 1 hour on Pro
+• Understand the scheduled scan interval — once an hour, the Google Workspace platform floor
 • Use the "Scan email now" button to run an immediate scan at any time, bypassing the schedule entirely
 • Review the activity log to confirm that rules evaluated correctly and alerts were dispatched
 
-The one-hour minimum on the Pro plan is a Google Workspace add-on platform limit, not an emAIl Sentinel restriction. On-demand scanning is available on all plans with no cooldown.
+The one-hour scan floor is a Google Workspace add-on platform limit, not an emAIl Sentinel restriction. On-demand scanning is available anytime with no cooldown. For always-on, real-time monitoring, see the separate self-hosted emAIl Sentinel Pro at https://jjjjjenterprises.com/emailsentinel/pro.
 
 Step-by-step written guide:
 https://drive.google.com/file/d/15x8a0Y90KYB5Bozoy7SjxmgcXpM7iOA1/view?usp=sharing
@@ -151,7 +151,7 @@ In this tutorial you will learn how to:
 
 MCP is the same open protocol used by Claude Desktop, Cursor, and other AI agent frameworks. emAIl Sentinel speaks it natively, so your Gmail inbox can trigger any tool that exposes an MCP server. The Cloudflare Worker in this video is the simplest starting point; you can point emAIl Sentinel at any MCP server you need once you understand the pattern.
 
-External integrations are available on the Pro plan and are included with Founding Member access.
+External integrations are free for everyone — like every alert channel in emAIl Sentinel.
 
 Learn more about MCP:
 https://modelcontextprotocol.io/docs/getting-started/intro

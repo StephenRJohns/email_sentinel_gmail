@@ -71,7 +71,7 @@ items and due dates are pulled directly from the email body.
 ## End card (2:55–3:00)
 ON-SCREEN: Logo + "e-mail Sentinel — Google Workspace Marketplace"
 VOICEOVER:
-Free plan. No credit card. Install in two minutes. Link below.
+Free. No credit card. Install in two minutes. Link below.
 
 ---
 

@@ -26,15 +26,11 @@ the ones you want.
 
 ## Scene 2 — create the set (0:18–0:35)
 ON-SCREEN: Click "Create starter rules". The toast confirms how
-many were created. On Pro: "5 starter rules created (disabled)…".
-On Free: "3 starter rules created (disabled)… 2 skipped (Free plan
-limit reached — upgrade to Pro for unlimited rules)."
+many were created: "5 starter rules created (disabled)…".
 VOICEOVER:
-Click Create starter rules. On the Pro plan, all five are created
-at once. On the Free plan, the three-rule limit applies — the
-first three are created and the rest are skipped with a one-tap
-upgrade hint. Either way, every rule is created disabled so you
-can configure channels before they start firing.
+Click Create starter rules. All five are created at once — rules
+are unlimited and free for everyone. Every rule is created disabled
+so you can configure channels before they start firing.
 
 ## Scene 3 — enable one (0:35–0:50)
 ON-SCREEN: Open the "Urgent emails" rule, add an SMS recipient,
@@ -64,10 +60,9 @@ Be alert-ready in thirty seconds. Get "e-mail Sentinel" — link below.
 
 ## Recording checklist (Guidde)
 
-Before you start: Gmail open, demo account on **Pro tier** (run
-`setTierPro` in the Apps Script editor — the script demos all five
-rules being created in one click; the Free-tier behavior is mentioned
-in voiceover, not shown), Screenshot mode ON, the demo account has
+Before you start: Gmail open, demo account (all five starter rules
+are created in one click — rules are unlimited for everyone),
+Screenshot mode ON, the demo account has
 **no rules yet** (delete any existing rules first so the Rules card
 lands cleanly on the empty state), at least one SMS recipient already
 saved in Settings, side panel open on the home card.
@@ -92,7 +87,4 @@ saved in Settings, side panel open on the home card.
 
 After capture: replace the auto-generated voiceover with the
 storyboard VOICEOVER lines. Trim aggressively — this video should
-feel snappy at under 60 s. The Free-tier "3 of 5" call-out in
-Scene 2 is voiceover-only; do not re-shoot on a Free-tier account
-to capture the limit toast (the visual is just a different number
-in the same toast, not worth a second take).
+feel snappy at under 60 s.
