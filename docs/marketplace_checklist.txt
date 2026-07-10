@@ -128,14 +128,14 @@ PART 2 — LISTING ASSETS (copy these into Cloud Console)
    it formats an alert message and fires every channel you configured.
    Messages that don't match are ignored entirely — no noise.
 
-   PLANS
-   • Free — up to 3 rules, 3-hour minimum automatic polling, SMS and
-     Google Calendar / Sheets / Tasks / Docs alerts, 30-day activity log.
-   • Pro ($4.99/month or $39/year) — unlimited rules, 1-hour minimum
-     automatic polling (3x faster than Free), Google Chat and MCP server
-     alerts, AI-assisted rule writing, unlimited log history.
-   • Both plans support on-demand "Scan email now" — runs immediately
-     regardless of polling cadence.
+   PRICING
+   • Free — the add-on is fully featured: unlimited rules, every alert
+     channel (SMS, Google Chat, Calendar, Sheets, Tasks, Docs, MCP,
+     webhooks), AI-assisted rule writing, and full log history, at no cost.
+   • Scans run at Google's 1-hour trigger floor; "Scan email now" runs an
+     immediate scan any time.
+   • Always-on, real-time monitoring is a separate self-hosted product,
+     emAIl Sentinel Pro ($15/month, $150/year, or $149 lifetime).
 
    IMPORTANT — POLLING PLATFORM LIMIT
    Google enforces a 1-hour minimum on time-based triggers in every

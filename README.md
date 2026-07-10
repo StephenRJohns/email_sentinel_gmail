@@ -77,36 +77,13 @@ All state lives in `PropertiesService.getUserProperties()`:
 
 ---
 
-## 3. Plans and pricing
+## 3. Pricing
 
-emAIl Sentinel is offered on a freemium model. It is designed for individuals, professionals, consultants, and small teams where each member installs the add-on in their own Google account.
+emAIl Sentinel for Gmail is **free** — a fully-featured add-on with no paid tiers, no feature gates, and no in-app purchases. Every alert channel (SMS, Google Chat, Google Calendar, Sheets, Tasks, Docs, MCP servers, Asana, and custom HTTPS webhooks), unlimited rules, AI-assisted rule and alert writing, and the full activity log are available to everyone at no cost.
 
-| Feature | Free | Pro |
-|---|---|---|
-| Price | Free | **$4.99/month** or **$39/year** |
-| Active rules | Up to **3** | Unlimited |
-| Minimum automatic scan interval | Every **3 hours** | Every **1 hour** |
-| Manual on-demand check (*Scan email now*) | ✅ | ✅ |
-| Alert channels — Google Calendar, Sheets, Tasks, Docs | ✅ | ✅ |
-| Alert channels — SMS (any provider — 6 quick-start presets plus generic webhook) | ✅ | ✅ |
-| Alert channels — Google Chat webhook | — | ✅ |
-| Alert channels — External integrations (MCP servers, Asana REST, generic HTTPS webhooks for Slack/Discord/n8n/etc.) | — | ✅ |
-| AI-assisted alert content (*Help me write the alert text*) | ✅ | ✅ |
-| AI-assisted rule writing (*Help me write the rule text*) | — | ✅ |
-| Activity log retention | 30 days | Unlimited |
-| Support | GitHub Issues + Community Discussions | GitHub Issues + Community Discussions |
+**About scan cadence:** Google Workspace enforces a **1-hour minimum** on time-based triggers in any Workspace add-on — a Google platform limit, not ours. Scheduled scans run at that floor; **Scan email now** (home card or the universal "⋮" menu) runs an immediate scan any time. The add-on runs **entirely inside your own Google account** — your email content never reaches our servers; it goes only to the Google Gemini API (with your own key) and the alert channels you configure.
 
-**Founding-member lifetime tier** — $79 one-time for the first 500 buyers, then this tier is retired.
-
-**About scan cadence:** Google Workspace enforces a **1-hour minimum** on time-based triggers in any Workspace add-on, regardless of plan or pricing — this is a Google platform limit, not a tier policy. Pro scans at the platform floor (every 1 hour); Free scans every 3 hours. Both plans support **Scan email now** on the home card (also available from the universal "⋮" menu) to run an immediate scan at any time, bypassing the cadence entirely.
-
-**Why we don't poll faster (and why that's a feature, not a limitation):** It's technically possible to bypass the 1-hour Workspace limit by running our own backend that scans Gmail every minute and pushes results back into the add-on. We deliberately don't. Doing so would require storing your Gmail OAuth refresh tokens on our servers, routing every email's content through our infrastructure, and reading each message outside your own Google account. emAIl Sentinel runs **entirely inside your own Google account**: your email content never reaches our servers — we never see, store, or process it. The only places your email data ever goes are (1) the Google Gemini API, called with **your own** API key, and (2) the alert channels **you** configure (your SMS provider, your Calendar, your Sheets, your MCP server, etc.). The 1-hour scan-interval floor is the price of that privacy-first architecture, and we think it's worth paying.
-
-Upgrading is done from the home card. Downgrading keeps all your rules intact; Chat and MCP channels are silently disabled and the scan interval is clamped back to the Free 3-hour minimum until you re-upgrade.
-
-Enterprise-wide or centralized deployments across a Workspace domain are not supported; see [TERMS.md](legal/TERMS.md) §2 for the exact scope.
-
----
+**Want always-on, real-time monitoring?** [emAIl Sentinel Pro](https://jjjjjenterprises.com/emailsentinel/pro) is a separate, optional self-hosted product that watches Gmail (and Outlook) around the clock and fires alerts in real time — even when your computer is off. **$15/month**, **$150/year**, or **$149 lifetime** (first 100 buyers, then $199).
 
 ## 4. Repository layout
 
@@ -228,12 +205,12 @@ If you'd rather not install `clasp`:
 After installation, open Gmail and click the emAIl Sentinel icon in the right rail.
 
 1. **Settings ▸ Gemini API key** — paste your key. Click **Test Gemini** to confirm it works.
-2. **Settings ▸ Scan schedule** — pick how often to check. The dropdown offers whole-hour intervals (`1 hour`, `2 hours`, `3 hours`, `4 hours`, `6 hours`, `8 hours`, `12 hours`, `24 hours`). Free shows `3 hours` and longer; Pro adds `1 hour` and `2 hours` at the top. The 60-minute limit is a Google Workspace add-on platform limit and cannot be bypassed. Use **Scan email now** for an immediate scan anytime regardless of plan.
+2. **Settings ▸ Scan schedule** — pick how often to check. The dropdown offers whole-hour intervals (`1 hour`, `2 hours`, `3 hours`, `4 hours`, `6 hours`, `8 hours`, `12 hours`, `24 hours`) down to the 1-hour Google Workspace platform floor, which cannot be bypassed. Use **Scan email now** for an immediate scan anytime.
 3. **Settings ▸ SMS provider** *(optional)* — choose a provider and fill in credentials. Click **SMS setup guide** for a comparison. Then add named SMS recipients (e.g. "On-call", "CFO") below the provider fields — rules pick recipients by name, not raw phone numbers.
 4. **Settings ▸ External integrations** *(optional)* — add Microsoft Teams, Asana (REST or MCP V2), any custom MCP endpoint (Cloudflare Worker, self-hosted bridge, etc.), or any HTTPS webhook URL (Slack incoming, Discord, n8n / Zapier, custom internal APIs).
 5. **Settings ▸ Save settings**.
 6. **Rules ▸ + New rule** — give it a name, list one or more Gmail labels (e.g. `INBOX`), describe the match in plain English, and tick the channels you want (SMS recipients, Chat spaces, MCP servers, Calendar, Sheets, Tasks). Click **Help me write the rule text** or **Help me write the alert text** to have Gemini draft a starting point. Or click **Starter rules** on the home card to create 5 pre-built rules (urgent emails, invoices, shipping updates, security alerts, and subscription renewals) — they are created disabled so you can tick channels and enable them at your own pace.
-7. Back on the home card, pick a scan interval from the **Scan email every** dropdown (defaults to your tier minimum — every 3 hours on Free, every 1 hour on Pro), then click **Start scheduled scans**. This installs a time-driven trigger that runs in the background even when Gmail is closed and saves the chosen interval into Settings.
+7. Back on the home card, pick a scan interval from the **Scan email every** dropdown (defaults to the 1-hour Google Workspace platform floor), then click **Start scheduled scans**. This installs a time-driven trigger that runs in the background even when Gmail is closed and saves the chosen interval into Settings.
 
 The **first** check for any new label is treated as a baseline (no alerts) so you don't get a flood of notifications for existing mail. Alerts start with the next new message.
 
