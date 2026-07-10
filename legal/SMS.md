@@ -33,7 +33,7 @@ Entering your number and enabling SMS on a rule constitutes your consent to rece
 
 The screenshot below shows the in-app Settings screen where a user enters their own number and sees the consent language before enabling SMS alerts:
 
-![emAIl Sentinel in-app SMS opt-in screen, showing the phone-number field and the consent disclosure](https://emailsentinel.jjjjjenterprises.com/images/es-sms-optin.svg)
+![emAIl Sentinel in-app SMS opt-in screen, showing the phone-number field and the consent disclosure](https://emailsentinel.jjjjjenterprises.com/images/es-sms-optin.png)
 
 *In-app SMS opt-in screen (Settings). The consent disclosure is displayed next to the phone-number field. The Gmail add-on, Outlook add-in, and self-hosted app present the same opt-in and consent language.*
 
