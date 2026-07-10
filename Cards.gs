@@ -3172,6 +3172,16 @@ function buildSmsRecipientEditorCard(recipient) {
     .setTitle('Phone number (digits only)')
     .setHint('e.g. 5551234567 — country code is added from the dropdown above')
     .setValue(split.digits));
+  // SMS consent disclosure — shown directly beside the phone-number field so the
+  // in-app opt-in screen carries the required CTIA language (A2P 10DLC review).
+  section.addWidget(CardService.newTextParagraph()
+    .setText('<font color="' + BRAND_PURPLE_ + '"><b>SMS consent</b></font><br>' +
+      'By entering your number and enabling SMS on a rule, you agree to receive ' +
+      'emAIl Sentinel alerts about your own email. Msg frequency varies. Msg &amp; data ' +
+      'rates may apply. Reply STOP to opt out, HELP for help. Consent is not a condition ' +
+      'of purchase. See the ' +
+      '<a href="https://emailsentinel.jjjjjenterprises.com/legal/sms.html">SMS terms</a> and ' +
+      '<a href="https://emailsentinel.jjjjjenterprises.com/legal/privacy.html">Privacy Policy</a>.'));
   const btns = CardService.newButtonSet()
     .addButton(CardService.newTextButton()
       .setText(whiteText_('Save'))
