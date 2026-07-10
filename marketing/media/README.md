@@ -1,5 +1,12 @@
 # "e-mail Sentinel" — help-video scripts
 
+> **Part of the emAIl Sentinel shared video library.** These per-feature Gmail
+> scripts follow the suite-wide production standards (one voice, shared intro/outro,
+> Screenshot Mode, accuracy guardrails) and brand kit defined in the **`email_sentinel`
+> (Pro) repo**: `marketing/media/README.md` and `brand/BRAND.md`. The suite explainer
+> and the Pro walkthrough scripts live there too — keep topic numbering aligned with
+> the Outlook add-in's scripts so the YouTube playlists mirror each other.
+
 Ten short scripts (60–180 s each) covering every user-facing flow. Designed
 to be recorded with one of:
 
