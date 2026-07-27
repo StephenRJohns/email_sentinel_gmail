@@ -2,9 +2,9 @@
 
 # emAIl Sentinel™
 
-A Gmail Workspace Add-on that watches your Gmail for new messages and sends an alert when one matches a rule you describe in plain English. Rules are evaluated by **Google Gemini**.
+A Gmail Workspace Add-on that checks the email you have open against rules you describe in plain English, and sends alerts when one matches. Rules are evaluated by **Google Gemini**.
 
-Everything runs inside your Google account — no machine to keep running, no extra accounts to create.
+Everything runs inside your Google account, entirely on demand — the add-on can only read the message you have open, and only when you click **Evaluate this email**. It never scans your mailbox in the background.
 
 > **Status: private pre-launch testing.** emAIl Sentinel is currently in private testing with a closed group of users. It is not yet listed on the Google Workspace Marketplace for general availability, and public sign-ups are not being accepted. The plan structure, pricing, and features documented below describe the product at launch; during private testing, access is invitation-only and free of charge. **At launch, the Service will be offered to United States users only** (see `legal/TERMS.md` § 2). EU/UK availability is deferred. See `legal/TERMS.md` § 1.1 for the governing pre-launch provision. For inquiries, contact [support@jjjjjenterprises.com](mailto:support@jjjjjenterprises.com).
 
@@ -32,7 +32,7 @@ Everything runs inside your Google account — no machine to keep running, no ex
 
 ## 1. What it does
 
-When a new email arrives in a watched Gmail label, emAIl Sentinel asks Gemini whether it matches one of your rules. If it does, it fires the alerts you configured for that rule:
+Open any email in Gmail, open the emAIl Sentinel panel, and click **Evaluate this email**. Gemini checks that message against every enabled rule; each match fires the alerts you configured for that rule:
 
 - **SMS** via your configured provider (bring your own — six quick-start presets plus a generic webhook for any other provider), to named recipients you define in Settings.
 - **Google Chat**, **Google Calendar**, **Google Sheets**, **Google Tasks**, or **Google Docs** — all within your own Google account, no extra sign-up needed.
@@ -48,16 +48,16 @@ Rules are plain English. No regex, no code:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  Apps Script time-driven trigger (chosen to divide pollMin)  │
+│  User opens an email → contextual card appears in the panel  │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │  runMailCheck()                                        │  │
-│  │  • For each enabled rule's labels:                     │  │
-│  │    – GmailApp.search() → recent messages               │  │
-│  │    – Diff against per-label seen-ID set                │  │
-│  │    – New messages × matching rules:                    │  │
+│  │  "Evaluate this email" button                          │  │
+│  │  • Read the ONE open message                           │  │
+│  │    (gmail.addons.current.message.readonly)             │  │
+│  │  • For each enabled rule:                              │  │
 │  │      → Gemini: does this match the rule?               │  │
 │  │      → If YES: Gemini formats the alert message        │  │
-│  │      → SMS / Chat / Cal / Sheets / Tasks / MCP server   │  │
+│  │      → SMS / Chat / Cal / Sheets / Tasks / Docs / MCP  │  │
+│  │  • Result card: per-rule match / no-match / failed     │  │
 │  └────────────────────────────────────────────────────────┘  │
 │                                                              │
 │  Add-on UI (Cards) — Rules, Settings, Activity log, Help     │
@@ -68,9 +68,8 @@ All state lives in `PropertiesService.getUserProperties()`:
 
 | Key | Contents |
 |---|---|
-| `mailsentinel.settings` | Gemini key, model, poll interval, business hours, SMS config, alert channel IDs |
+| `mailsentinel.settings` | Gemini key, model, SMS config, alert channel IDs |
 | `mailsentinel.rules`    | JSON array of rule objects |
-| `mailsentinel.seen`     | Per-label list of recently-seen Gmail message IDs |
 | `mailsentinel.log`      | Ring buffer of the last ~60 activity log lines |
 
 `UserProperties` is **private to the running user** and **per-script** — nobody but you (and the add-on running in your account) can read it.
@@ -81,7 +80,7 @@ All state lives in `PropertiesService.getUserProperties()`:
 
 emAIl Sentinel for Gmail is **free** — a fully-featured add-on with no paid tiers, no feature gates, and no in-app purchases. Every alert channel (SMS, Google Chat, Google Calendar, Sheets, Tasks, Docs, MCP servers, Asana, and custom HTTPS webhooks), unlimited rules, AI-assisted rule and alert writing, and the full activity log are available to everyone at no cost.
 
-**About scan cadence:** Google Workspace enforces a **1-hour minimum** on time-based triggers in any Workspace add-on — a Google platform limit, not ours. Scheduled scans run at that floor; **Scan email now** (home card or the universal "⋮" menu) runs an immediate scan any time. The add-on runs **entirely inside your own Google account** — your email content never reaches our servers; it goes only to the Google Gemini API (with your own key) and the alert channels you configure.
+**About on-demand evaluation:** the add-on is contextual-only — it can read **only the email you currently have open**, and only when you click **Evaluate this email**. There is no background scanning of any kind. This is a deliberate privacy posture: the add-on holds no whole-mailbox permission, runs **entirely inside your own Google account**, and your email content never reaches our servers — it goes only to the Google Gemini API (with your own key) and the alert channels you configure.
 
 **Want always-on, real-time monitoring?** [emAIl Sentinel Pro](https://jjjjjenterprises.com/emailsentinel/pro) is a separate, optional self-hosted product that watches Gmail (and Outlook) around the clock and fires alerts in real time — even when your computer is off. **$15/month**, **$150/year**, or **$149 lifetime** (first 100 buyers, then $199).
 
@@ -94,14 +93,14 @@ email_sentinel/
 ├── .claspignore           # Limits clasp push to .gs / .html / appsscript.json
 ├── .gitignore
 │
-├── Code.gs                # Entry points: onHomepage, universal actions, onUninstall
+├── Code.gs                # Entry points: onHomepage, universal actions, shared helpers
 ├── Cards.gs               # All CardService UI (home, rules, editor, settings, log, help)
-├── MailWatcher.gs         # Time-driven trigger handler — polls Gmail, dispatches matches
+├── ContextualEvaluator.gs # Contextual trigger + on-demand evaluation of the open message
 ├── RuleEvaluator.gs       # Gemini REST calls (rule evaluation + alert formatting)
 ├── AlertDispatcher.gs     # Alert dispatch: BYO SMS (presets + generic webhook), Chat, Calendar, Sheets, Tasks, Docs, MCP
 ├── McpServers.gs          # MCP server CRUD + JSON-RPC 2.0 tool dispatch
 ├── RulesManager.gs        # CRUD for rules in UserProperties
-├── SettingsManager.gs     # CRUD for settings; business-hours helpers
+├── SettingsManager.gs     # CRUD for settings
 ├── ActivityLog.gs         # Ring-buffered activity log with batch-write support
 │
 ├── README.md              # You are here
@@ -205,14 +204,11 @@ If you'd rather not install `clasp`:
 After installation, open Gmail and click the emAIl Sentinel icon in the right rail.
 
 1. **Settings ▸ Gemini API key** — paste your key. Click **Test Gemini** to confirm it works.
-2. **Settings ▸ Scan schedule** — pick how often to check. The dropdown offers whole-hour intervals (`1 hour`, `2 hours`, `3 hours`, `4 hours`, `6 hours`, `8 hours`, `12 hours`, `24 hours`) down to the 1-hour Google Workspace platform floor, which cannot be bypassed. Use **Scan email now** for an immediate scan anytime.
-3. **Settings ▸ SMS provider** *(optional)* — choose a provider and fill in credentials. Click **SMS setup guide** for a comparison. Then add named SMS recipients (e.g. "On-call", "CFO") below the provider fields — rules pick recipients by name, not raw phone numbers.
-4. **Settings ▸ External integrations** *(optional)* — add Microsoft Teams, Asana (REST or MCP V2), any custom MCP endpoint (Cloudflare Worker, self-hosted bridge, etc.), or any HTTPS webhook URL (Slack incoming, Discord, n8n / Zapier, custom internal APIs).
-5. **Settings ▸ Save settings**.
-6. **Rules ▸ + New rule** — give it a name, list one or more Gmail labels (e.g. `INBOX`), describe the match in plain English, and tick the channels you want (SMS recipients, Chat spaces, MCP servers, Calendar, Sheets, Tasks). Click **Help me write the rule text** or **Help me write the alert text** to have Gemini draft a starting point. Or click **Starter rules** on the home card to create 5 pre-built rules (urgent emails, invoices, shipping updates, security alerts, and subscription renewals) — they are created disabled so you can tick channels and enable them at your own pace.
-7. Back on the home card, pick a scan interval from the **Scan email every** dropdown (defaults to the 1-hour Google Workspace platform floor), then click **Start scheduled scans**. This installs a time-driven trigger that runs in the background even when Gmail is closed and saves the chosen interval into Settings.
-
-The **first** check for any new label is treated as a baseline (no alerts) so you don't get a flood of notifications for existing mail. Alerts start with the next new message.
+2. **Settings ▸ SMS provider** *(optional)* — choose a provider and fill in credentials. Click **SMS setup guide** for a comparison. Then add named SMS recipients (e.g. "On-call", "CFO") below the provider fields — rules pick recipients by name, not raw phone numbers.
+3. **Settings ▸ External integrations** *(optional)* — add Microsoft Teams, Asana (REST or MCP V2), any custom MCP endpoint (Cloudflare Worker, self-hosted bridge, etc.), or any HTTPS webhook URL (Slack incoming, Discord, n8n / Zapier, custom internal APIs).
+4. **Settings ▸ Save settings**.
+5. **Rules ▸ + New rule** — give it a name, describe the match in plain English, and tick the channels you want (SMS recipients, Chat spaces, MCP servers, Calendar, Sheets, Tasks, Docs). Click **Help me write the rule text** or **Help me write the alert text** to have Gemini draft a starting point. Or click **Starter rules** on the home card to create 5 pre-built rules (urgent emails, invoices, shipping updates, security alerts, and subscription renewals) — they are created disabled so you can tick channels and enable them at your own pace.
+6. **Open any email**, open the emAIl Sentinel panel, and click **Evaluate this email**. A result card shows each rule's match / no-match decision with Gemini's reason; matches dispatch alerts immediately.
 
 ---
 
@@ -234,7 +230,7 @@ Good examples:
 - `"Email from boss@example.com asking for a status update."`
 - `"Automated notification about a server being down or an alert being triggered."`
 
-Each rule also has an **Alert message content** field — plain-English instructions Gemini uses to compose the alert message itself. The default produces a date / sender / subject / summary / action items block; override it per rule when you want something different (a one-liner, a bullet list, …). The **Help me write the rule text** and **Help me write the alert text** buttons in the rule editor let Gemini draft either field for you based on the rule name, labels, and the channels you've ticked.
+Each rule also has an **Alert message content** field — plain-English instructions Gemini uses to compose the alert message itself. The default produces a date / sender / subject / summary / action items block; override it per rule when you want something different (a one-liner, a bullet list, …). The **Help me write the rule text** and **Help me write the alert text** buttons in the rule editor let Gemini draft either field for you based on the rule name and the channels you've ticked.
 
 ### Rule examples by alert channel
 
@@ -292,7 +288,7 @@ The real power is mixing channels:
 
 ## 10. Gemini pricing and model tiers
 
-emAIl Sentinel calls the Gemini API **twice per new email per active rule**: once to evaluate whether the email matches, and once to format the alert message. Already-seen messages are skipped entirely.
+emAIl Sentinel calls the Gemini API **up to twice per active rule each time you evaluate an email**: once to evaluate whether the email matches, and once (only on a match) to format the alert message.
 
 ### Models (select in Settings)
 
@@ -312,15 +308,15 @@ A key from [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apik
 - **Flash models:** 1,500 requests/day and 1,000,000 tokens/day
 - **Pro models:** 50 requests/day
 
-When you hit a limit, Gemini returns HTTP 429 and emAIl Sentinel logs `"Gemini quota exceeded"` in the Activity Log. Scanning resumes automatically the next day — you are never charged on a free key.
+When you hit a limit, Gemini returns HTTP 429 and emAIl Sentinel logs `"Gemini quota exceeded"` in the Activity Log. Evaluation works again the next day — you are never charged on a free key.
 
 ### Estimating your daily usage
 
-**Gemini calls per day ≈ new emails/day × active rules × 2**
+**Gemini calls per day ≈ emails you evaluate/day × active rules × 2**
 
 Each call consumes roughly 600–1,500 tokens depending on email length and the complexity of your alert format prompt.
 
-| Scenario | New emails/day | Active rules | API calls/day | Tokens/day (est.) | Free tier? |
+| Scenario | Evaluations/day | Active rules | API calls/day | Tokens/day (est.) | Free tier? |
 |---|---|---|---|---|---|
 | Light personal | 20 | 1 | 40 | ~50K | Well within |
 | Typical personal | 50 | 3 | 300 | ~375K | Well within |
@@ -340,20 +336,18 @@ If you regularly hit the free limit:
 
 | Usage | Input tokens/mo | Input cost | Output tokens/mo | Output cost | Monthly total |
 |---|---|---|---|---|---|
-| Typical personal (50 emails/day × 3 rules) | ~7M | ~$0.53 | ~1M | ~$0.30 | **~$0.83** |
-| Power user (100 emails/day × 5 rules) | ~23M | ~$1.73 | ~4M | ~$1.20 | **~$2.93** |
-| Small business (200 emails/day × 10 rules) | ~90M | ~$6.75 | ~14M | ~$4.20 | **~$10.95** |
+| Typical personal (50 evaluations/day × 3 rules) | ~7M | ~$0.53 | ~1M | ~$0.30 | **~$0.83** |
+| Power user (100 evaluations/day × 5 rules) | ~23M | ~$1.73 | ~4M | ~$1.20 | **~$2.93** |
+| Small business (200 evaluations/day × 10 rules) | ~90M | ~$6.75 | ~14M | ~$4.20 | **~$10.95** |
 
-> These are rough upper bounds. Emails that don't match a rule still cost one evaluation call; alerts that fire cost a second (formatting) call. Most rules match only a small fraction of emails, so real costs are typically lower.
+> These are rough upper bounds. Emails that don't match a rule still cost one evaluation call per rule; alerts that fire cost a second (formatting) call. Most rules match only a small fraction of emails, so real costs are typically lower.
 
 ### Tips to reduce Gemini spend
 
-- **Enable Business hours** — restricts checks to your configured time window (supports overnight windows too).
-- **Lower Max email age** (Settings ▸ Scan schedule) — default is 30 days; reducing it skips older messages entirely so they never hit Gemini.
-- **Watch specific labels** (e.g. `Vendors/Invoices`) instead of INBOX — only emails in that label are evaluated against the rule.
+- **Only evaluate emails worth checking** — evaluation is always on demand, so you control every Gemini call.
+- **Disable rules you aren't using** — every enabled rule runs on each evaluation.
 - **Combine conditions** — one rule "Invoice OR purchase order from any vendor" is cheaper than two separate rules.
 - **Keep alert format prompts short** — concise format instructions produce shorter output responses and lower output-token costs.
-- **Raise the scan interval** — pick a longer interval in the Scan schedule dropdown (e.g. every 6 or 12 hours) instead of the 1-hour floor to reduce Gemini calls proportionally when email arrives in bursts.
 
 ---
 
@@ -427,8 +421,8 @@ Click **Load defaults** when editing a server to populate the tool name and args
 
 | What | Where it lives |
 |---|---|
-| Your Gemini API key, SMS provider credentials, Chat webhook URLs, rules, seen-mail baseline, activity log | `PropertiesService.getUserProperties()` — per-user, per-script, private |
-| Email contents (sender, subject, body excerpt, attachment names) | Sent to **Gemini** for evaluation; included in alert messages sent via the channels you enable. |
+| Your Gemini API key, SMS provider credentials, Chat webhook URLs, rules, activity log | `PropertiesService.getUserProperties()` — per-user, per-script, private |
+| Email contents (sender, subject, body excerpt, attachment names) — **only for the open message you explicitly evaluate** | Sent to **Gemini** for evaluation; included in alert messages sent via the channels you enable. |
 | Google Calendar events, Sheets rows, Tasks | Created in **your own** Google account |
 | Google Chat messages | Posted to **your own** Chat Spaces via webhook URLs you configure |
 
@@ -441,8 +435,7 @@ Nothing is stored on any third-party server. The add-on has no backend. The Goog
 | Symptom | Fix |
 |---|---|
 | "No Gemini API key configured" in the activity log | **Settings ▸ Gemini API key** — paste a key, then **Test Gemini** |
-| "Label '…' fetch failed" | Make sure the label exists in Gmail with that exact name (case-insensitive). For nested labels use the full path with `/`, e.g. `Vendors/Invoices` |
-| Alerts firing for old mail right after install | **Settings ▸ Reset baseline** — the next run will re-baseline every label |
+| No "Evaluate this email" button in the panel | Open a specific email first — from the inbox list view the add-on shows the home card instead |
 | SMS "HTTP 401" or auth error | Re-check your provider credentials in **Settings ▸ SMS provider**; both key fields must be saved |
 | SMS "invalid from number" or delivery failure | Ensure the From number is provisioned on your provider account and the To number is in E.164 format (`+15551234567`) |
 | MCP target system (Asana/Slack/Teams/etc.) not populated, but no error in the activity log | The dispatcher now surfaces tool-level MCP errors as `MCP alert to "<name>" FAILED: MCP "<name>" tool error: <detail>`. If you used to see no log line at all, push the latest code — earlier versions silently swallowed errors when the MCP server returned a Streamable-HTTP `text/event-stream` response (e.g. Asana V2 at `https://mcp.asana.com/v2/mcp`). Common detail texts: *Project not found* (bad `project_id`), *Forbidden* (PAT lacks workspace access), *Required field missing* (args template missing a required field). |
@@ -450,10 +443,9 @@ Nothing is stored on any third-party server. The add-on has no backend. The Goog
 | Activity log times look "off" by several hours | Activity-log timestamps are now in 12-hour AM/PM in your local timezone (taken from your primary Google Calendar). If your Calendar's timezone is wrong, fix it in [calendar.google.com](https://calendar.google.com/calendar/u/0/r/settings) ▸ Time zone — emAIl Sentinel inherits that setting on the next run |
 | Sheets row Timestamp / Received columns show `…Z` UTC strings | You're on an older deployment. Push the latest code — both columns now render as `yyyy-MM-dd h:mm:ss AM/PM TZ` in your local Calendar timezone |
 | "Manage add-on" opens the Apps Script editor source code | This is identity-aware. As the add-on **owner / developer**, Google routes "Manage add-on" to the Apps Script editor. **End users** who installed the add-on from the Workspace Marketplace get the standard consumer dialog (uninstall, view permissions, manage data access) instead. To preview the consumer experience, install the published Marketplace listing on a separate Google account that doesn't own the script |
-| Trigger doesn't seem to be running | Apps Script editor ▸ **Triggers** (left rail clock icon) — confirm `runMailCheck` is listed. If not, return to the home card and click **Start scheduled scans** again |
-| Want to see exactly what the trigger did | **Activity log** card — newest entries first |
+| Want to see exactly what an evaluation did | **Activity log** card — newest entries first |
 
-You can also peek at the trigger execution history in the Apps Script editor under **Executions** (left rail).
+You can also peek at the execution history in the Apps Script editor under **Executions** (left rail).
 
 ### Where to ask for help
 
@@ -466,9 +458,7 @@ Both are linked from inside the add-on: **Help** card → support links, and the
 
 ## 14. Why an Add-on instead of a Chrome extension?
 
-A Chrome extension only runs while a Chrome tab is open. emAIl Sentinel needs to scan Gmail continuously in the background — the right primitive for that is an **Apps Script time-driven trigger**, which runs server-side on Google's infrastructure whether or not you have Gmail open. A Workspace Add-on bundles that trigger together with a Gmail-rail UI for managing rules and settings.
-
-If you'd rather have an in-Gmail browser-only experience too, the same `.gs` files can also be deployed as a **Gmail Add-on web app** through Google Workspace Marketplace; the manifest is already compatible.
+A Workspace Add-on lives directly in the Gmail side panel with first-class access to the message you have open — Google's contextual add-on framework hands the add-on a scoped, short-lived token for exactly that one message, which is what makes the privacy model possible (a Chrome extension scraping the Gmail DOM has no such boundary, works only in Chrome, and breaks whenever Gmail's markup changes). The add-on also works in Gmail on Android and iOS, where extensions don't exist.
 
 ---
 

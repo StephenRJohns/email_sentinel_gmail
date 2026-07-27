@@ -1,5 +1,7 @@
 # Running the UserTesting Script Specs
 
+> **Rewritten 2026-07-26 for the contextual-only flow** — Task 4 in both specs now opens the seeded email and clicks **Evaluate this email** (there is no scheduled scan or "Scan email now" anymore, and the rule editor has no labels field). Selectors are unverified against the live UI; expect drift on the first run.
+
 Playwright translations of `usertesting/docs/script_a_core.md` (Script A — five Google channels, the active Round 1 script) and `usertesting/docs/script_b_power.md` (Script B — SMS path, **RETIRED**). One test per task in each spec, gated by env vars so missing credentials skip cleanly rather than fail.
 
 For setup, Chrome profile config, and the rest of the automated suite, see `README.md`.
@@ -69,7 +71,7 @@ npx playwright test tests/script_a.spec.js --grep "Task 2c"
 # T3 — Create rule with all five Google channels (best-effort; flaky per README)
 npx playwright test tests/script_a.spec.js --grep "Task 3"
 
-# T4 — Self-send + kebab Scan email now (sends a real email)
+# T4 — Self-send, open the email, Evaluate this email (sends a real email)
 npx playwright test tests/script_a.spec.js --grep "Task 4"
 
 # T5 — Always skips (interview)
@@ -94,7 +96,7 @@ npx playwright test tests/script_b.spec.js --grep "Task 2"
 # T3 — Create rule with SMS recipient ticked (best-effort)
 npx playwright test tests/script_b.spec.js --grep "Task 3"
 
-# T4 — Self-send + kebab Scan email now
+# T4 — Self-send, open the email, Evaluate this email
 npx playwright test tests/script_b.spec.js --grep "Task 4"
 
 # T5 — Always skips
@@ -130,6 +132,6 @@ npx playwright test tests/script_a.spec.js --grep "Task 2"
 | A T2b | `TEST_PROMO_CODE` minted via `python -m tools.promo.cli mint …`. Single-use — fresh code per run. |
 | A T2c, A T3 chat tickbox | `CHAT_WEBHOOK_URL` (and optionally `CHAT_SPACE_NAME`). |
 | B T2 | `SMS_PROVIDER` pre-selected in Settings on the test account (Material dropdown is not Playwright-controllable). `SMS_API_KEY`, `SMS_TEST_NUMBER` in env. Country code pre-set in Settings. Textbelt = 1 SMS/24h. |
-| A T4, B T4 | Sends a real outbound email to `GOOGLE_EMAIL` and runs a real Gemini-backed scan against your live key. |
+| A T4, B T4 | Sends a real outbound email to `GOOGLE_EMAIL`, opens it in the message view, and runs a real Gemini-backed evaluation ("Evaluate this email") against your live key. |
 | A T2b retry | Fails on the second run — promo codes are single-use. Mint a fresh code. |
 | B T2 retry | Textbelt free tier rate-limits to 1 SMS/day; second run within 24h returns "rate-limited" (the assertion accepts that wording). |

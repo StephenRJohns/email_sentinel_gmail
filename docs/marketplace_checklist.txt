@@ -122,27 +122,29 @@ PART 2 — LISTING ASSETS (copy these into Cloud Console)
      (Slack incoming, Discord, n8n / Zapier, custom internal APIs) (Pro)
 
    HOW IT WORKS
-   A background trigger checks Gmail on the interval you choose. For each
-   new message in a watched label, Gemini reads the sender, subject, body,
-   and attachment names and decides whether it matches your rule. If yes,
-   it formats an alert message and fires every channel you configured.
-   Messages that don't match are ignored entirely — no noise.
+   Open any email and click "Evaluate this email" in the add-on panel.
+   Gemini reads the sender, subject, body, and attachment names of that
+   one open message and decides whether it matches each enabled rule. On
+   a match, it formats an alert message and fires every channel you
+   configured. The add-on can only read the message you have open — it
+   never scans your mailbox in the background.
 
    PRICING
    • Free — the add-on is fully featured: unlimited rules, every alert
      channel (SMS, Google Chat, Calendar, Sheets, Tasks, Docs, MCP,
      webhooks), AI-assisted rule writing, and full log history, at no cost.
-   • Scans run at Google's 1-hour trigger floor; "Scan email now" runs an
-     immediate scan any time.
+   • Evaluation is on demand only — you choose which emails to check.
    • Always-on, real-time monitoring is a separate self-hosted product,
      emAIl Sentinel Pro ($15/month, $150/year, or $149 lifetime).
 
-   IMPORTANT — POLLING PLATFORM LIMIT
-   Google enforces a 1-hour minimum on time-based triggers in every
-   Workspace add-on. This is a Google platform constraint, not a pricing
-   choice; we cannot poll faster than this. The add-on is free with no
-   tiers, so this floor applies to everyone; "Scan email now" runs an
-   immediate scan any time.
+   IMPORTANT — ON-DEMAND-ONLY BY DESIGN
+   The add-on uses only the current-message Gmail permission
+   (gmail.addons.current.message.readonly). It cannot read any message
+   other than the one the user has open, and it performs no scheduled or
+   background access. This is a deliberate privacy posture and also keeps
+   the app out of Google's restricted-scope category (no CASA security
+   assessment required). Whole-mailbox automation is the separate
+   self-hosted Pro product.
 
    EXAMPLE RULES
    • "Any email from anyone @example.com with a PDF attachment that
@@ -310,8 +312,10 @@ PART 3 — OAUTH CONSENT SCREEN + VERIFICATION
 
 12. OAUTH VERIFICATION
 --------------------------------------------------------------------------------
-    Because gmail.readonly is a restricted/sensitive scope, you must
-    submit for OAuth verification before Marketplace approval.
+    The add-on requests NO restricted scope — Gmail access is limited to
+    gmail.addons.current.message.readonly (sensitive tier), so no CASA
+    security assessment is required. Sensitive scopes still require
+    standard OAuth verification before Marketplace approval.
 
     In Cloud Console → APIs & Services → OAuth consent screen →
     Verification status → Prepare for verification.
@@ -335,12 +339,13 @@ PART 3 — OAUTH CONSENT SCREEN + VERIFICATION
         Required to run as a Gmail add-on. This scope is granted
         implicitly by installing any Gmail add-on.
 
-      gmail.readonly
-        Required to read message metadata (sender, subject, received date,
-        attachment filenames) and up to the first 2,000 characters of the
-        plain-text body, for rule evaluation by the Google Gemini API.
-        The add-on only reads messages in Gmail labels the user explicitly
-        configures. No messages are modified, sent, or deleted.
+      gmail.addons.current.message.readonly
+        Required to read the message the user currently has open (sender,
+        subject, received date, attachment filenames, and up to the first
+        2,000 characters of the plain-text body) when the user explicitly
+        clicks "Evaluate this email", for rule evaluation by the Google
+        Gemini API. The add-on cannot read any other messages and performs
+        no background access. No messages are modified, sent, or deleted.
 
       calendar
         Required to create calendar events as alerts when the user enables
@@ -364,10 +369,6 @@ PART 3 — OAUTH CONSENT SCREEN + VERIFICATION
         Plivo, Twilio, ClickSend, Vonage) and MCP server endpoints
         (Slack, Microsoft 365 / Teams, Asana, or user-configured
         custom endpoints) when the user enables those alert channels.
-
-      script.scriptapp
-        Required to create and manage time-driven triggers that schedule
-        background email checks at the user-configured polling interval.
 
 
 ================================================================================
@@ -399,8 +400,10 @@ PART 4 — WHAT GOOGLE CHECKS DURING REVIEW
 15. USER EXPERIENCE
 --------------------------------------------------------------------------------
     [ ] Home card exists and is useful
-    [ ] Universal actions all work (Rules, Settings, Activity Log, Help,
-        Community discussions, Scan email now)
+    [ ] Universal actions all work (Home, Rules, Settings, Activity Log,
+        Help, Community discussions)
+    [ ] Contextual card appears when opening an email; "Evaluate this
+        email" runs and lands on the result card
     [ ] UI fits within the ~300px add-on panel without horizontal scroll
     [ ] Text is not cut off with "..."
     [ ] No duplicate UI elements

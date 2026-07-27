@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Starter rules no longer watch a Gmail label (Scene 1/3 "watching INBOX" and checklist step 10 are stale); rules apply to whichever email you evaluate.
+
 # Starter rules
 **Duration:** 60 s
 **Tool:** Guidde

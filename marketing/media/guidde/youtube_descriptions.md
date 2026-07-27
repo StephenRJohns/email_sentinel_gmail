@@ -14,10 +14,10 @@ In this tutorial you will learn how to:
 • Open the Starter Rules section from the emAIl Sentinel sidebar
 • Browse the available templates — payment issues, customer escalations, security alerts, and more
 • Add one or more starter rules to your active rule list with a single tap
-• Edit the added rules to match your specific Gmail labels and preferred alert channels
-• Start scheduled scans to put your rules to work immediately
+• Edit the added rules to pick your preferred alert channels
+• Open any email and click "Evaluate this email" to put your rules to work immediately
 
-Starter Rules are the fastest path from install to first alert. Pick the templates that match your workflow and customize from there.
+Starter Rules are the fastest path from install to first alert. Pick the templates that match your workflow and customize from there. emAIl Sentinel reads only the email you have open, only when you click Evaluate this email — it never scans your mailbox in the background.
 
 Step-by-step written guide:
 https://drive.google.com/file/d/1oK1xBZMaEhCTMyNfKD5KW8qCjk25KR6t/view?usp=sharing
@@ -41,16 +41,15 @@ emAIl Sentinel is coming soon to the Google Workspace Marketplace.
 
 **Description:**
 ```
-Learn how to create and customize AI-powered monitoring rules in emAIl Sentinel to catch customer escalations, cancellation requests, and refund inquiries the moment they arrive in Gmail.
+Learn how to create and customize AI-powered rules in emAIl Sentinel to catch customer escalations, cancellation requests, and refund inquiries in your Gmail.
 
 In this tutorial you will learn how to:
 • Open the Rules section from the emAIl Sentinel sidebar
 • Write a plain-English rule description — no keywords or regex required
-• Choose which Gmail label to monitor
 • Configure one or more alert channels: SMS, Google Chat, Google Calendar, Google Sheets, Google Tasks, Google Docs, or an external integration
-• Save and enable your rule for continuous background monitoring
+• Save and enable your rule, then check any email against it with "Evaluate this email"
 
-Each incoming email is evaluated against your rule criteria by the Gemini AI model. You describe what matters to you in plain English; emAIl Sentinel does the rest.
+Open an email, click Evaluate this email, and the Gemini AI model checks it against your rule criteria on the spot. You describe what matters to you in plain English; emAIl Sentinel does the rest — it reads only the email you have open, only when you click Evaluate this email, and never scans your mailbox in the background.
 
 Step-by-step written guide:
 https://drive.google.com/file/d/1_bCyLgw-4UI4DOanq4d0VxinmF6F9Y8j/view?usp=sharing
@@ -68,21 +67,23 @@ emAIl Sentinel is coming soon to the Google Workspace Marketplace.
 
 ---
 
-## 3. Configure Email Scan Settings In emAIl Sentinel
+## 3. Evaluate An Email On Demand In emAIl Sentinel
 
-**Title:** Configure Email Scan Settings In emAIl Sentinel
+> **OUTDATED (2026-07-26):** the recorded video shows the old scheduled-scan / "Scan email now" flow — re-record on the contextual-only build before upload. Description below is already rewritten for the new flow.
+
+**Title:** Evaluate An Email On Demand In emAIl Sentinel
 
 **Description:**
 ```
-Learn how to configure scan intervals, run on-demand scans, and review the activity log in emAIl Sentinel — the AI-powered Gmail monitoring add-on for Google Workspace.
+Learn how to evaluate any open email against your rules on demand and review the activity log in emAIl Sentinel — the AI-powered email alerting add-on for Google Workspace.
 
 In this tutorial you will learn how to:
-• Access the Settings panel in emAIl Sentinel
-• Understand the scheduled scan interval — once an hour, the Google Workspace platform floor
-• Use the "Scan email now" button to run an immediate scan at any time, bypassing the schedule entirely
+• Open an email and find emAIl Sentinel's "Evaluate this email" button in the side panel
+• Run an on-demand evaluation — every enabled rule is checked against the open message
+• Read the Evaluation result card, with a per-rule match or no-match verdict and the AI's reasoning
 • Review the activity log to confirm that rules evaluated correctly and alerts were dispatched
 
-The one-hour scan floor is a Google Workspace add-on platform limit, not an emAIl Sentinel restriction. On-demand scanning is available anytime with no cooldown. For always-on, real-time monitoring, see the separate self-hosted emAIl Sentinel Pro at https://jjjjjenterprises.com/emailsentinel/pro.
+emAIl Sentinel reads only the email you have open, only when you click Evaluate this email — it never scans your mailbox in the background. For always-on, real-time monitoring, see the separate self-hosted emAIl Sentinel Pro at https://jjjjjenterprises.com/emailsentinel/pro.
 
 Step-by-step written guide:
 https://drive.google.com/file/d/15x8a0Y90KYB5Bozoy7SjxmgcXpM7iOA1/view?usp=sharing
@@ -112,10 +113,10 @@ In this tutorial you will learn how to:
 • Navigate to the Google Chat section in emAIl Sentinel Settings
 • Create an incoming webhook in your Google Chat space
 • Add the webhook URL and a display name in emAIl Sentinel
-• Attach your Chat space to a monitoring rule as an alert destination
-• Verify that alert messages post to your Chat space when matching emails arrive
+• Attach your Chat space to a rule as an alert destination
+• Verify that alert messages post to your Chat space when an evaluated email matches
 
-When emAIl Sentinel detects an email that matches a rule, it generates a plain-English alert summary using the Gemini AI model and posts it directly to your configured Chat space — no manual inbox checking required.
+When you click "Evaluate this email" on an open message and it matches a rule, emAIl Sentinel generates a plain-English alert summary using the Gemini AI model and posts it directly to your configured Chat space.
 
 Step-by-step written guide:
 https://drive.google.com/file/d/1zcq3VPEwUMFxjLU1E50tPxuKBq3s6oiW/view?usp=sharing
@@ -146,10 +147,10 @@ In this tutorial you will learn how to:
 • Copy the ready-to-deploy Worker code from the emAIl Sentinel Help card
 • Deploy the Cloudflare Workers MCP server (Cloudflare Workers are free, with no expiring credentials)
 • Add the deployed server URL to emAIl Sentinel's External Integrations settings
-• Configure a rule to call your MCP server tool when a matching email arrives
+• Configure a rule to call your MCP server tool when an evaluated email matches
 • Test the integration end to end
 
-MCP is the same open protocol used by Claude Desktop, Cursor, and other AI agent frameworks. emAIl Sentinel speaks it natively, so your Gmail inbox can trigger any tool that exposes an MCP server. The Cloudflare Worker in this video is the simplest starting point; you can point emAIl Sentinel at any MCP server you need once you understand the pattern.
+MCP is the same open protocol used by Claude Desktop, Cursor, and other AI agent frameworks. emAIl Sentinel speaks it natively, so evaluating a matching email can trigger any tool that exposes an MCP server. The Cloudflare Worker in this video is the simplest starting point; you can point emAIl Sentinel at any MCP server you need once you understand the pattern.
 
 External integrations are free for everyone — like every alert channel in emAIl Sentinel.
 

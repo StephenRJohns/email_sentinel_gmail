@@ -8,7 +8,7 @@
 
 ## What this product is
 
-emAIl Sentinel is a Gmail add-on that watches your inbox and sends you alerts — SMS, Calendar event, Google Chat message, and more — when emails matching plain-English rules arrive. For example: "alert me when any email from a client mentions an invoice." In this session you will configure your existing **`<PROVIDER_NAME>`** account as the SMS delivery channel, write a rule, and confirm a real text arrives on your phone.
+emAIl Sentinel is a Gmail add-on that checks the email you have open against plain-English rules and sends you alerts — SMS, Calendar event, Google Chat message, and more — when it matches. For example: "alert me when any email from a client mentions an invoice." It reads only the email you have open, only when you click Evaluate this email — never scans your mailbox in the background. In this session you will configure your existing **`<PROVIDER_NAME>`** account as the SMS delivery channel, write a rule, and confirm a real text arrives on your phone.
 
 ---
 
@@ -91,7 +91,6 @@ The developer has provided these for this session. Rotate after the session — 
 2. Click **Rules** → **+ New rule**.
 3. Fill in the rule editor:
    - **Rule name:** anything (e.g. "SMS test rule")
-   - **Gmail labels to watch:** type `INBOX`
    - **Rule text:** write a plain-English description — for example: *"Any email with the word SENTINEL in the subject line."* You may use the **Help me write the rule text** button if you want, but it is not required.
 4. Under **Alert channels**, find the **SMS** section and tick the recipient you added in Task 3.
 5. Click **Save**.
@@ -103,15 +102,15 @@ The developer has provided these for this session. Rotate after the session — 
 ### Task 5 — Trigger the rule and confirm the SMS arrives (4 min)
 
 1. In Gmail, click **Compose**. Send yourself an email with **subject line `SENTINEL test 1`** (the trigger word from your rule). The recipient can be your own address.
-2. Wait about 10 seconds for the email to land in your inbox.
-3. Switch to the emAIl Sentinel add-on. Open the kebab "⋮" menu and click **Scan email now**. A card titled **Scan email now** appears — read the description, then click the purple **Run scan now** button.
-4. The button shows a spinner while the scan runs (10–60 seconds). When it finishes, the result card should read *"Scan complete — 1 new email, 1 match"* in green.
+2. Wait about 10 seconds, then **click into the email** in your inbox so it is open on screen.
+3. With the email open, open the emAIl Sentinel add-on panel. A card appears offering to check this email against your enabled rules — click the purple **Evaluate this email** button.
+4. The button shows a spinner while the evaluation runs (a few seconds per rule). When it finishes, an **Evaluation result** card appears — your rule's row should read *"✅ Match — alerts sent"* in green.
 5. Within about 30 seconds of the result card appearing, a text should arrive on your phone.
 
 **Tell us out loud:**
 - Did the text arrive? Was it within a reasonable time?
 - Read the text message aloud. Is the content clear and useful — would you want to receive exactly this text for a real important email?
-- Was the "Scan email now" path obvious? Were you unsure at any point whether the scan was running?
+- Was the "Evaluate this email" path obvious? Were you unsure at any point whether the evaluation was running?
 
 ---
 
@@ -121,7 +120,7 @@ The developer has provided these for this session. Rotate after the session — 
 2. What was most confusing — the Gemini key, the provider credential setup, the phone number entry format, or something else?
 3. Did the text message content feel right? Too much information, not enough, or about right?
 4. How does this compare to how you currently get notified about important emails?
-5. The add-on costs **$4.99/month** (or $39/year) for unlimited rules and Pro-only channels (Google Chat, external integrations). SMS and the five Google channels (Calendar, Sheets, Tasks, Docs) are included on the **free plan**. The SMS provider's own per-message fees are separate — billed directly by `<PROVIDER_NAME>`. Would you use the free plan? Would you pay $4.99/month for the Pro version? Why?
+5. The add-on you used today (**emAIl Sentinel Lite**) is free — every alert channel is included, but it only checks an email when you open it and click **Evaluate this email**. The SMS provider's own per-message fees are separate — billed directly by `<PROVIDER_NAME>`. There is a separate paid product, **emAIl Sentinel Pro** — a self-hosted service that monitors your whole mailbox automatically, 24/7, across Gmail and Outlook. Would the free on-demand version be enough for you? Would you pay for automatic 24/7 monitoring, and what would that be worth per month? Why?
 
 ---
 
@@ -133,5 +132,5 @@ The developer has provided these for this session. Rotate after the session — 
 - **ClickSend "From" field:** ClickSend does not require a dedicated "From" number — the add-on uses the account username as the sender ID. Confirm this still renders acceptably on the tester's handset.
 - **Vonage sandbox vs. live:** Vonage free trial accounts start in sandbox mode where only verified numbers can receive messages. If delivery fails, the tester may need to add their number as a test number in the Vonage dashboard. Note whether this is clear from the add-on's error message.
 - **Telnyx:** requires a Messaging Profile linked to the "From" number. If the tester's number is not linked to a profile, delivery will fail silently. Ask them to verify in the Telnyx portal.
-- **Activity log:** after a successful scan, the tester should see a log entry in Activity log (kebab menu). Note whether they find it unprompted and whether the entry text makes sense to a non-developer.
-- **Timing signal:** note how long from Run scan now to SMS receipt for each provider. Outliers indicate API latency issues worth investigating.
+- **Activity log:** after a successful evaluation, the tester should see a log entry in Activity log (kebab menu). Note whether they find it unprompted and whether the entry text makes sense to a non-developer.
+- **Timing signal:** note how long from clicking Evaluate this email to SMS receipt for each provider. Outliers indicate API latency issues worth investigating.

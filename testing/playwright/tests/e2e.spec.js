@@ -1,6 +1,8 @@
+// REWRITTEN 2026-07-26 for contextual-only flow — selectors unverified against live UI; expect drift on first run.
+
 require('dotenv').config({ path: require('path').resolve(__dirname, '../e2e.config.env') });
 const { test, expect } = require('../fixtures');
-const { openAddon, getFrame, expectToast, clickButton, fillField } = require('../helpers');
+const { openAddon, getFrame, expectToast, clickButton, fillField, sendTestEmail, openEmailBySubject, openAddonPanel } = require('../helpers');
 
 // ─── Pre-run requirements (manual, not automated) ────────────────────────────
 //
@@ -13,9 +15,11 @@ const { openAddon, getFrame, expectToast, clickButton, fillField } = require('..
 //
 // This automated suite covers the reliably passing tests only. Tests that
 // depend on:
-//   - Real email send + delivery (S6+S7)
-//   - Specific tier flips that the suite cannot enforce (S2 Pro grid, S21)
-//   - Time-driven trigger state (S15/S16 monitoring)
+//   - Multi-channel alert verification outside the add-on iframe (Calendar/
+//     Sheets/Tasks/Docs/Chat surfaces)
+//   - Contextual-card state branches the suite cannot force (no-Gemini-key
+//     and no-enabled-rules paths would require wiping the test account's
+//     settings/rules mid-run)
 //   - Multi-step modal workflows that flake (S17 confirmations)
 //   - Rule creation + cleanup state (S4, S20 rule-editor checks)
 // remain manual per testing/e2e_test_plan.md.
@@ -24,12 +28,15 @@ const { openAddon, getFrame, expectToast, clickButton, fillField } = require('..
 
 test('S2: home card loads with all status rows', async ({ page }) => {
   const frame = await openAddon(page);
-  // Distinctive home-card identifiers — avoid ambiguous text like "Monitoring"
-  // or "Rules" that also appears in nav buttons (and is hidden there).
+  // Status rows: Plan (always "Lite" in this edition), Rules counts, Gemini
+  // API key. Each row is one TextParagraph (<b>title</b><br><font>value</font>).
   // .first() on "Gemini API key" disambiguates from the Quick-setup checklist
   // line "✓ Paste your Gemini API key".
-  await expect(frame.getByText(/Free \(|Plan:?\s*Pro/i)).toBeVisible();
+  await expect(frame.getByText(/Plan/).first()).toBeVisible();
+  await expect(frame.getByText(/Lite/).first()).toBeVisible();
   await expect(frame.getByText('Gemini API key').first()).toBeVisible();
+  // The "How it works" blurb names the contextual CTA.
+  await expect(frame.getByText(/Evaluate this email/).first()).toBeVisible();
 });
 
 test('S2: Settings card opens', async ({ page }) => {
@@ -44,23 +51,21 @@ test('S2: Settings card opens', async ({ page }) => {
   await expect(getFrame(page).getByText('Gemini (rule evaluation)')).toBeVisible();
 });
 
-// ─── S2 · Polling field ──────────────────────────────────────────────────────
-// The polling input is a dropdown of whole-hour options at or above the
-// active tier's minimum. The previous edge-case tests (clamp below tier min,
-// round up non-multiple-of-60, invalid string input) are no longer reachable
-// from the UI because the dropdown only offers valid values; they remain
-// covered by enforcePollFloor unit-style logic in LicenseManager.gs and by
-// manual invocation. The surviving automated coverage is just "the dropdown
-// exists and the max-age field renders."
+// ─── S2 · No scheduled-scan surfaces remain ──────────────────────────────────
+// The contextual-only conversion (2026-07-26) removed the Scan schedule
+// dropdown, Business hours checkbox, Max email age field, and Reset baseline
+// button from Settings. This regression guard asserts none of them come back.
 
-test('S2: polling and max-age fields visible in Settings', async ({ page }) => {
+test('S2: Settings has no scheduled-scan fields (contextual-only regression guard)', async ({ page }) => {
   const frame = await openAddon(page);
   await clickButton(frame, 'Settings');
-  const f = getFrame(page);
-  // Polling is now a dropdown — check by visible label/title rather than
-  // getByLabel which targets text inputs.
-  await expect(f.getByText('Scan email every').first()).toBeVisible();
-  await expect(f.getByLabel('Only scan emails newer than', { exact: false })).toBeVisible();
+  const body = getFrame(page).locator('body');
+  // Anchor on a section that IS present so the negatives aren't vacuous.
+  await expect(body).toContainText('Gemini (rule evaluation)');
+  await expect(body).not.toContainText('Scan email every');
+  await expect(body).not.toContainText('Only check during business hours');
+  await expect(body).not.toContainText('Only scan emails newer than');
+  await expect(body).not.toContainText('Reset baseline');
 });
 
 // ─── S3 · Starter Rules ───────────────────────────────────────────────────────
@@ -101,24 +106,42 @@ test('S3: starter rules preview opens and lists creatable starter rules', async 
   await expectToast(page, /starter rules created|limit reached/i);
 });
 
-// ─── S5 · Run Check Now ───────────────────────────────────────────────────────
+// ─── S5 · Contextual evaluation of an open email ─────────────────────────────
+// The contextual-only flow: self-send a seeded email, open it in the Gmail
+// message view, open the add-on panel (contextual card renders via
+// onGmailMessageOpen), click the FILLED purple "Evaluate this email" button,
+// and assert the "Evaluation result" card renders. handleEvaluateOpenMessage
+// is synchronous and can take 30-90s with Gemini in the loop (up to two
+// calls per enabled rule), hence the long timeout. Per-rule row content
+// ("✅ Match — alerts sent" / "➖ No match") depends on which rules are
+// enabled on the test account, so this test only asserts the result card
+// itself; the match-row assertion lives in script_a.spec.js Task 4 where the
+// DEMO rule is created first. The no-Gemini-key and no-enabled-rules branches
+// of the contextual card remain manual (forcing them would wipe test-account
+// state mid-suite).
 
-test('S5: scan email now produces a result card', async ({ page }) => {
-  // The default 120s per-test timeout is too tight: handleRunCheckNow is
-  // synchronous and can take 30-90s when Gemini is in the loop. The
-  // post-action toast lands as transient text inside the iframe body — once
-  // toContainText sees "Scan complete — ..." (or "Scan failed: ...") it
-  // returns; we don't need it to persist. The Activity-log navigation step
-  // that used to follow this assertion was dropped because a second click
-  // queued behind the still-pending scan never advanced the card; the toast
-  // alone is sufficient end-to-end evidence the button wiring works. The
-  // Activity-log content path remains in the manual e2e_test_plan.md.
-  test.setTimeout(240_000);
-  const frame = await openAddon(page);
-  await clickButton(frame, 'Scan email now');
+test('S5: Evaluate this email produces an Evaluation result card', async ({ page }) => {
+  const email = process.env.GOOGLE_EMAIL;
+  test.skip(!email, 'GOOGLE_EMAIL not set in e2e.config.env');
+  test.setTimeout(300_000);
+  const subject = `Sentinel S5 seed ${Date.now()}`;
+  await sendTestEmail(page, subject, email);
+  await page.waitForTimeout(10_000);
+  await openEmailBySubject(page, subject);
+  const frame = await openAddonPanel(page);
+  // Contextual card: happy path shows the Evaluate button; if the test
+  // account has no enabled rules the card offers "Open Rules" instead —
+  // treat that as a setup failure with a clear message rather than a flake.
+  const evalBtn = frame.getByRole('button', { name: 'Evaluate this email' }).first();
+  if (!(await evalBtn.isVisible({ timeout: 15_000 }).catch(() => false))) {
+    const body = await frame.locator('body').textContent().catch(() => '');
+    if (/No enabled rules yet/i.test(body)) throw new Error('S5 needs at least one enabled rule on the test account — enable one and re-run.');
+    if (/No Gemini API key configured/i.test(body)) throw new Error('S5 needs a Gemini API key configured on the test account.');
+  }
+  await evalBtn.click({ force: true, timeout: 30_000 });
   await expect(getFrame(page).locator('body')).toContainText(
-    /Scan (complete|failed)/i,
-    { timeout: 180_000 }
+    /Evaluation result|Evaluation failed/i,
+    { timeout: 240_000 }
   );
 });
 
@@ -185,7 +208,7 @@ test('S14: Help card loads with all five topic buttons', async ({ page }) => {
   const frame = await openAddon(page);
   await clickButton(frame, 'Help');
   const f = getFrame(page);
-  await expect(f.getByText('emAIl Sentinel™ Help')).toBeVisible({ timeout: 30_000 });
+  await expect(f.getByText('emAIl Sentinel Lite Help')).toBeVisible({ timeout: 30_000 });
   for (const topic of ['Quick start & writing rules', 'Rule examples by channel', 'Alert channel setup', 'Gemini pricing & models', 'Settings & troubleshooting']) {
     await expect(f.getByRole('button', { name: topic })).toBeVisible();
   }
@@ -209,7 +232,7 @@ test('S14: each remaining help topic loads with distinctive content', async ({ p
     { button: 'Quick start & writing rules', fingerprint: /Be specific about senders/i },
     { button: 'Rule examples by channel',    fingerprint: /Wire transfer/i },
     { button: 'Alert channel setup',         fingerprint: /Generic webhook/i },
-    { button: 'Gemini pricing & models',     fingerprint: /calls Gemini twice/i }
+    { button: 'Gemini pricing & models',     fingerprint: /twice per rule/i }
   ];
   for (const { button, fingerprint } of checks) {
     const f = await openAddon(page);
@@ -265,11 +288,14 @@ test('S14: help search finds a known phrase across topics', async ({ page }) => 
   const frame = await openAddon(page);
   await clickButton(frame, 'Help');
   // The "Search help" input + button live in their own section at the top.
-  await fillField(getFrame(page), 'Search all topics', 'Reset baseline');
+  // "back arrow" appears only in the Settings & troubleshooting topic (the
+  // unsaved-changes troubleshooting entry) — the old "Reset baseline" query
+  // matched a Settings feature removed in the contextual-only conversion.
+  await fillField(getFrame(page), 'Search all topics', 'back arrow');
   await clickButton(getFrame(page), 'Search');
   // Results card uses the query in its header.
-  await expect(getFrame(page).getByText(/Search:\s*"Reset baseline"/i)).toBeVisible();
-  // The Settings & troubleshooting topic mentions Reset baseline, so it should
+  await expect(getFrame(page).getByText(/Search:\s*"back arrow"/i)).toBeVisible();
+  // The Settings & troubleshooting topic mentions the back arrow, so it should
   // appear as a result. Apps Script keeps the previous Help card in the DOM
   // (hidden) — a bare getByText match resolves to many nodes including hidden
   // ones. The "Open: <topic>" button label is unique to the results card and
@@ -298,27 +324,12 @@ test('S14: help search no-match shows empty-result message', async ({ page }) =>
   await expect(getFrame(page).getByText(/No matches in any help topic/i)).toBeVisible();
 });
 
-// ─── S17 · Confirmation Dialog: Reset Baseline ───────────────────────────────
+// ─── S17 · Confirmation dialogs ──────────────────────────────────────────────
 // The Clear-log and Delete-rule confirmation flows remain manual per
 // playwright/README.md (multi-step Clear→Cancel→Clear→Clear sequences flake
-// on toast detection). The Reset-baseline path is reachable from the
-// Settings card via a plain TEXT button ('Reset baseline'), pushes a
-// confirmation card with the title 'Confirm reset', and exposes a plain
-// 'Cancel' button — the whole flow uses non-FILLED buttons, so it is
-// stable for automation. This test asserts the confirm card opens and
-// cancels cleanly. The destructive path (clicking 'Reset' to clear
-// settings.seen) stays manual to avoid wiping the test account's
-// per-label seen-ID baseline mid-suite.
-test('S17: Reset baseline confirmation card opens and Cancel pops it', async ({ page }) => {
-  const frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  await clickButton(getFrame(page), 'Reset baseline');
-  await expect(getFrame(page).getByText(/Reset the seen-message baseline\?/i)).toBeVisible();
-  await clickButton(getFrame(page), 'Cancel');
-  // Settings card should be back on top after Cancel — assert the
-  // Gemini section header that buildSettingsCard always renders.
-  await expect(getFrame(page).getByText('Gemini (rule evaluation)')).toBeVisible();
-});
+// on toast detection). The former Reset-baseline confirmation test was
+// removed in the contextual-only conversion — there is no seen-message
+// baseline (and no Reset baseline button) anymore.
 
 // ─── S17b · Unsaved-Changes Notice on Editor Cards ──────────────────────────
 // CardService gives no event for the system back arrow, so editor cards cannot
@@ -334,80 +345,24 @@ test('S17b: unsaved-changes notice present on Settings card', async ({ page }) =
   await expect(getFrame(page).getByText(/before tapping the back arrow/i)).toBeVisible();
 });
 
-// ─── S18 · Business Hours ────────────────────────────────────────────────────
+// ─── S18/S19 · Removed in the contextual-only conversion ─────────────────────
+// Business hours and Max email age were scheduled-scan settings; both fields
+// were removed from the Settings card (their absence is asserted by the S2
+// contextual-only regression guard above).
 
-test('S18: business hours checkbox is present in Settings', async ({ page }) => {
-  const frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  await expect(getFrame(page).getByText('Only check during business hours')).toBeVisible();
-});
-
-// ─── S19 · Max Email Age ─────────────────────────────────────────────────────
-// Full flow (baseline count comparison) remains manual. These tests cover
-// field persistence and input validation.
-
-test('S19: max email age persists a valid value', async ({ page }) => {
-  const frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only scan emails newer than', '1');
-  await clickButton(getFrame(page), 'Save settings');
-  await expectToast(page, /Settings saved|No changes/);
-  const val = await getFrame(page).getByLabel('Only scan emails newer than', { exact: false }).inputValue();
-  expect(val).toBe('1');
-});
-
-test('S19: max email age 0 is clamped to minimum of 1', async ({ page }) => {
-  // Set to 7 first so that 0→1 is a real state change (avoids "No changes to save").
-  let frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only scan emails newer than', '7');
-  await clickButton(getFrame(page), 'Save settings');
-  await expectToast(page, /Settings saved|No changes/);
-  // Navigate away to clear the toast, then test the clamp.
-  frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only scan emails newer than', '0');
-  await clickButton(getFrame(page), 'Save settings');
-  await expectToast(page, 'Settings saved');
-  const val = await getFrame(page).getByLabel('Only scan emails newer than', { exact: false }).inputValue();
-  expect(val).toBe('1');
-});
-
-test('S19: non-numeric max email age falls back to 30', async ({ page }) => {
-  const frame = await openAddon(page);
-  await clickButton(frame, 'Settings');
-  await fillField(getFrame(page), 'Only scan emails newer than', 'abc');
-  await clickButton(getFrame(page), 'Save settings');
-  await expectToast(page, 'Settings saved');
-  const val = await getFrame(page).getByLabel('Only scan emails newer than', { exact: false }).inputValue();
-  expect(val).toBe('30');
-});
-
-// ─── S20 · Free Plan Visibility ──────────────────────────────────────────────
+// ─── S20 · Plan Visibility ───────────────────────────────────────────────────
 // Only the home-card visibility checks are automated. Rule-editor Pro-gating
 // checks (Chat/MCP labels, AI Suggest suffix) remain manual — they require a
 // "+ New rule" click that the Apps Script FILLED-button rendering doesn't
 // expose to Playwright reliably.
-//
-// TEST_TIER convention: run_pro_e2e_tests.sh exports TEST_TIER=pro; the Free
-// runner leaves it unset. The test.skip() calls below intentionally skip on
-// Pro so the same spec file can run in both wrappers without spurious
-// failures. Running playwright directly (without a wrapper) on a Pro account
-// will execute these tests and fail loudly — which is the correct outcome,
-// because the Free indicators genuinely are not present on Pro.
 
-test('S20: home card shows Free plan indicator and Upgrade button', async ({ page }) => {
-  test.skip(process.env.TEST_TIER === 'pro', 'Free-tier-only — Pro hides the Free indicator and Upgrade button.');
+test('S20: home card shows Lite plan row and Upgrade to Pro link', async ({ page }) => {
   const frame = await openAddon(page);
-  await expect(frame.getByText(/Free \(/)).toBeVisible();
-  await expect(frame.getByRole('button', { name: /Upgrade to Pro/i })).toBeVisible();
-});
-
-test('S20: founding-member scarcity counter appears on home card', async ({ page }) => {
-  test.skip(process.env.TEST_TIER === 'pro', 'Free-tier-only — the founding-member counter only renders for Free users.');
-  const frame = await openAddon(page);
-  await expect(frame.getByText(/Founding-member lifetime.*\$79/)).toBeVisible();
-  await expect(frame.getByText(/of 500 remaining/i)).toBeVisible();
+  // The Plan status row always reads "Lite" in this edition, and the Pro
+  // upsell (self-hosted 24/7 monitoring) is always shown.
+  await expect(frame.getByText(/Lite/).first()).toBeVisible();
+  await expect(frame.getByText(/24\/7 automatic monitoring/i)).toBeVisible();
+  await expect(frame.getByRole('button', { name: /Upgrade to Pro/i }).first()).toBeVisible();
 });
 
 // The promo code section on the home card is double-gated: only Free users

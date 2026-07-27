@@ -9,17 +9,15 @@
  * the Google Workspace Marketplace subscription API.
  */
 
-// This add-on is now the free **Lite** edition: fully featured, no caps. It scans
-// as fast as the Google add-on platform allows — time-based triggers can't fire
-// more than once an hour (a platform limit, not ours), so minPollMinutes is the
-// 60-minute floor for everyone. The thing Lite can't do is run continuously / in
-// real time — that automation is the self-hosted **Pro** product. Every limit
-// here is wide open; both tiers are identical (kept as a pair so the rest of the
-// code that reads getTierLimits()/isPro() keeps working).
+// This add-on is now the free **Lite** edition: fully featured, no caps. It
+// evaluates the currently open email on demand (contextual add-on scope) —
+// there is no background scanning at all. Whole-mailbox, continuous / real-time
+// automation is the self-hosted **Pro** product. Every limit here is wide open;
+// both tiers are identical (kept as a pair so the rest of the code that reads
+// getTierLimits()/isPro() keeps working).
 const TIERS = {
   free: {
     maxRules: Infinity,
-    minPollMinutes: 60,
     allowChat: true,
     allowMcp: true,
     allowAiSuggest: true,
@@ -27,7 +25,6 @@ const TIERS = {
   },
   pro: {
     maxRules: Infinity,
-    minPollMinutes: 60,
     allowChat: true,
     allowMcp: true,
     allowAiSuggest: true,
@@ -86,43 +83,6 @@ function setTierPro() {
 
 function setTierFree() {
   return setTier_('free');
-}
-
-/**
- * Validate and normalize a requested poll interval. Gmail / Workspace add-on
- * time-based triggers must fire >= 60 minutes apart (Google platform limit,
- * not a tier policy). On top of that platform floor, tiers set their own
- * minimum: Free = 180 (every 3 hours), Pro = 60 (every 1 hour). pollMinutes
- * snaps up to the next multiple of 60 and is clamped to the active tier's
- * minimum. For sub-hour responsiveness, users click "Scan email now" — that
- * calls runMailCheck({force: true}) and runs immediately regardless of cadence.
- *
- * Returns { value, clamped, raisedToTierMin, snappedToGrid, quotaWarning,
- *           invalid, requested }.
- */
-function enforcePollFloor(requestedMinutes) {
-  const tier = getTier();
-  const tierMin = getTierLimits().minPollMinutes;
-  const parsed = parseInt(requestedMinutes, 10);
-  const invalid = isNaN(parsed) || parsed < 1;
-  const requested = invalid ? tierMin : parsed;
-  var value = Math.max(requested, tierMin);
-  // Gmail/Workspace add-ons require time-based triggers to be at least 60
-  // minutes, so the polling grid is multiples of 60.
-  var snappedToGrid = false;
-  if (value % 60 !== 0) {
-    value = Math.ceil(value / 60) * 60;
-    snappedToGrid = true;
-  }
-  return {
-    value: value,
-    clamped: value !== requested,
-    raisedToTierMin: !invalid && parsed < tierMin,
-    snappedToGrid: snappedToGrid,
-    quotaWarning: false,
-    invalid: invalid,
-    requested: requested
-  };
 }
 
 /**

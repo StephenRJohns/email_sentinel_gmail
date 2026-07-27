@@ -21,10 +21,6 @@ function actionShowSettings(e) { return universalCardResponse_(buildSettingsCard
 function actionShowActivity(e) { return universalCardResponse_(buildActivityCard(0)); }
 function actionShowHelp(e)     { return universalCardResponse_(buildHelpCard()); }
 
-function actionRunCheckNow(e) {
-  return universalCardResponse_(buildPreScanCard_());
-}
-
 // Opens the GitHub Discussions page for the project in a new tab.
 // UniversalActionResponseBuilder.setOpenLink is the supported way for a
 // kebab-menu universal action to navigate to an external URL directly
@@ -44,10 +40,6 @@ function universalCardResponse_(card) {
   return CardService.newUniversalActionResponseBuilder()
     .displayAddOnCards([card])
     .build();
-}
-
-function onUninstall(e) {
-  removeTriggers();
 }
 
 function notificationResponse_(text) {

@@ -1,17 +1,17 @@
 # emAIl Sentinel™ — Disclaimer
 
-**Effective date:** 2026-07-09
+**Effective date:** 2026-07-26
 **Operator:** JJJJJ Enterprises, LLC
 
 ---
 
 ## 1. No Guarantee of Alert Delivery
 
-emAIl Sentinel depends on Google Apps Script infrastructure, the Google Gemini API, and (optionally) third-party SMS providers and MCP server endpoints. Any of these services may experience outages, rate limiting, quota exhaustion, or degraded performance at any time without notice. The Service may fail to check labels, evaluate rules, or dispatch alerts due to factors outside our control, including but not limited to Google infrastructure downtime, Apps Script execution timeouts, Gemini quota exhaustion, Gemini API unavailability, SMS provider unavailability, carrier filtering of SMS, or network interruptions.
+emAIl Sentinel depends on Google Apps Script infrastructure, the Google Gemini API, and (optionally) third-party SMS providers and MCP server endpoints. Any of these services may experience outages, rate limiting, quota exhaustion, or degraded performance at any time without notice. The Service may fail to read the open message, evaluate rules, or dispatch alerts due to factors outside our control, including but not limited to Google infrastructure downtime, Apps Script execution timeouts, Gemini quota exhaustion, Gemini API unavailability, SMS provider unavailability, carrier filtering of SMS, or network interruptions.
 
 **You must not rely on emAIl Sentinel for life-safety, medical, financial-trading, regulatory-compliance, or any other use where a missed or late alert could cause material harm.** The Service is an informational convenience tool, not a substitute for dedicated monitoring infrastructure, professional advisory services, or emergency notification systems.
 
-The Service also depends on an active Google-issued OAuth grant for the `gmail.readonly` restricted scope. Google may, at its sole discretion, revoke, suspend, or limit that grant at any time — including as a result of its annual OAuth verification or security-assessment cycle. We have no obligation or ability to override a Google decision to restrict OAuth access, and we are not liable for any interruption, data loss, or missed alerts resulting from such a Google action.
+The Service also depends on an active Google-issued OAuth grant for the `gmail.addons.current.message.readonly` sensitive scope (access limited to the message you currently have open). Google may, at its sole discretion, revoke, suspend, or limit that grant at any time — including as a result of its OAuth verification or policy-review cycles. We have no obligation or ability to override a Google decision to restrict OAuth access, and we are not liable for any interruption, data loss, or missed alerts resulting from such a Google action.
 
 ## 2. AI Accuracy and Gemini Dependency
 
@@ -23,7 +23,7 @@ Gemini model behavior may change over time due to Google's model updates. JJJJJ 
 
 ## 3. Email Content and Legal Responsibility
 
-emAIl Sentinel reads the metadata and body of Gmail messages in the labels you configure. **You are solely responsible** for ensuring that:
+emAIl Sentinel reads the metadata and body of the Gmail message you have open when you request an evaluation. **You are solely responsible** for ensuring that:
 
 - you have the legal right to access and process those messages;
 - you have the legal right to transmit excerpts of their content to the Google Gemini API and to any SMS provider or alert channel you enable;

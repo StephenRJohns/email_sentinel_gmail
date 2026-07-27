@@ -16,16 +16,16 @@ This directory holds the end-to-end test plan and the tooling to run it.
 
 ## Running the E2E suite
 
-The automated suite covers ~27 reliably-passing tests in `e2e.spec.js` (S2 home/Settings nav, S3 starter rules preview, S5 Run-check-now toast, S8 activity-log Refresh + Clear, S12 Docs ID field, S13 External integrations editor labels, S14 Help card + per-topic fingerprints + search variants + trademark Slack-omission guard, S17 Reset-baseline confirm, S17b unsaved-changes notice, S18 business hours, S19 max-email-age validation, S20 Free-tier home-card visibility). The rest of the test plan is manual.
+The automated suite covers the reliably-automatable tests in `e2e.spec.js` (S2 home/Settings nav + no-scan-settings assertions, S3 starter rules preview, S6 contextual "Evaluate this email" → Evaluation result card, S8 activity-log Refresh + Clear, S12 Docs ID field, S13 External integrations editor labels, S14 Help card + per-topic fingerprints + search variants + trademark Slack-omission guard, S15 contextual-only posture, S17 unsaved-changes notice, S22 home-card plan/upsell visibility). The rest of the test plan is manual. Note: the suite was rewritten 2026-07-26 for the contextual-only flow and has not yet been verified against the live UI — expect selector drift on the first run.
 
 ```bash
 ./run_free_e2e_tests.sh                         # run automated suite
 ./run_free_e2e_tests.sh --grep "S2"             # single section; any args pass through to Playwright
 ```
 
-`run_pro_e2e_tests.sh` exists for legacy reasons — currently the suite runs the same set regardless of `TEST_TIER`. If you re-add Pro-specific assertions later, flip the live tier first by running **`setTierPro`** in `LicenseManager.gs` from the Apps Script editor, and revert with **`setTierFree`** when done.
+`run_pro_e2e_tests.sh` exists for legacy reasons — currently the suite runs the same set regardless of `TEST_TIER`, and the Lite edition's two license tiers are functionally identical (the tier flag only hides the promo-redemption section). If you re-add Pro-specific assertions later, flip the live tier first by running **`setTierPro`** in `LicenseManager.gs` from the Apps Script editor, and revert with **`setTierFree`** when done.
 
-See `playwright/README.md` for the full list of automated tests and the manual-only sections (S4, S6+S7, S9–S13, S15–S17, S20 rule editor, S21).
+See `playwright/README.md` for the full list of automated tests and the manual-only sections (anything that sends a real SMS or requires third-party credentials — S9–S13 — plus the hands-on checks in S16–S21).
 
 The script is fully self-contained:
 
@@ -78,11 +78,11 @@ One-time setup:
 
 ### SMS sends are manual-only
 
-Automation never clicks **Send test SMS** and never wires a real SMS recipient onto a rule that runs through **Scan email now** — that would burn provider credits and spam phones. Section 9 of `e2e_test_plan.md` is executed by hand.
+Automation never clicks **Send test SMS** and never wires a real SMS recipient onto a rule that gets run through **Evaluate this email** — that would burn provider credits and spam phones. Section 9 of `e2e_test_plan.md` is executed by hand.
 
 ### Tier selection
 
-The current automated suite runs the same set regardless of `TEST_TIER`. Pro-specific assertions are manual-only (see `playwright/README.md`). If you re-add tier-gated tests in the future, flip the live tier with **`setTierPro`** / **`setTierFree`** in the Apps Script editor (`LicenseManager.gs`) to match `TEST_TIER`.
+The current automated suite runs the same set regardless of `TEST_TIER` — the Lite edition has no tier-gated features (both tiers in `LicenseManager.gs` are identical; the tier flag only controls promo-section visibility). If you re-add tier-gated tests in the future, flip the live tier with **`setTierPro`** / **`setTierFree`** in the Apps Script editor (`LicenseManager.gs`) to match `TEST_TIER`.
 
 ---
 

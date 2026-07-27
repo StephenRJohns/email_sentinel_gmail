@@ -83,7 +83,7 @@ write_template() {
 - [ ] Promo code section visible at bottom of home card
 - [ ] Tester entered the code and clicked Redeem without confusion
 - [ ] "Pro plan activated" toast appeared
-- [ ] Home card refreshed: Plan row reads "Pro", promo section no longer visible
+- [ ] Home card refreshed: promo section no longer visible
 
 ## 2c · Task 2c — Add a Google Chat space
 
@@ -107,8 +107,8 @@ write_template() {
 ## 4 · Task 4 — Send test email and verify all five alerts
 
 - [ ] Test email composed and sent in Gmail
-- [ ] Scan triggered via kebab → Scan email now → Run scan now (not home-card button)
-- [ ] Result card showed "Scan complete — 1 match" in green
+- [ ] Tester opened the test email and found "Evaluate this email" in the add-on panel without coaching
+- [ ] Evaluation result card showed "✅ Match — alerts sent" for the rule in green
 - [ ] Calendar: new event verified
 - [ ] Sheets: new row in emAIl Sentinel Log verified
 - [ ] Tasks: new task verified

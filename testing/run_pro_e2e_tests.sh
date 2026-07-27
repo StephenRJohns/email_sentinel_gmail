@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Pro-tier wrapper around run_free_e2e_tests.sh.
 #
-# Sets TEST_TIER=pro so the S2 Pro polling tests and S21 Pro Plan Unlocks
-# describe blocks run instead of skipping.
+# Sets TEST_TIER=pro so any Pro-gated describe blocks run instead of skipping.
+# (Currently the Lite edition's tiers are functionally identical — the flag
+# only matters if tier-gated tests are re-added.)
 #
 # Usage:
 #   ./testing/run_pro_e2e_tests.sh                 # full Pro suite

@@ -60,11 +60,11 @@ In the add-on, open **Settings → External integrations → + Add external inte
 - **Tool name:** `loopback_test_tool`
 - **Tool args template:** `{"subject":"{{subject}}","message":"{{message}}","from":"{{from}}","rule":"{{rule}}"}`
 
-Tick the loopback server on a test rule and fire **Scan email now** with a matching email in the inbox. The activity log should show the line in the table below.
+Tick the loopback server on a test rule, then open a matching email in Gmail and click **Evaluate this email** in the add-on panel. The activity log should show the line in the table below.
 
 ## Expected activity log per mode
 
-Run a known-matching email against a rule that has the loopback server ticked. After **Scan email now**, the activity log should include exactly one of these lines (the rule name and server name will reflect what you configured):
+Open a known-matching email and evaluate it against a rule that has the loopback server ticked. After **Evaluate this email**, the activity log should include exactly one of these lines (the rule name and server name will reflect what you configured):
 
 | Mode | Expected activity log line |
 |---|---|

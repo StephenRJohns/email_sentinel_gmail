@@ -72,11 +72,11 @@ Use a dedicated demo Gmail account for the screenshots so no real recipient name
 
 ---
 
-## Shot 1 — Hero: home card after a successful scan
+## Shot 1 — Hero: an email evaluated, a match found
 
 **Goal:** Communicate the app's purpose at a glance. This is the image Marketplace shows first and largest — spend the most effort here.
 
-**Capture:** Trigger a scan in screenshot mode so the green "Found 1 new alert" result banner is visible. Show the full Gmail chrome + emAIl Sentinel sidebar: logo, poll-interval status, "Scan email now" button, and the scan result banner.
+**Capture:** With screenshot mode on, open the SENTINEL_TEST email and click **Evaluate this email** in the sidebar so the **Evaluation result** card is visible. Show the full Gmail chrome (open message) + emAIl Sentinel sidebar: logo, the green "✅ 1 of 1 rule matched." banner, and the per-rule "✅ Match — alerts sent" row.
 
 **Suggested caption:** `Watch your inbox for what matters — AI-powered Gmail alerts`
 
@@ -86,7 +86,7 @@ Use a dedicated demo Gmail account for the screenshots so no real recipient name
 
 **Goal:** Show that rule-writing is plain English, not a regex.
 
-**Capture:** Open the rule editor with a realistic rule filled in. Suggested rule: "Critical security alerts from AWS or Cloudflare" with Labels set to Inbox and Channels set to Calendar. Scroll or composite so the Rule name, Rule text, and at least one alert channel are all visible at once. Use the AWS GuardDuty sample email (Example A below) as the source rule.
+**Capture:** Open the rule editor with a realistic rule filled in. Suggested rule: "Critical security alerts from AWS or Cloudflare" with Channels set to Calendar. Scroll or composite so the Rule name, Rule text, and at least one alert channel are all visible at once. Use the AWS GuardDuty sample email (Example A below) as the source rule.
 
 **Suggested caption:** `Write rules in plain English — Gemini AI does the matching`
 
@@ -121,7 +121,7 @@ Use a dedicated demo Gmail account for the screenshots so no real recipient name
 
 **Capture:** Open the Activity Log card with 8–12 entries visible. Mix of "matched" and "no match" lines. At least one entry should show a real-looking matched rule name and a demo sender (screenshot mode handles the From field automatically). Keep timestamps realistic (today's date, staggered by 10–30 minutes).
 
-**Suggested caption:** `Full audit trail — see exactly what was scanned and why it matched`
+**Suggested caption:** `Full audit trail — see exactly what was evaluated and why it matched`
 
 ---
 

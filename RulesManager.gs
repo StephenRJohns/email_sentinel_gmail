@@ -8,7 +8,6 @@
  *   {
  *     id: string,
  *     name: string,
- *     labels: string[],          // Gmail label names; "INBOX" for the inbox
  *     ruleText: string,          // plain English — Gemini evaluates this
  *     alertMessagePrompt: string,
  *     enabled: boolean,
@@ -70,11 +69,10 @@ function saveRules(rules) {
   PropertiesService.getUserProperties().setProperty(RULES_KEY, json);
 }
 
-function createRule(name, labels, ruleText, alerts, alertMessagePrompt) {
+function createRule(name, ruleText, alerts, alertMessagePrompt) {
   return {
     id: Utilities.getUuid(),
     name: name,
-    labels: labels,
     ruleText: ruleText,
     alertMessagePrompt: alertMessagePrompt || DEFAULT_ALERT_MESSAGE_PROMPT,
     alerts: {
@@ -127,6 +125,41 @@ function toggleRule(id) {
   saveRules(rules);
 }
 
+function ruleHasAnyChannelConfigured_(rule) {
+  const a = rule.alerts || {};
+  return !!(
+    (a.smsNumbers && a.smsNumbers.length) ||
+    (a.chatSpaces && a.chatSpaces.length) ||
+    a.calendarEnabled || a.sheetsEnabled || a.tasksEnabled || a.docsEnabled ||
+    (a.mcpServerIds && a.mcpServerIds.length)
+  );
+}
+
+// A rule is "malformed/incomplete" if it's missing data the save-time form
+// validation normally requires (only reachable via corrupted UserProperties
+// JSON, since the UI blocks saving without these) or if it's enabled but
+// would fire with nowhere to send the alert.
+function isRuleMalformed_(rule) {
+  if (!rule.name || !rule.name.trim()) return true;
+  if (!rule.ruleText || !rule.ruleText.trim()) return true;
+  if (rule.enabled && !ruleHasAnyChannelConfigured_(rule)) return true;
+  return false;
+}
+
+function getRuleStatusCounts_(rules) {
+  let active = 0, malformed = 0, inactive = 0;
+  rules.forEach(function(rule) {
+    if (isRuleMalformed_(rule)) {
+      malformed++;
+    } else if (rule.enabled) {
+      active++;
+    } else {
+      inactive++;
+    }
+  });
+  return { active: active, malformed: malformed, inactive: inactive, total: rules.length };
+}
+
 function migrateRule_(r) {
   if (!r.alertMessagePrompt) r.alertMessagePrompt = DEFAULT_ALERT_MESSAGE_PROMPT;
   if (!r.alerts) r.alerts = {};
@@ -138,6 +171,8 @@ function migrateRule_(r) {
   if (r.alerts.tasksEnabled === undefined) r.alerts.tasksEnabled = false;
   if (r.alerts.docsEnabled === undefined) r.alerts.docsEnabled = false;
   if (!r.alerts.mcpServerIds) r.alerts.mcpServerIds = [];
-  if (!r.labels) r.labels = ['INBOX'];
+  // Contextual mode ignores labels; drop the field from legacy stored rules
+  // so it doesn't count against the 9 KB rules budget.
+  delete r.labels;
   return r;
 }

@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Scan email now / Run scan now no longer exist; alerts now fire by opening the matching email and clicking Evaluate this email.
+
 # Calendar / Sheets / Tasks / Docs alerts
 **Duration:** 150 s
 **Tool:** Descript (cuts between four Google apps; narrative pacing)

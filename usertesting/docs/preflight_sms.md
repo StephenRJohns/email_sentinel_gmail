@@ -121,7 +121,7 @@ Run Script C yourself with one provider before sending it to any tester. Choose 
 5. Send a test SMS — confirm it arrives within ~30 seconds.
 6. Create a rule using the word SENTINEL as the trigger.
 7. Send yourself an email with subject `SENTINEL test 1`.
-8. Click "Scan email now" → confirm the scan result card shows 1 match and a text arrives.
+8. Open that email, open the add-on panel, and click "Evaluate this email" → confirm the Evaluation result card shows "✅ Match — alerts sent" and a text arrives.
 
 **Pass threshold:** all 5 steps (install → Gemini key → provider config → rule → triggered SMS) complete in under 14 minutes as a developer. Budget testers will run ~50 % longer — if your self-test hits 14 min, simplify the rule or pre-fill provider credentials before tester sessions.
 
@@ -130,7 +130,7 @@ Run Script C yourself with one provider before sending it to any tester. Choose 
 - Does the country-code / digits-only split on the SMS recipient form cause confusion? Watch whether you instinctively include the country code in the digits field.
 - Does the ClickSend "From" display sensibly on your handset? (ClickSend uses the account username, not a phone number.)
 - Does the test SMS error toast name the provider and give an actionable hint if credentials are wrong? (Test with a deliberately wrong value.)
-- Does the activity log entry after a scan read clearly to a non-developer?
+- Does the activity log entry after an evaluation read clearly to a non-developer?
 
 ---
 
@@ -201,7 +201,7 @@ After all sessions complete:
 
 2. **Create a fresh deploy URL** for the next round if needed (new Marketplace SDK deployment).
 
-3. Testers retain access to the add-on (the install persists) but the Gemini key stops working — they cannot run new scans. That is the intended post-round state.
+3. Testers retain access to the add-on (the install persists) but the Gemini key stops working — they cannot run new evaluations. That is the intended post-round state.
 
 ---
 

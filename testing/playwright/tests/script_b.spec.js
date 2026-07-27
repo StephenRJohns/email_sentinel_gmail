@@ -1,3 +1,5 @@
+// REWRITTEN 2026-07-26 for contextual-only flow — selectors unverified against live UI; expect drift on first run.
+
 require('dotenv').config({ path: require('path').resolve(__dirname, '../e2e.config.env') });
 const { test, expect } = require('../fixtures');
 const {
@@ -6,7 +8,9 @@ const {
   expectToast,
   clickButton,
   fillField,
-  sendTestEmail
+  sendTestEmail,
+  openEmailBySubject,
+  openAddonPanel
 } = require('../helpers');
 
 // ─── UserTesting Round 1 — Script B (SMS path, RETIRED) ─────────────────────
@@ -50,7 +54,6 @@ const {
 // complete, T3's SMS rule-tickbox step will gracefully no-op.
 
 const SCRIPT_B_RULE_NAME     = 'Script B — DEMO test rule';
-const SCRIPT_B_LABEL         = 'INBOX';
 const SCRIPT_B_RULE_TEXT     = 'Any email with the word DEMO in the subject line.';
 const SCRIPT_B_EMAIL_SUBJECT = 'DEMO test 1';
 const SCRIPT_B_RECIPIENT     = 'Script B test phone';
@@ -72,14 +75,17 @@ function digitsOnly(e164) {
 
 test('Task 1 · home card loads with the value-prop content', async ({ page }) => {
   const frame = await openAddon(page);
-  await expect(frame.getByText(/Free \(|Plan:?\s*Pro/i)).toBeVisible();
+  // Plan status row always reads "Lite" in this edition.
+  await expect(frame.getByText(/Lite/).first()).toBeVisible();
+  // The "How it works" blurb explains the contextual flow.
+  await expect(frame.getByText(/Evaluate this email/).first()).toBeVisible();
   // Home card nav row: Settings, Starter rules, Rules, Activity log, Help, Community.
-  // Also asserts the home-card "Scan email now" filled button (always present
-  // regardless of scan state — distinct from the kebab universal-action entry).
+  // The Rules nav button label carries live counts ('Rules   ✅ n  ⚠️ n  ⚪ n'),
+  // so match on the prefix rather than exact text.
   await expect(frame.getByRole('button', { name: 'Settings' })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Starter rules' })).toBeVisible();
-  await expect(frame.getByRole('button', { name: 'Rules', exact: true })).toBeVisible();
-  await expect(frame.getByRole('button', { name: 'Scan email now' })).toBeVisible();
+  await expect(frame.getByRole('button', { name: /^Rules/ })).toBeVisible();
+  await expect(frame.getByRole('button', { name: 'Activity log' })).toBeVisible();
 });
 
 // ─── Task 2 · Configure Gemini and SMS provider ──────────────────────────────
@@ -162,11 +168,13 @@ test('Task 3 · create rule with SMS recipient ticked', async ({ page }) => {
   test.skip(process.env.TEST_TIER !== 'pro', 'Free tier 3-rule quota is filled by S3 starter rules — Task 3 requires Pro');
   test.setTimeout(180_000);
   const frame = await openAddon(page);
-  await clickButton(frame, 'Rules', { exact: true });
+  // The Rules nav button label carries live counts — match on the prefix.
+  await clickButton(frame, /^Rules/);
   await clickButton(getFrame(page), '+ New rule');
   const f = getFrame(page);
   await fillField(f, 'Rule name', SCRIPT_B_RULE_NAME);
-  await fillField(f, 'Gmail labels to watch', SCRIPT_B_LABEL);
+  // (No labels field — the contextual-only rule editor has no
+  // "Gmail labels to watch" input.)
   await fillField(f, 'Rule text (plain English)', SCRIPT_B_RULE_TEXT);
 
   // The rule-editor SMS section renders one checkbox per configured
@@ -190,44 +198,31 @@ test('Task 3 · create rule with SMS recipient ticked', async ({ page }) => {
   await expectToast(page, /Rule saved|Rule added/i, 15_000);
 });
 
-// ─── Task 4 · Send test email and confirm scan finds a match ─────────────────
-// Same kebab path Script A Task 4 uses, with the same fallback to the
-// home-card "Scan email now" button. Whether the SMS itself arrives on
-// the tester's phone (Script B Task 4 step 5) is necessarily verified by
-// the human — this test only confirms the add-on side ran the scan and
-// reported a match (which is the trigger for SMS dispatch).
+// ─── Task 4 · Send test email, open it, and Evaluate this email ──────────────
+// Same contextual path Script A Task 4 uses: open the DEMO email in the
+// message view, open the add-on panel, click "Evaluate this email", and
+// assert the "Evaluation result" card shows the DEMO rule row with
+// "✅ Match — alerts sent". Whether the SMS itself arrives on the tester's
+// phone (Script B Task 4 step 5) is necessarily verified by the human —
+// this test only confirms the add-on side ran the evaluation and reported
+// a match (which is the trigger for SMS dispatch).
 
-test('Task 4 · self-send DEMO email and Scan email now reports a match', async ({ page }) => {
+test('Task 4 · self-send DEMO email and Evaluate this email reports a match', async ({ page }) => {
   const email = process.env.GOOGLE_EMAIL;
   test.skip(!email, 'GOOGLE_EMAIL not set in e2e.config.env');
-  test.skip(process.env.TEST_TIER !== 'pro', 'Task 3 is skipped on Free tier (no DEMO rule created), so scan will find 0 matches');
+  test.skip(process.env.TEST_TIER !== 'pro', 'Task 3 is skipped on Free tier (no DEMO rule created), so evaluation will find 0 matches');
   test.setTimeout(300_000);
   await sendTestEmail(page, SCRIPT_B_EMAIL_SUBJECT, email);
   await page.waitForTimeout(10_000);
-  const frame = await openAddon(page);
+  await openEmailBySubject(page, SCRIPT_B_EMAIL_SUBJECT);
+  const frame = await openAddonPanel(page);
 
-  let scannedViaKebab = false;
-  const kebab = frame.getByRole('button', { name: /more|overflow|options/i }).first();
-  if (await kebab.isVisible({ timeout: 5_000 }).catch(() => false)) {
-    await kebab.click({ force: true }).catch(() => {});
-    const menuItem = frame.getByRole('menuitem', { name: 'Scan email now' }).first();
-    const textHit  = frame.getByText('Scan email now').first();
-    const target   = (await menuItem.isVisible({ timeout: 3_000 }).catch(() => false))
-      ? menuItem : textHit;
-    if (await target.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      await target.click({ force: true });
-      await clickButton(getFrame(page), 'Run scan now');
-      scannedViaKebab = true;
-    }
-  }
-  if (!scannedViaKebab) {
-    await clickButton(getFrame(page), 'Scan email now');
-  }
+  await clickButton(frame, 'Evaluate this email');
 
-  await expect(getFrame(page).locator('body')).toContainText(
-    /Scan complete[^.]*\b[1-9]\d*\s+match/i,
-    { timeout: 240_000 }
-  );
+  const body = getFrame(page).locator('body');
+  await expect(body).toContainText(/Evaluation result/i, { timeout: 240_000 });
+  await expect(body).toContainText(SCRIPT_B_RULE_NAME);
+  await expect(body).toContainText(/Match — alerts sent/);
 });
 
 // ─── Task 5 · Wrap-up questions ──────────────────────────────────────────────

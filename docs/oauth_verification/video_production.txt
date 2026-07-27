@@ -1,3 +1,13 @@
+********************************************************************************
+* OUTDATED (2026-07-26): the add-on is now CONTEXTUAL-ONLY. gmail.readonly     *
+* was replaced by gmail.addons.current.message.readonly (no CASA required).    *
+* The demo flow must show: open an email -> open the add-on panel -> click     *
+* "Evaluate this email" -> result card. There are no scheduled scans, no       *
+* "Scan email now", no labels, no baseline. Rewrite this script before         *
+* recording. See docs/oauth_verification/submission_answers.md for the         *
+* current scope list and justifications.                                       *
+********************************************************************************
+
 emAIl Sentinel — OAuth Verification Video Script
 =================================================
 

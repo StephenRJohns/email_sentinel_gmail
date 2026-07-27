@@ -11,7 +11,7 @@
 
 ## What this product is (one-line summary for tester intro)
 
-emAIl Sentinel is a Gmail add-on that watches your inbox and sends you alerts (Calendar event, Chat message, Sheet row, Task, Doc entry, SMS) when emails matching plain-English rules arrive — for example, "alert me when I get an email from any client mentioning a deadline."
+emAIl Sentinel is a Gmail add-on that checks the email you have open against plain-English rules and sends you alerts (Calendar event, Chat message, Sheet row, Task, Doc entry, SMS) when it matches — for example, "alert me when I get an email from any client mentioning a deadline." It reads only the email you have open, only when you click Evaluate this email — never scans your mailbox in the background.
 
 ---
 
@@ -34,11 +34,11 @@ Tester must answer **yes** to one of:
 
 ## Tester briefing (read by tester at session start)
 
-You're going to test a Gmail add-on called emAIl Sentinel that's in private pre-launch testing. You'll install it, set it up, and create one rule that alerts you in **five Google places at once** — Calendar, Chat, Sheets, Tasks, and Docs — when a matching email arrives. We've supplied a promo code that unlocks the paid features for this session so every channel is available to you.
+You're going to test a Gmail add-on called emAIl Sentinel that's in private pre-launch testing. You'll install it, set it up, and create one rule that alerts you in **five Google places at once** — Calendar, Chat, Sheets, Tasks, and Docs — when a matching email arrives. We've supplied a promo code that unlocks the AI writing-assistance features for this session.
 
 **Important — you'll see a warning page during install** that says *"This app hasn't been verified by Google yet."* That's expected — this is a private pre-launch test, not a publicly listed app. Click **Continue** and **Allow** when you see those screens.
 
-**Please do NOT click "Start scheduled scans"** (the filled button below the **Scan email every** dropdown) even though it's prominent on the home card. Background scans run every 1+ hour and cannot deliver a result during this 20-minute session — we will use the **Scan email now** button instead, which runs an immediate scan on demand. You will see Start scheduled scans and the dropdown early; just leave them alone and follow the tasks below.
+**How alerts fire:** emAIl Sentinel never scans your mailbox in the background. It reads only the email you have open, only when you click **Evaluate this email** in the add-on panel — you'll do exactly that in Task 4 to trigger your rule on demand.
 
 Please **think aloud the entire time** — narrate what you're looking at, what you expect to happen, what's confusing, and what you'd do next. There are no wrong answers; we want to understand your honest reactions to the product.
 
@@ -50,7 +50,7 @@ Please **think aloud the entire time** — narrate what you're looking at, what 
 
 - **Gemini API key:** `<DEV_GEMINI_KEY>` — paste this into Settings → Gemini API key when prompted.
 - **Test-deployment install URL:** `<TEST_DEPLOYMENT_URL>` — the URL you'll visit to install the add-on.
-- **Pro promo code:** `<TESTER_PROMO_CODE>` — a one-time code that flips your account to the Pro tier so you can use Google Chat as an alert channel. You'll redeem it in Task 2.
+- **Pro promo code:** `<TESTER_PROMO_CODE>` — a one-time code that flips your account to the Pro tier, which unlocks the AI "Help me write" assistance buttons. You'll redeem it in Task 2.
 
 ---
 
@@ -79,7 +79,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 1. Return to the home card (open the kebab "⋮" menu and pick **Home**, or tap the back arrow if visible). At the bottom of the home card you should see a section titled **Enter a promo code to upgrade to Pro**.
 2. Paste the code the moderator gave you into the **Enter promo code** field: `<TESTER_PROMO_CODE>`.
-3. Click **Redeem code**. You should see a toast: *"Pro plan activated. Welcome!"* The home card refreshes; the **Plan** row at the top now reads *"Pro"* instead of *"Free"* and the promo code section is no longer visible (your account is now Pro).
+3. Click **Redeem code**. You should see a toast: *"Pro plan activated. Welcome!"* The home card refreshes and the promo code section is no longer visible (your account is now Pro).
 
 #### 2c. Add a Google Chat space
 
@@ -104,24 +104,23 @@ This is the longest task. Take your time and narrate as you go — the order of 
 1. Return to the home card (open the kebab "⋮" menu and pick **Home**, or use the back arrow if visible).
 2. Click **Rules** → **+ New rule**.
 3. Give the rule any name you want (e.g. "My first rule").
-4. In **Gmail labels to watch**, type `INBOX`.
-5. In **Rule text**, write a plain-English description of what kind of email should trigger this rule. Type one yourself — for example: *"Any email with the word DEMO in the subject line."* Below the text field you will also see a button labeled **Help me write the rule text** (because you are on Pro). Do not click it for this task; just note that it is there.
-6. Under **Alert channels**, tick **all five Google channels**:
+4. In **Rule text**, write a plain-English description of what kind of email should trigger this rule. Type one yourself — for example: *"Any email with the word DEMO in the subject line."* Below the text field you will also see a button labeled **Help me write the rule text** (because you are on Pro). Do not click it for this task; just note that it is there.
+5. Under **Alert channels**, tick **all five Google channels**:
    - **Google Calendar — create an event**
    - **Google Sheets — append a log row**
    - **Google Tasks — create a task**
    - **Google Docs — append a log entry**
    - And under **Google Chat spaces**, tick the space you added in Task 2c (if you got that far). If you did not finish 2c, skip the Chat tickbox.
-7. Click **Save**.
+6. Click **Save**.
 
 **Tell us out loud:** How did you decide what to type as the rule text? Did the five channel tickboxes feel like too many, the right amount, or were any of them surprising? What did you expect to see after Save?
 
 ### Task 4 — Send yourself a test email and confirm the alert in all five places (3 min)
 
 1. In Gmail, click **Compose**. Send yourself an email that should trigger the rule (e.g., subject line `DEMO test 1`).
-2. Wait about 10 seconds for the email to land in your inbox.
-3. Open the emAIl Sentinel add-on again. Open the kebab "⋮" menu and click **Scan email now**. A card titled **Scan email now** opens — read the description, then click the purple **Run scan now** button.
-4. The button shows a spinner while the scan runs (10–60 seconds). When it finishes, a result card appears: *"Scan complete — 1 new email, 1 match"* in green.
+2. Wait about 10 seconds, then **click into the email** in your inbox so it is open on screen.
+3. With the email open, open the emAIl Sentinel add-on panel. A card appears offering to check this email against your enabled rules. Click the purple **Evaluate this email** button.
+4. The button shows a spinner while the evaluation runs (a few seconds per rule). When it finishes, an **Evaluation result** card appears — your rule's row should read *"✅ Match — alerts sent"* in green, with a short reason from the AI.
 5. Verify the alert in **each of the five surfaces** — open them in browser tabs and check for a new entry from around the current time:
    - **Calendar** (`calendar.google.com`) — a new event titled *"[emAIl Sentinel] My first rule: DEMO test 1"*.
    - **Sheets** — open the spreadsheet titled *"emAIl Sentinel Log"* in your Drive (`drive.google.com`) — a new row appended.
@@ -138,7 +137,7 @@ Please answer these aloud:
 1. In your own words, **what does this product do**? Could you explain it to a coworker?
 2. **What was confusing** during this session?
 3. **What did you expect to happen** that didn't?
-4. The product will cost **$4.99/month** (or $39/year) for unlimited rules and Pro-only alert channels (Google Chat, custom MCP, custom webhooks). The free tier covers 3 rules and SMS, Calendar, Sheets, Tasks, and Docs alerts — but NOT Chat. Today's session was on the **paid Pro tier** (the promo code we gave you unlocked it), so you experienced Chat alerts. **Would you pay $4.99/month for the Pro version you just used?** Or would the free tier (no Chat, max 3 rules) be enough? Why?
+4. The add-on you used today (**emAIl Sentinel Lite**) is free — every alert channel is included, but it only checks an email when you open it and click **Evaluate this email**. There is a separate paid product, **emAIl Sentinel Pro** — a self-hosted service that monitors your whole mailbox **automatically, 24/7**, with real-time alerts, across Gmail and Outlook. **Would the free on-demand version you just used be enough for you, or would you pay for automatic 24/7 monitoring?** What would that be worth to you per month? Why?
 5. **Who do you know** who would benefit from this product? (Optional — names not needed, just job titles or scenarios.)
 
 ---

@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The Gmail label dropdown in the rule editor no longer exists (rules have no labels field).
+
 # AI-assisted rule writing
 **Duration:** 90 s
 **Tool:** Descript (more talking, fewer clicks; voiceover-heavy)

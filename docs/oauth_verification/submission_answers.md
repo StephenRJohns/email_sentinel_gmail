@@ -11,18 +11,22 @@ rejection.
 
 ## App Overview (Reviewer Summary)
 
-emAIl Sentinel™ is a Gmail add-on that runs entirely within the user's
-Google account (Google Apps Script). It monitors Gmail labels selected by
-the user, evaluates each new message against user-defined plain-English
-rules using the Google Gemini API, and — when a rule matches — delivers
-alerts through channels the user explicitly enables: Google Calendar,
+emAIl Sentinel™ is a contextual Gmail add-on that runs entirely within
+the user's Google account (Google Apps Script). When the user opens an
+email and clicks "Evaluate this email" in the add-on panel, it evaluates
+that one open message against user-defined plain-English rules using the
+Google Gemini API, and — when a rule matches — delivers alerts through
+channels the user explicitly enables: Google Calendar,
 Google Sheets, Google Tasks, Google Docs, Google Chat webhooks, SMS via
 the user's choice of provider (six built-in presets plus a generic
 webhook for any other provider), or custom Model Context Protocol (MCP)
 endpoints / HTTPS webhooks.
 
-The add-on has no external backend database. Data is accessed and
-processed only to provide user-facing functionality requested by the user.
+The add-on has no external backend database. Gmail access is limited to
+the message the user currently has open (the current-message contextual
+scope) — there is no background scanning and no access to any other mail.
+Data is accessed and processed only to provide user-facing functionality
+requested by the user. No restricted scope is requested.
 
 ---
 
@@ -36,15 +40,18 @@ add-on cannot render cards in the Gmail sidebar without this scope.
 
 ---
 
-### 2) https://www.googleapis.com/auth/gmail.readonly
+### 2) https://www.googleapis.com/auth/gmail.addons.current.message.readonly
 
-**Purpose:** Read message metadata (sender, subject, received date,
-attachment filenames) and up to the first 2,000 characters of the
-plain-text body, only from Gmail labels the user explicitly configures,
-for rule evaluation by the Gemini API.
+**Purpose:** Read the message the user currently has open (sender,
+subject, received date, attachment filenames, and up to the first 2,000
+characters of the plain-text body) when the user explicitly clicks
+"Evaluate this email", for rule evaluation by the Gemini API.
 **Why necessary:** The core product feature is semantic rule evaluation
-against the user's own mail. Read-only is sufficient — no messages are
-modified, sent, deleted, archived, labeled, or moved.
+of the email the user is looking at. The contextual current-message
+scope is the narrowest possible Gmail access for this: the add-on cannot
+read any other messages, cannot search the mailbox, and performs no
+background access. No messages are modified, sent, deleted, archived,
+labeled, or moved.
 **Data use:** Used solely to evaluate user-defined rules and format alert
 messages the user configures. Not used for advertising, resale, or
 training generalized models.
@@ -110,16 +117,6 @@ corresponding integration.
 
 ---
 
-### 8) https://www.googleapis.com/auth/script.scriptapp
-
-**Purpose:** Create and manage time-driven triggers that schedule
-background email scans at the user-configured scan interval.
-**Why necessary:** Enables background execution after the user clicks
-"Start scheduled scans"; without this scope the add-on cannot scan
-mail except when the user is actively viewing the card.
-
----
-
 ## Limited Use Compliance Statement
 
 The use of information received from Google APIs adheres to the Google
@@ -146,9 +143,9 @@ as necessary to provide the Service the user has enabled.
 
 ## User Control
 
-- Users explicitly select which Gmail labels are monitored.
+- Gmail access happens only when the user explicitly clicks "Evaluate
+  this email" on an open message — there is no background access.
 - Users explicitly enable / disable every integration on every rule.
-- Users can stop monitoring at any time from the add-on's home card.
 - Users can delete all stored configuration data at any time by
   uninstalling the add-on, or by running
   `PropertiesService.getUserProperties().deleteAllProperties()` in the

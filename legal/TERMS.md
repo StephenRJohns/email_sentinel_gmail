@@ -1,6 +1,6 @@
 # emAIl Sentinel™ — Terms of Service
 
-**Effective date:** 2026-07-09
+**Effective date:** 2026-07-26
 **Operator:** JJJJJ Enterprises, LLC ("we", "us", "our")
 **Service:** emAIl Sentinel, a Google Workspace Add-on for Gmail (the "Service")
 
@@ -10,7 +10,7 @@ By installing or using the Service you ("you", "your") agree to these Terms of S
 
 ## 1. Description of the Service
 
-emAIl Sentinel is a Google Workspace Add-on that runs in your own Google account. It periodically reads metadata and content from Gmail messages in labels you select, evaluates each new message against rules you write in plain English using the Google Gemini API, and — when a rule matches — sends an alert via one or more channels you configure: SMS (through a third-party SMS provider of your choice, using credentials you supply), Google Chat, Google Calendar, Google Sheets, Google Tasks, a generic HTTPS webhook, or a Model Context Protocol (MCP) server endpoint (such as Slack, Microsoft 365 / Teams, Asana, or any custom MCP server).
+emAIl Sentinel is a Google Workspace Add-on that runs in your own Google account. When you open a Gmail message and click "Evaluate this email" in the add-on panel, it reads metadata and content from that one open message, evaluates it against rules you write in plain English using the Google Gemini API, and — when a rule matches — sends an alert via one or more channels you configure: SMS (through a third-party SMS provider of your choice, using credentials you supply), Google Chat, Google Calendar, Google Sheets, Google Tasks, a generic HTTPS webhook, or a Model Context Protocol (MCP) server endpoint (such as Slack, Microsoft 365 / Teams, Asana, or any custom MCP server).
 
 The Service runs entirely inside Google Apps Script under your own credentials. We do not operate any backend that stores your data.
 
@@ -103,7 +103,7 @@ Our website may display links to other products operated by JJJJJ Enterprises, L
 
 The Service — the emAIl Sentinel add-in — is provided **free of charge**. There are no paid tiers, subscriptions, trials, or in-app purchases within the add-in, and we do not collect or process payment information through it. The features described in these Terms and in the in-app Help are available to every user at no cost.
 
-Real-time, always-on 24/7 alerting — continuous monitoring that runs on your behalf beyond this add-in's scanning — is provided by a separate, optional product: **emAIl Sentinel Pro**, a self-hosted application governed by its own [Terms of Service](https://jjjjjenterprises.com/emailsentinel/pro/legal/terms.html). Purchasing or using Pro is entirely optional and independent of this free add-in.
+Real-time, always-on 24/7 alerting — continuous monitoring that runs on your behalf beyond this add-in's on-demand, open-message evaluation — is provided by a separate, optional product: **emAIl Sentinel Pro**, a self-hosted application governed by its own [Terms of Service](https://jjjjjenterprises.com/emailsentinel/pro/legal/terms.html). Purchasing or using Pro is entirely optional and independent of this free add-in.
 
 ### 6.1 Third-Party Charges
 
@@ -173,10 +173,10 @@ For users who opt out of arbitration or for claims excluded from arbitration, an
 
 ## 16. Google Workspace Marketplace, OAuth Verification, and Security Review
 
-The Service is listed on the Google Workspace Marketplace and uses Google OAuth scopes — including `gmail.readonly`, which Google classifies as a **restricted scope**. As a condition of listing and of your use of the Service, JJJJJ Enterprises, LLC commits to:
+The Service is listed on the Google Workspace Marketplace and uses Google OAuth scopes. Gmail access is limited to `gmail.addons.current.message.readonly`, a **sensitive** (non-restricted) scope that grants access only to the message you currently have open while you interact with the add-on; the Service requests no Google-classified restricted scope, and no Cloud Application Security Assessment (CASA) is required by Google. As a condition of listing and of your use of the Service, JJJJJ Enterprises, LLC commits to:
 
 - maintaining compliance with Google's [API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including Limited Use requirements;
-- completing the annual **Cloud Application Security Assessment (CASA)** that Google requires for restricted-scope applications, and submitting updated assessment results to Google on the schedule Google prescribes;
+- completing Google's standard OAuth verification for sensitive scopes, and any re-verification Google requires;
 - submitting to Google's OAuth verification re-review whenever Google requests;
 - maintaining compliance with Google's [Workspace Marketplace Developer Policies](https://developers.google.com/workspace/marketplace/terms), [Google APIs Terms of Service](https://developers.google.com/terms), and Gemini API terms; and
 - cooperating with Google security or policy audits at Google's reasonable request.
@@ -187,7 +187,7 @@ You acknowledge that:
 - the Service relies on Google Gemini for all rule evaluation, and Google may independently change, limit, or discontinue the Gemini API; and
 - your use of the Gemini API (via the API key you provide) is separately governed by Google's then-current Gemini API terms.
 
-We do not currently hold SOC 2, ISO 27001, HIPAA, or PCI DSS certifications. Security documentation available on request at legal@jjjjjenterprises.com is limited to: the current CASA assessment summary, our OAuth scope justification, and our data handling representations in the Privacy Policy.
+We do not currently hold SOC 2, ISO 27001, HIPAA, or PCI DSS certifications. Security documentation available on request at legal@jjjjjenterprises.com is limited to: our OAuth scope justification and our data handling representations in the Privacy Policy.
 
 {{include: terms-export-controls}}
 ## 18. Force Majeure

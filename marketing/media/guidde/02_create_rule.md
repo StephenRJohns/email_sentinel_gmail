@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The rule editor no longer has a Gmail label field, and there is no first-scan baseline (Scene 2, Scene 7, and checklist steps 5/10 are stale).
+
 # Create a rule
 **Duration:** ~2 min
 **Tool:** Guidde (linear click-through fits perfectly)

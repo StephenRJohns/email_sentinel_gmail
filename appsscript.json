@@ -37,13 +37,12 @@
   ],
   "oauthScopes": [
     "https://www.googleapis.com/auth/gmail.addons.execute",
-    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
     "https://www.googleapis.com/auth/calendar",
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/tasks",
     "https://www.googleapis.com/auth/documents",
-    "https://www.googleapis.com/auth/script.external_request",
-    "https://www.googleapis.com/auth/script.scriptapp"
+    "https://www.googleapis.com/auth/script.external_request"
   ],
   "addOns": {
     "common": {
@@ -77,10 +76,6 @@
         {
           "label": "Community discussions",
           "runFunction": "actionOpenDiscussions"
-        },
-        {
-          "label": "Scan email now",
-          "runFunction": "actionRunCheckNow"
         }
       ],
       "openLinkUrlPrefixes": [
@@ -104,7 +99,13 @@
       "homepageTrigger": {
         "runFunction": "onHomepage",
         "enabled": true
-      }
+      },
+      "contextualTriggers": [
+        {
+          "unconditional": {},
+          "onTriggerFunction": "onGmailMessageOpen"
+        }
+      ]
     }
   }
 }

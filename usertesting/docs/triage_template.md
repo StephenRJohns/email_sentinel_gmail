@@ -50,7 +50,7 @@ Add one row per distinct finding. Group rows by section / surface where possible
 | Backlog findings |   |
 | Top 3 critical issues by tester count | 1. <br> 2. <br> 3. |
 | Most quoted phrase / pain point |   |
-| % of testers who said "yes" to "would you pay $4.99/month?" |   |
+| % of testers who said they would pay for Pro (24/7 self-hosted monitoring) |   |
 | Round cost | $   |
 
 ## Action items

@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The trigger steps (checklist 25–27: kebab "Scan email now" → "Run scan now" → result card) no longer exist; trigger a match by opening a test email and clicking **Evaluate this email**.
+
 # External integrations
 **Duration:** ~3:05 min
 **Tool:** Guidde

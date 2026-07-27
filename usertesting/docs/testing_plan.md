@@ -22,7 +22,7 @@ Two parallel testing programs. Script A validates the core onboarding and five-G
 
 ### What it tests
 
-The critical first-use path for a new Google Workspace user: install the add-on, enter a Gemini API key, redeem a Pro promo code, set up a Google Chat space webhook, create a rule with all five Google alert channels selected, send a test email, run a scan, and verify alerts appear in Calendar, Sheets, Tasks, Docs, and Chat.
+The critical first-use path for a new Google Workspace user: install the add-on, enter a Gemini API key, redeem a Pro promo code, set up a Google Chat space webhook, create a rule with all five Google alert channels selected, send a test email, open it and click **Evaluate this email**, and verify alerts appear in Calendar, Sheets, Tasks, Docs, and Chat.
 
 Session length: 20 minutes, unmoderated, screen + audio recording.
 
@@ -82,7 +82,7 @@ Round 2 is optional but strongly recommended if Round 1 surfaces critical blocke
 
 ### What it tests
 
-The SMS setup path: install the add-on, enter a Gemini API key, locate and enter provider credentials (Account SID, Auth Token, API key, etc.) into the Settings card, add a recipient phone number, send a test SMS, create a rule with SMS enabled, and confirm a triggered text arrives on the phone.
+The SMS setup path: install the add-on, enter a Gemini API key, locate and enter provider credentials (Account SID, Auth Token, API key, etc.) into the Settings card, add a recipient phone number, send a test SMS, create a rule with SMS enabled, evaluate a matching open email, and confirm a triggered text arrives on the phone.
 
 Session length: 20 minutes, unmoderated, screen + audio recording (Loom or equivalent is acceptable if the tester cannot use UserTesting's recorder).
 

@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The Scan email now button, Run scan now, and the scan-result card no longer exist; the demo alert now comes from opening the test email and clicking Evaluate this email.
+
 # Quickstart — install to first alert
 **Duration:** 180 s
 **Tool:** Descript (narrative; some screen recording, some talking)

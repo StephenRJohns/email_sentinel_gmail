@@ -5,8 +5,8 @@
  * Diagnostics.gs — Server-side self-tests and diagnostic helpers.
  *
  * These functions are dev-only entry points. They are NOT exposed in any
- * user-facing card and are NOT triggered by the time-driven runMailCheck
- * cycle. To invoke:
+ * user-facing card and are NOT reachable from the contextual evaluation
+ * flow. To invoke:
  *   - Apps Script editor: pick the function from the dropdown, click Run.
  *   - clasp run <fn>:      after `clasp login`, runs against the deployed
  *                          project. Useful from CI.

@@ -31,8 +31,8 @@ bash tools/preflight/step1_create_sandbox.sh ROUND_NUM
 
 **No manual quota cap step.** The original preflight doc instructed setting a `Requests per day = 200` quota in Cloud Console as a runaway-loop safety net. Google has since removed that user-configurable quota from the Gemini API (daily limits are now token-based, not request-based). The remaining safety layers are sufficient:
 - `$5` budget alert from the script
-- `MAX_EVALS_PER_RUN = 100` in code (caps per-trigger calls)
-- 60-minute polling floor (caps trigger frequency)
+- Evaluation is user-initiated only — the add-on has no background triggers, so Gemini is called only when a tester clicks **Evaluate this email** (up to two calls per enabled rule per click)
+- `EVAL_MAX_RUN_MS = 240000` in code caps each evaluation run at 4 minutes
 - Theoretical worst-case daily spend stays well under `$5` on Gemini-flash
 
 **Save the key** that the script prints to your password manager:
@@ -132,10 +132,10 @@ bash testing/walk_script_a.sh --resume
 - Does the home card communicate "what is this product?" within 30 seconds? (Task 1 hinges on this.)
 - Does the promo code section appear on Free tier and disappear after redemption?
 - Does the chat.google.com webhook walkthrough match current Google Chat UI? Update Task 2c step 4 if the menu has shifted.
-- Do all five Google channels fire from a single rule? Missing tail-end channels (Docs, Chat) usually mean the run hit `MAX_RUN_MS` — simplify the rule prompt to reduce Gemini latency.
+- Do all five Google channels fire from a single rule? Rules reported as "⚠️ Skipped" on the Evaluation result card mean the run hit `EVAL_MAX_RUN_MS` — simplify the rule prompt to reduce Gemini latency.
 - Does the unverified-app consent warning match your scripts ("Continue → Allow")?
 - Is the activity log line clear to a non-technical tester?
-- Does the home card show the Scan email every dropdown above Start scheduled scans? Script A's briefing tells testers to ignore both — confirm the copy is still accurate.
+- Does opening an email show the contextual card with the purple **Evaluate this email** button? Script A's Task 4 hinges on it — confirm the flow matches the script copy.
 
 ### 3f. Fix what you find before Step 4
 
@@ -145,7 +145,7 @@ Time budget: 30 min self-test + up to 60 min fixes. Fix and re-run pre-flight if
 
 ## Step 4 — Mint codes + fill scripts + submit to UserTesting (~30 min)
 
-> **Round scope:** All sessions run **Script A** (core install + first rule + all five Google channels including Chat). Script B is retired for all rounds. The "Start scheduled scans" path is out of scope (cannot deliver a result inside a 20-min session).
+> **Round scope:** All sessions run **Script A** (core install + first rule + all five Google channels including Chat). Script B is retired for all rounds. There is no scheduled-scan path to scope out anymore — the add-on is contextual-only, and the on-demand **Evaluate this email** flow fits a 20-min session naturally.
 
 ### 4a. Mint per-tester promo codes
 

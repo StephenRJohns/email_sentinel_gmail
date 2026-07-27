@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Scheduled scans, the Scan email now button, and the pre-scan/result cards no longer exist.
+
 # Scan email now
 **Duration:** 60 s
 **Tool:** Guidde

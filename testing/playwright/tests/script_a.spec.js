@@ -1,3 +1,5 @@
+// REWRITTEN 2026-07-26 for contextual-only flow — selectors unverified against live UI; expect drift on first run.
+
 require('dotenv').config({ path: require('path').resolve(__dirname, '../e2e.config.env') });
 const { test, expect } = require('../fixtures');
 const {
@@ -6,7 +8,9 @@ const {
   expectToast,
   clickButton,
   fillField,
-  sendTestEmail
+  sendTestEmail,
+  openEmailBySubject,
+  openAddonPanel
 } = require('../helpers');
 
 // ─── UserTesting Round 1 — Script A (best-effort full automation) ────────────
@@ -14,9 +18,10 @@ const {
 // Mirrors usertesting/docs/script_a_core.md. One test() per task so a failure
 // in one task does not block the others. Tasks gate themselves via env vars:
 // missing creds → test.skip with a reason instead of a hard fail. The rule
-// editor (Task 3) and email-send + multi-channel verify (Task 4) are flagged
-// in playwright/README.md as flaky/manual; they run here as best-effort and
-// will show as failures on cards/Compose markup the suite cannot reach.
+// editor (Task 3) and email-send + contextual-evaluate + multi-channel verify
+// (Task 4) are flagged in playwright/README.md as flaky/manual; they run here
+// as best-effort and will show as failures on cards/Compose markup the suite
+// cannot reach.
 //
 // Required env in e2e.config.env:
 //   GOOGLE_EMAIL                  — required for Task 4 self-send
@@ -30,7 +35,6 @@ const {
 // Mint a fresh code for each run, or comment out the T2b test.
 
 const SCRIPT_A_RULE_NAME    = 'Script A — DEMO test rule';
-const SCRIPT_A_LABEL        = 'INBOX';
 const SCRIPT_A_RULE_TEXT    = 'Any email with the word DEMO in the subject line.';
 const SCRIPT_A_EMAIL_SUBJECT = 'DEMO test 1';
 
@@ -44,14 +48,17 @@ const SCRIPT_A_EMAIL_SUBJECT = 'DEMO test 1';
 
 test('Task 1 · home card loads with the value-prop content', async ({ page }) => {
   const frame = await openAddon(page);
-  await expect(frame.getByText(/Free \(|Plan:?\s*Pro/i)).toBeVisible();
+  // Plan status row always reads "Lite" in this edition.
+  await expect(frame.getByText(/Lite/).first()).toBeVisible();
+  // The "How it works" blurb explains the contextual flow.
+  await expect(frame.getByText(/Evaluate this email/).first()).toBeVisible();
   // Home card nav row: Settings, Starter rules, Rules, Activity log, Help, Community.
-  // Also asserts the home-card "Scan email now" filled button (always present
-  // regardless of scan state — distinct from the kebab universal-action entry).
+  // The Rules nav button label carries live counts ('Rules   ✅ n  ⚠️ n  ⚪ n'),
+  // so match on the prefix rather than exact text.
   await expect(frame.getByRole('button', { name: 'Settings' })).toBeVisible();
   await expect(frame.getByRole('button', { name: 'Starter rules' })).toBeVisible();
-  await expect(frame.getByRole('button', { name: 'Rules', exact: true })).toBeVisible();
-  await expect(frame.getByRole('button', { name: 'Scan email now' })).toBeVisible();
+  await expect(frame.getByRole('button', { name: /^Rules/ })).toBeVisible();
+  await expect(frame.getByRole('button', { name: 'Activity log' })).toBeVisible();
 });
 
 // ─── Task 2a · Gemini API key ────────────────────────────────────────────────
@@ -125,11 +132,13 @@ test('Task 3 · create rule with all five Google channels ticked', async ({ page
   test.skip(process.env.TEST_TIER !== 'pro', 'Free tier 3-rule quota is filled by S3 starter rules — Task 3 requires Pro');
   test.setTimeout(180_000);
   const frame = await openAddon(page);
-  await clickButton(frame, 'Rules', { exact: true });
+  // The Rules nav button label carries live counts — match on the prefix.
+  await clickButton(frame, /^Rules/);
   await clickButton(getFrame(page), '+ New rule');
   const f = getFrame(page);
   await fillField(f, 'Rule name', SCRIPT_A_RULE_NAME);
-  await fillField(f, 'Gmail labels to watch', SCRIPT_A_LABEL);
+  // (No labels field — the contextual-only rule editor has no
+  // "Gmail labels to watch" input.)
   await fillField(f, 'Rule text (plain English)', SCRIPT_A_RULE_TEXT);
   // Tick the four ungated Google channels (Calendar, Sheets, Tasks, Docs).
   // Each is a CardService SelectionInput.CHECK_BOX rendered as a Material
@@ -155,63 +164,36 @@ test('Task 3 · create rule with all five Google channels ticked', async ({ page
   await expectToast(page, /Rule saved|Rule added/i, 15_000);
 });
 
-// ─── Task 4 · Send test email and confirm scan finds a match ─────────────────
-// Real outbound send via Compose + 10s settle + Scan email now. The five
-// per-surface verifications (Calendar/Sheets/Tasks/Docs/Chat) require leaving
-// the add-on iframe and inspecting external Google products — instead this
-// test asserts the scan-complete result reports a match, which is the
+// ─── Task 4 · Send test email, open it, and Evaluate this email ──────────────
+// Real outbound send via Compose + 10s settle, then the contextual-only flow:
+// open the DEMO email in the Gmail message view, open the add-on panel (the
+// contextual card renders via onGmailMessageOpen), click the FILLED purple
+// "Evaluate this email" button, and assert the "Evaluation result" card shows
+// the DEMO rule row with "✅ Match — alerts sent". The five per-surface
+// verifications (Calendar/Sheets/Tasks/Docs/Chat) require leaving the add-on
+// iframe and inspecting external Google products — the match row is the
 // add-on-side evidence that the rule fired and dispatch was attempted. The
-// per-channel rendering checks remain in the manual e2e_test_plan.md
-// (sections S9–S13).
-//
-// Script A Task 4 step 3 was updated to drive the scan via the kebab "⋮"
-// menu (Universal Action "Scan email now" → pre-scan card → "Run scan now")
-// instead of the home-card button. We mirror that path here. The kebab
-// rendering inside Gmail's add-on iframe is not always exposed by a
-// well-named accessible role, so the test tries the kebab path first and
-// falls back to the home-card "Scan email now" button if the menu cannot
-// be reached. Either path resolves to the same handleRunCheckNow handler;
-// the result-card text we assert on is identical in both cases.
+// per-channel rendering checks remain in the manual e2e_test_plan.md.
 
-test('Task 4 · self-send DEMO email and Scan email now reports a match', async ({ page }) => {
+test('Task 4 · self-send DEMO email and Evaluate this email reports a match', async ({ page }) => {
   const email = process.env.GOOGLE_EMAIL;
   test.skip(!email, 'GOOGLE_EMAIL not set in e2e.config.env');
-  test.skip(process.env.TEST_TIER !== 'pro', 'Task 3 is skipped on Free tier (no DEMO rule created), so scan will find 0 matches');
+  test.skip(process.env.TEST_TIER !== 'pro', 'Task 3 is skipped on Free tier (no DEMO rule created), so evaluation will find 0 matches');
   test.setTimeout(300_000);
   await sendTestEmail(page, SCRIPT_A_EMAIL_SUBJECT, email);
-  // 10s for the message to land in the inbox label that the rule watches.
+  // 10s for the message to land in the inbox.
   await page.waitForTimeout(10_000);
-  const frame = await openAddon(page);
+  await openEmailBySubject(page, SCRIPT_A_EMAIL_SUBJECT);
+  const frame = await openAddonPanel(page);
 
-  // Attempt the kebab menu path first (matches Script A Task 4 step 3).
-  let scannedViaKebab = false;
-  const kebab = frame.getByRole('button', { name: /more|overflow|options/i }).first();
-  if (await kebab.isVisible({ timeout: 5_000 }).catch(() => false)) {
-    await kebab.click({ force: true }).catch(() => {});
-    // Universal-action items render as <menuitem> in CardService's overflow
-    // menu. If that role isn't applied, fall through to plain text match.
-    const menuItem = frame.getByRole('menuitem', { name: 'Scan email now' }).first();
-    const textHit  = frame.getByText('Scan email now').first();
-    const target   = (await menuItem.isVisible({ timeout: 3_000 }).catch(() => false))
-      ? menuItem : textHit;
-    if (await target.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      await target.click({ force: true });
-      // Pre-scan card has a "Run scan now" filled button — that is what
-      // actually kicks off runMailCheck (the menu item only navigates).
-      await clickButton(getFrame(page), 'Run scan now');
-      scannedViaKebab = true;
-    }
-  }
-  if (!scannedViaKebab) {
-    // Fallback: home-card button. Goes directly to handleRunCheckNow with
-    // no pre-scan card, but produces the same Scan complete result text.
-    await clickButton(getFrame(page), 'Scan email now');
-  }
+  await clickButton(frame, 'Evaluate this email');
 
-  await expect(getFrame(page).locator('body')).toContainText(
-    /Scan complete[^.]*\b[1-9]\d*\s+match/i,
-    { timeout: 240_000 }
-  );
+  // Result card header + the DEMO rule's match row. Evaluation runs every
+  // enabled rule (up to two Gemini calls each), hence the long timeout.
+  const body = getFrame(page).locator('body');
+  await expect(body).toContainText(/Evaluation result/i, { timeout: 240_000 });
+  await expect(body).toContainText(SCRIPT_A_RULE_NAME);
+  await expect(body).toContainText(/Match — alerts sent/);
 });
 
 // ─── Task 5 · Wrap-up questions ──────────────────────────────────────────────

@@ -7,6 +7,8 @@
 > - Asking testers to share a real mobile number adds privacy friction without proportional UX-research value.
 >
 > **This file is kept for historical reference only.** Do not revive for a future round without re-deciding the policy above. The active script for every round is `script_a_core.md`.
+>
+> **Flow note (2026-07-26):** the add-on is now contextual-only — there is no scheduled scanning, no "Scan email now", and no labels field. Any future revival must use the current flow: open the test email, open the add-on panel, click **Evaluate this email**, and assert on the **Evaluation result** card. The task steps below have been updated to match.
 
 **Target session length:** 20 minutes (unmoderated, screen + audio recording)
 **Cohort within Round 1:** ~~4 of 10 sessions~~ — deferred
@@ -19,7 +21,7 @@
 
 ## What this product is (one-line summary for tester intro)
 
-emAIl Sentinel is a Gmail add-on that watches your inbox and sends you alerts (SMS, Calendar event, etc.) when emails matching plain-English rules arrive. In this session you'll set it up to **text your phone** when a specific kind of email arrives.
+emAIl Sentinel is a Gmail add-on that checks the email you have open against plain-English rules and sends you alerts (SMS, Calendar event, etc.) when it matches. In this session you'll set it up to **text your phone** when a specific kind of email arrives.
 
 ---
 
@@ -86,19 +88,18 @@ Please **think aloud the entire time** — narrate what you're looking at, what 
 
 1. Return to the home card. Click **Rules** → **+ New rule**.
 2. Name it whatever you want (e.g. "Important demo emails").
-3. In **Gmail labels to watch**, type `INBOX`.
-4. In **Rule text**, write a plain-English description: e.g. *"Any email with the word DEMO in the subject line."* (You can use the **Help me write the rule text** AI suggestion if you want.)
-5. Under **Alert channels**, find the **SMS** section and tick the recipient you added in Task 2.
-6. Click **Save**.
+3. In **Rule text**, write a plain-English description: e.g. *"Any email with the word DEMO in the subject line."* (You can use the **Help me write the rule text** AI suggestion if you want.)
+4. Under **Alert channels**, find the **SMS** section and tick the recipient you added in Task 2.
+5. Click **Save**.
 
 **Tell us out loud:** Did anything in the rule editor surprise you? When you ticked the SMS recipient, did you trust that an alert would actually fire?
 
 ### Task 4 — Send yourself a test email and confirm the SMS arrives (4 min)
 
 1. In Gmail, click **Compose**. Send yourself an email with the subject line `DEMO test 1` (the trigger word from your rule).
-2. Wait about 10 seconds for delivery.
-3. Open the emAIl Sentinel add-on. Open the kebab "⋮" menu and click **Scan email now**. A card titled **Scan email now** opens — read the description, then click the purple **Run scan now** button.
-4. The button shows a spinner while the scan runs (10–60 seconds). When it finishes, a result card appears: *"Scan complete — 1 new email, 1 match"*.
+2. Wait about 10 seconds, then click into the email in your inbox so it is open on screen.
+3. With the email open, open the emAIl Sentinel add-on panel. A card appears offering to check this email against your enabled rules — click the purple **Evaluate this email** button.
+4. The button shows a spinner while the evaluation runs (a few seconds per rule). When it finishes, an **Evaluation result** card appears — your rule's row should read *"✅ Match — alerts sent"*.
 5. Within ~30 seconds, you should receive a text message on your phone reading something like *"[emAIl Sentinel] Important demo emails — Date: ... — From: yourself — Subject: DEMO test 1 — ..."*.
 
 **Tell us out loud:** Did the SMS arrive? Was the text message clear and useful — would you actually want to receive an SMS like this for a real important email?

@@ -119,4 +119,28 @@ async function waitForEmailInInbox(page, subject, retries = 6) {
   throw new Error(`Timed out waiting for email with subject: ${subject}`);
 }
 
-module.exports = { GMAIL_URL, openAddon, getFrame, expectToast, clickButton, fillField, navTo, sendTestEmail, waitForEmailInInbox };
+// Open a specific email (message view) by subject. The contextual-only flow
+// needs a message OPEN in Gmail before the add-on can offer "Evaluate this
+// email" — from the inbox list view the add-on shows the home card instead.
+async function openEmailBySubject(page, subject, retries = 6) {
+  await waitForEmailInInbox(page, subject, retries);
+  const row = page.locator(`[data-legacy-thread-id], tr`).filter({ hasText: subject }).first();
+  await row.click();
+  // Message view renders the subject as an <h2> heading; wait for it so the
+  // add-on's contextual trigger has an open message to bind to.
+  await page.locator('h2').filter({ hasText: subject }).first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
+}
+
+// Open the add-on panel WITHOUT navigating (unlike openAddon, which goto()s
+// the inbox first). Use after openEmailBySubject so the currently open
+// message stays open — navigating would drop back to the list view and the
+// contextual "Evaluate this email" card would not render.
+async function openAddonPanel(page) {
+  const icon = page.locator('[aria-label*="emAIl Sentinel"]').first();
+  await icon.waitFor({ state: 'attached', timeout: 45_000 });
+  await icon.click({ force: true });
+  return getFrame(page);
+}
+
+module.exports = { GMAIL_URL, openAddon, getFrame, expectToast, clickButton, fillField, navTo, sendTestEmail, waitForEmailInInbox, openEmailBySubject, openAddonPanel };

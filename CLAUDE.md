@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-**emAIl Sentinel** — a Google Workspace Gmail Add-on (Google Apps Script, V8 runtime) that watches Gmail labels for new messages, evaluates each one against user-defined plain-English rules using the Gemini REST API, and dispatches alerts via SMS, Google Chat, Calendar, Sheets, or Tasks.
+**emAIl Sentinel** — a Google Workspace Gmail Add-on (Google Apps Script, V8 runtime), contextual-only: the user opens an email, opens the add-on panel, and clicks "Evaluate this email". Every enabled user-defined plain-English rule is evaluated against that one open message using the Gemini REST API, and matches dispatch alerts via SMS, Google Chat, Calendar, Sheets, Tasks, Docs, or MCP/webhooks. There is **no background scanning** — the add-on holds only the `gmail.addons.current.message.readonly` scope (sensitive-tier), deliberately avoiding the restricted `gmail.readonly` scope and its annual paid CASA security assessment. Whole-mailbox 24/7 automation is the separate self-hosted Pro product.
 
 There is no build step, no npm packages at runtime, no transpilation. Everything runs server-side on Google's infrastructure. The only local tooling is `clasp` for pushing files.
 
@@ -27,20 +27,23 @@ clasp open
 clasp pull
 ```
 
-The `scriptId` in `.clasp.json` links this directory to the live Apps Script project. The emAIl Sentinel Script ID is `1Cq_G1N935YKuuYe-5rViGnrHybrmgqJANwKUzlOzGP9UecGNyE07ssrR`. Apps Script has no in-repo unit tests; manual testing is done by running functions from the Apps Script editor or triggering `runMailCheck()`.
+The `scriptId` in `.clasp.json` links this directory to the live Apps Script project. The emAIl Sentinel Script ID is `1Cq_G1N935YKuuYe-5rViGnrHybrmgqJANwKUzlOzGP9UecGNyE07ssrR`. Apps Script has no in-repo unit tests; manual testing is done by running functions from the Apps Script editor or by opening an email in Gmail and clicking "Evaluate this email" in the add-on panel.
 
 ## Architecture
 
 ### Data flow
 
 ```
-Time-driven trigger (everyMinutes() in {1, 5, 10, 15, 30}, chosen to divide pollMinutes)
-  └─ runMailCheck()                          [MailWatcher.gs]
-       ├─ loadSettings() / loadRules()       [SettingsManager.gs / RulesManager.gs]
-       ├─ GmailApp.search() → new messages   [MailWatcher.gs]
-       ├─ evaluateEmailAgainstRule()          [RuleEvaluator.gs]  ← Gemini REST call
-       ├─ generateAlertMessage()             [RuleEvaluator.gs]  ← Gemini REST call
-       └─ dispatchAlerts()                   [AlertDispatcher.gs]
+User opens a message → contextual trigger (appsscript.json contextualTriggers)
+  └─ onGmailMessageOpen()                    [ContextualEvaluator.gs]  ← cheap card, no Gmail/Gemini call
+       └─ "Evaluate this email" button → handleEvaluateOpenMessage()
+            ├─ loadSettings() / loadRules()  [SettingsManager.gs / RulesManager.gs]
+            ├─ GmailApp.setCurrentMessageAccessToken(e.gmail.accessToken)
+            │  + getMessageById(e.gmail.messageId) → normalizeMessage_()
+            ├─ evaluateEmailAgainstRule()    [RuleEvaluator.gs]  ← Gemini REST call, per enabled rule
+            ├─ generateAlertMessage()        [RuleEvaluator.gs]  ← Gemini REST call, per match
+            ├─ dispatchAlerts()              [AlertDispatcher.gs]
+            └─ buildEvaluationResultCard_()  ← per-rule match/no-match/failed rows
 
 Add-on UI (Google Cards) — all stateless, re-read UserProperties every render
   └─ onHomepage() / action handlers          [Code.gs → Cards.gs]
@@ -52,58 +55,52 @@ All persistent state lives in `PropertiesService.getUserProperties()` (per-user,
 
 | Key | Contents |
 |---|---|
-| `mailsentinel.settings` | Gemini key/model, poll interval, business hours, all SMS provider credentials, alert channel IDs |
+| `mailsentinel.settings` | Gemini key/model, all SMS provider credentials, alert channel IDs |
 | `mailsentinel.rules` | JSON array of rule objects (see schema in RulesManager.gs header) |
-| `mailsentinel.seen` | Per-label array of recently-seen Gmail message IDs (dedup baseline) |
 | `mailsentinel.log` | Ring buffer of last ~60 activity log lines |
 
-There is no database, no backend, no external storage.
+There is no database, no backend, no external storage. (Legacy keys `mailsentinel.seen` and `mailsentinel.lastRunAt` from the pre-contextual scanning architecture may still exist in older installs; nothing reads them anymore.)
 
 ### Key design constraints
 
-**Apps Script execution limit:** Scripts time out at 6 minutes. `runMailCheck()` guards with `MAX_RUN_MS = 180000` (3 min) and `MAX_EVALS_PER_RUN = 100`. The 3-min cap leaves comfortable headroom — at 4 min, an in-flight Gemini call (with the 5 s 503 retry) plus a per-match alert-format Gemini call plus Calendar/Sheets dispatch could collectively overshoot the 6-min hard kill before the top-of-loop guard next ran. Messages that hit the limit have their IDs removed from `seen` so they are retried next run.
+**Contextual scope is the load-bearing constraint:** `gmail.addons.current.message.readonly` can read *only* the message the user currently has open, and only during add-on interaction via `GmailApp.setCurrentMessageAccessToken(e.gmail.accessToken)` in the same execution. `GmailApp.search()` and any other-mail access are impossible. Do not reintroduce `gmail.readonly` (or `script.scriptapp`) — dropping them is what exempts the app from Google's restricted-scope CASA assessment; that is a deliberate business decision (2026-07-26), not an oversight. Time-driven triggers are also gone: no background scanning of any kind.
 
-**9 KB UserProperties limit:** `saveRules()` throws a user-visible error if rules JSON exceeds 9 KB. `saveSeen_()` auto-shrinks the seen-ID buffer by trimming to 60% of current size until it fits.
+**Apps Script execution limit:** Scripts time out at 6 minutes. `evaluateOpenMessage_()` guards with `EVAL_MAX_RUN_MS = 240000` (4 min) — after that, remaining rules are reported as "Skipped" on the result card rather than risking the hard kill mid-dispatch. Each rule costs up to two Gemini calls (evaluate + alert format on match) plus channel dispatch.
 
-**Log buffering:** During trigger runs, `startLogBuffering()` + `flushLog()` batch all `activityLog()` calls into a single UserProperties write. Call them at the start and end of any function that writes many log entries.
+**9 KB UserProperties limit:** `saveRules()` throws a user-visible error if rules JSON exceeds 9 KB. `migrateRule_()` strips the legacy `labels` field on load so old rules don't waste the budget.
 
-**Concurrency guard:** `runMailCheck()` takes `LockService.getUserLock()` with a 0ms timeout and skips the run if locked — prevents overlapping trigger fires.
-
-**Polling grid (Workspace add-on trigger constraint):** Gmail/Workspace add-on time-based triggers must fire no more often than once per hour — this is a Google platform constraint, not an Apps Script `everyMinutes()` quirk, and there is no add-on-level workaround. The 60-minute floor applies to every plan. Tier policy on top of that floor: `free.minPollMinutes = 180` (every 3 hours), `pro.minPollMinutes = 60` (every 1 hour, the platform floor itself). `enforcePollFloor()` snaps `pollMinutes` up to the nearest multiple of 60 and clamps to the active tier's minimum. `installTrigger()` uses `everyHours(round(pollMinutes / 60))`. `runMailCheck()` still applies a `LAST_RUN_KEY` elapsed-time skip-check so longer-than-hourly cadences (e.g. 240, 360) are precise. `runMailCheck({force: true})` bypasses the skip-check for manual "Scan email now" — that button is how users get sub-hour responsiveness on demand on any plan.
+**Log buffering:** `startLogBuffering()` + `flushLog()` batch all `activityLog()` calls into a single UserProperties write. Interactive evaluation writes log entries directly (the user is already waiting on the spinner, and unbuffered writes survive a hard kill); the buffering pair is still used by `Diagnostics.gs`.
 
 **Cards are fully stateless:** Every card builder reads UserProperties fresh. Never cache state in global variables between card renders.
 
 **No back-arrow event in CardService:** Google's add-on framework does not emit an event when the user taps the system back arrow at the top-left of a card. Editor cards therefore cannot show a "discard unsaved changes?" confirmation dialog — pressing back instantly pops the navigation stack and the in-flight form values are dropped. The mitigation is `buildUnsavedChangesNotice_()` in `Cards.gs`, which is the first section on every editor card (rule editor, settings, MCP server editor, SMS recipient editor, chat space editor) and warns the user to click Save before navigating back. If a future iteration wants real protection, the next step would be a draft-persistence layer keyed on form-input `setOnChangeAction` (which fires on blur, not on every keystroke, and is not available on plain `TextInput` for typing-time auto-save).
 
-**Action color conventions on FILLED buttons:** Cards.gs defines three brand color constants used to distinguish button intent. `BRAND_PURPLE_` (`#581c87`) is the primary brand color and the default for non-destructive FILLED CTAs (Save, Generate, + New rule, Start scheduled scans). `BRAND_PURPLE_LIGHT_` (`#7c3aed`) is the secondary FILLED CTA on cards that already have a primary purple button — used for "Scan email now" so it's visually distinct from "Start scheduled scans" sitting beside it. `BRAND_RED_` (`#c62828`) marks every Delete button in the UI (rule list Delete + Delete all rules, MCP/SMS/Chat editor Delete buttons, and all corresponding confirmation Delete buttons). The rule toggle button reads `Off` when the rule is currently on (action: turn off) and `On` when currently off — short labels because CardService scales row widths down at higher card-section counts, and longer labels (`Disable`/`Enable`) wrapped the Delete button onto a second row at 5+ rules. The current state is visible from the section header (`✅ ON` / `⏸ OFF`), so the button doesn't duplicate it. Toggle is plain TEXT style in both states (a FILLED yellow on Disable was tried earlier but caused CardService's per-card column-width alignment to inflate every toggle slot, pushing Delete onto a second row even with one ON rule). Text color is wrapped explicitly via `whiteText_()` for dark backgrounds (purple, red); CardService doesn't auto-pick text color reliably for FILLED buttons with custom backgrounds. The `BRAND_YELLOW_LIGHT_` constant and `blackText_()` helper are still defined but unused — kept in case a future caution-colored button finds a layout that works without per-section width spillover. New action buttons should be classified into one of the three live categories rather than introducing new brand colors.
+**Action color conventions on FILLED buttons:** Cards.gs defines three brand color constants used to distinguish button intent. `BRAND_PURPLE_` (`#581c87`) is the primary brand color and the default for non-destructive FILLED CTAs (Save, Generate, + New rule, Evaluate this email). `BRAND_PURPLE_LIGHT_` (`#7c3aed`) is the secondary FILLED CTA for cards that already have a primary purple button (currently unused after the contextual conversion — kept for future layouts). `BRAND_RED_` (`#c62828`) marks every Delete button in the UI (rule list Delete + Delete all rules, MCP/SMS/Chat editor Delete buttons, and all corresponding confirmation Delete buttons). The rule toggle button reads `Off` when the rule is currently on (action: turn off) and `On` when currently off — short labels because CardService scales row widths down at higher card-section counts, and longer labels (`Disable`/`Enable`) wrapped the Delete button onto a second row at 5+ rules. The current state is visible from the section header (`✅ ON` / `⏸ OFF`), so the button doesn't duplicate it. Toggle is plain TEXT style in both states (a FILLED yellow on Disable was tried earlier but caused CardService's per-card column-width alignment to inflate every toggle slot, pushing Delete onto a second row even with one ON rule). Text color is wrapped explicitly via `whiteText_()` for dark backgrounds (purple, red); CardService doesn't auto-pick text color reliably for FILLED buttons with custom backgrounds. The `BRAND_YELLOW_LIGHT_` constant and `blackText_()` helper are still defined but unused — kept in case a future caution-colored button finds a layout that works without per-section width spillover. New action buttons should be classified into one of the three live categories rather than introducing new brand colors.
 
-**Home polling dropdown auto-saves on change via `setOnChangeAction`:** The home card's "Scan email every" dropdown (only visible when scheduled scans are stopped) wires `setOnChangeAction(action_('handleHomePollChange'))` so the picked value is persisted to `settings.pollMinutes` the moment the user changes the selection — they do not need to click "Start scheduled scans" for the choice to stick. Without this, the user could pick "2 hours" on the home card, navigate to Settings via the kebab menu, and find the old value still selected (because CardService doesn't auto-submit form inputs when the user navigates away from a card; only an explicit action button submits them). `handleHomePollChange` is intentionally silent — it returns an empty `ActionResponseBuilder` (no notification, no card update) so picking a value just sticks without any UI flicker. `handleStartMonitoring` also re-reads and re-saves the value as defense-in-depth (idempotent — same chosen value, same save). The trick works for `SelectionInput` because its `onChangeAction` fires immediately when a new option is picked; the same pattern wouldn't work for `TextInput` (onChangeAction fires only on blur and only on TextInput types that support it, which excludes the plain typing-time auto-save we'd want for an editor draft).
+**SelectionInput auto-save pattern (`setOnChangeAction`):** `SelectionInput.setOnChangeAction` fires immediately when the user picks a new option, so a dropdown can persist its value without a Save click — the Settings card's SMS provider dropdown uses this (`handleSmsProviderChange`). The response must not be an empty `ActionResponse` (CardService rejects it); return at least a navigation `updateCard`. The same pattern does not work for `TextInput` (its onChangeAction fires only on blur, and only on types that support it), which is why editor drafts can't auto-save while typing.
 
-**Universal-action navigation has no native back arrow; the kebab "Home" item is the escape hatch:** Sub-cards reached via the kebab "⋮" menu items in `appsscript.json universalActions` (Rules, Settings, Activity Log, Help) use `UniversalActionResponseBuilder.displayAddOnCards`, which *replaces* the navigation stack rather than pushing onto it. Gmail therefore does not render its native back arrow on those cards. Likewise, every confirm-delete handler (`handleConfirmDeleteRule`, `handleConfirmClearLog`, `handleConfirmDeleteMcpServer`, `handleConfirmDeleteSmsRecipient`, `handleConfirmDeleteChatSpace`, and the starter-rules creation handler) does `popToRoot().updateCard(buildXxxCard())` to dismiss the confirmation sub-card, which leaves the root card with no back arrow either. The kebab menu's first entry — `Home` → `actionShowHome` (Code.gs) — gives users a reliable way back to the home card from any state. An earlier iteration prepended an in-card `homeButtonSection_()` to each root card; that was removed because the kebab Home entry already covers the no-back-arrow case and the in-card variant cluttered the top of every card. Universal-action responses do *not* support `setNotification` toasts, so manual scans land on `buildScanResultCard_()` (green ✅ or red ⚠ banner) for visible feedback.
+**Universal-action navigation has no native back arrow; the kebab "Home" item is the escape hatch:** Sub-cards reached via the kebab "⋮" menu items in `appsscript.json universalActions` (Rules, Settings, Activity Log, Help) use `UniversalActionResponseBuilder.displayAddOnCards`, which *replaces* the navigation stack rather than pushing onto it. Gmail therefore does not render its native back arrow on those cards. Likewise, every confirm-delete handler (`handleConfirmDeleteRule`, `handleConfirmClearLog`, `handleConfirmDeleteMcpServer`, `handleConfirmDeleteSmsRecipient`, `handleConfirmDeleteChatSpace`, and the starter-rules creation handler) does `popToRoot().updateCard(buildXxxCard())` to dismiss the confirmation sub-card, which leaves the root card with no back arrow either. The kebab menu's first entry — `Home` → `actionShowHome` (Code.gs) — gives users a reliable way back to the home card from any state. An earlier iteration prepended an in-card `homeButtonSection_()` to each root card; that was removed because the kebab Home entry already covers the no-back-arrow case and the in-card variant cluttered the top of every card. Universal-action responses do *not* support `setNotification` toasts — any kebab flow that needs visible feedback must land on a card (evaluation results land on `buildEvaluationResultCard_()`, which is pushed from a button action, where toasts and spinners do work).
 
 **Community Discussions universal action opens an external URL directly:** The kebab "⋮" menu's "Community discussions" item (`appsscript.json` → `actionOpenDiscussions` in `Code.gs`) returns `CardService.newUniversalActionResponseBuilder().setOpenLink(...)` rather than `displayAddOnCards`. This is the supported pattern for a kebab item that should jump straight to an external URL with no card render — `setOpenLink` on `UniversalActionResponseBuilder` opens the URL (`https://github.com/StephenRJohns/email_sentinel/discussions`) in a new tab without touching the add-on's card stack. The github.com/ prefix is already whitelisted in `appsscript.json openLinkUrlPrefixes`. The home card has a parallel "Community" plain-text button next to "Help" that uses the same URL via `TextButton.setOpenLink` (FILLED + setBackgroundColor + setOpenLink combinations have caused platform-rejection errors in this codebase, so all Community-link buttons stay plain TEXT style).
 
-**"Scan email now" universal action lands on a pre-scan card, not the result card:** Universal-action responses cannot show a load indicator (no button to attach a spinner to), and empirical testing confirmed there is no platform-level loading feedback either — calling `runMailCheck()` directly inside `actionRunCheckNow` blocks 10–60 seconds with the panel completely silent and feels broken. Instead `actionRunCheckNow` returns `buildPreScanCard_()` — a card explaining the scan with a single "Run scan now" button. The button's action handler is `handleRunCheckNow` which calls `runMailCheck()` and pushes `buildScanResultCard_()` on completion; CardService renders the default spinner on the button while the action runs. The home card's "Scan email now" button bypasses the pre-scan card and hits `handleRunCheckNow` directly because it is already a button click and gets the spinner naturally. Do not "simplify" by removing the pre-scan card — this has been tried and reverted.
+**Long-running work must sit behind a button click, never a trigger render:** Universal actions and trigger functions (`onHomepage`, `onGmailMessageOpen`) cannot show a load indicator — running a slow operation inside them blocks the panel silently for its full duration and feels broken (empirically confirmed in the pre-contextual era). That's why `onGmailMessageOpen` builds a cheap card with an "Evaluate this email" button instead of evaluating directly: the button's action handler (`handleEvaluateOpenMessage`) is where the Gemini calls happen, and CardService renders its default spinner on the button while the action runs. Keep trigger renders cheap; put anything slow behind a button.
 
-**All user-visible dates are localized via `formatLocalDateTime_` (`Code.gs`):** `Date.toISOString()` produces UTC/Zulu strings like `2026-04-27T22:29:58.636Z` which are confusing to non-UTC users. `formatLocalDateTime_(d)` uses `Utilities.formatDate(d, getUserTimeZone_(), 'yyyy-MM-dd h:mm:ss a z')` to emit `2026-04-27 5:29:58 PM CDT`. `getUserTimeZone_()` prefers `CalendarApp.getDefaultCalendar().getTimeZone()` (matches what Gmail/Calendar display in their UI), falling back to `Session.getScriptTimeZone()`, and is cached in a module-level `_cachedUserTz_` so a single trigger run that writes dozens of activity-log entries doesn't pay the CalendarApp round-trip per entry (Apps Script preserves module state for one execution, exactly the cache scope we want). `MailWatcher.gs:gatherMessage_` pre-formats `receivedDateTime` so all downstream presentation contexts (Calendar event descriptions, Tasks notes, Sheets rows, the Gemini evaluation prompt, and the alert text Gemini generates) inherit the localized format. `receivedMillis` (raw epoch) is kept alongside for any code that needs sortable/comparable timestamps. The activity-log timestamp prefix is also localized in 12-hour AM/PM (`yyyy-MM-dd h:mm:ss a`); the `buildActivityCard` bolding splits on the literal double-space separator between stamp and message rather than a fixed offset (older 24-hour entries still in the 60-line ring buffer continue to render correctly during rollover). New code that surfaces a date to the user should use `formatLocalDateTime_` rather than calling `.toISOString()` or `.toString()`.
+**All user-visible dates are localized via `formatLocalDateTime_` (`Code.gs`):** `Date.toISOString()` produces UTC/Zulu strings like `2026-04-27T22:29:58.636Z` which are confusing to non-UTC users. `formatLocalDateTime_(d)` uses `Utilities.formatDate(d, getUserTimeZone_(), 'yyyy-MM-dd h:mm:ss a z')` to emit `2026-04-27 5:29:58 PM CDT`. `getUserTimeZone_()` prefers `CalendarApp.getDefaultCalendar().getTimeZone()` (matches what Gmail/Calendar display in their UI), falling back to `Session.getScriptTimeZone()`, and is cached in a module-level `_cachedUserTz_` so a single evaluation that writes many activity-log entries doesn't pay the CalendarApp round-trip per entry (Apps Script preserves module state for one execution, exactly the cache scope we want). `ContextualEvaluator.gs:normalizeMessage_` pre-formats `receivedDateTime` so all downstream presentation contexts (Calendar event descriptions, Tasks notes, Sheets rows, the Gemini evaluation prompt, and the alert text Gemini generates) inherit the localized format. `receivedMillis` (raw epoch) is kept alongside for any code that needs sortable/comparable timestamps. The activity-log timestamp prefix is also localized in 12-hour AM/PM (`yyyy-MM-dd h:mm:ss a`); the `buildActivityCard` bolding splits on the literal double-space separator between stamp and message rather than a fixed offset (older 24-hour entries still in the 60-line ring buffer continue to render correctly during rollover). New code that surfaces a date to the user should use `formatLocalDateTime_` rather than calling `.toISOString()` or `.toString()`.
 
 **MCP Streamable HTTP responses can be SSE; tool-level errors are inside `result.isError`:** `sendMcpAlert_` in `McpServers.gs` POSTs JSON-RPC `tools/call` to the MCP server and the response can come back with `Content-Type: application/json` (single JSON object) *or* `Content-Type: text/event-stream` (one or more SSE message events whose `data:` lines hold the JSON-RPC response). Asana's V2 MCP at `https://mcp.asana.com/v2/mcp` returns SSE in practice. The handler detects `text/event-stream` in the response Content-Type header and reassembles `data:`-prefixed lines into a JSON string before parsing — without that, `JSON.parse` throws on the SSE body, the catch block swallows it as a "non-JSON ack", and the dispatcher logs a misleading `MCP alert sent to: <name>` even when the tool actually failed. Three error tiers must all be checked: (1) HTTP non-2xx → `'MCP "<name>" HTTP <code>: <body>'`; (2) JSON-RPC envelope error at `body.error` → `'MCP "<name>" error: <body.error>'`; (3) tool-level error at `body.result.isError === true` with detail in `body.result.content[].text` → `'MCP "<name>" tool error: <detail>'`. New MCP server presets in `MCP_TYPE_DEFAULTS` should not skip these checks.
 
 **Gemini via REST, not SDK:** `callGemini_()` uses `UrlFetchApp` + the user's own API key. No extra OAuth scope needed (only `script.external_request`).
 
-**First-run baseline:** The first time `runMailCheck()` encounters a label, it records all current message IDs as the baseline (no alerts). Alerts only fire for messages that arrive after that baseline. This is intentional — don't change this behavior.
-
 ### All OAuth scopes are actively used
 
-Every scope in `appsscript.json` is required:
+Every scope in `appsscript.json` is required — and none is restricted-tier (see the contextual-scope constraint above before adding any):
 - `gmail.addons.execute` — add-on execution
-- `gmail.readonly` — `GmailApp.search()` and message reading
-- `calendar` — `CalendarApp` in `sendCalendarAlert_()`
+- `gmail.addons.current.message.readonly` — reading the currently open message in `handleEvaluateOpenMessage` (sensitive-tier; the only Gmail scope)
+- `calendar` — `CalendarApp` in `sendCalendarAlert_()` (also `getUserTimeZone_()`)
 - `spreadsheets` — `SpreadsheetApp` in `sendSheetsAlert_()`
 - `tasks` — Tasks REST API in `sendTasksAlert_()` (via `ScriptApp.getOAuthToken()`)
 - `documents` — `DocumentApp` in `sendDocsAlert_()`
 - `script.external_request` — `UrlFetchApp` for Gemini + all SMS providers
-- `script.scriptapp` — `ScriptApp.newTrigger()` / `getProjectTriggers()`
 
 ### Email alerting is intentionally absent
 
@@ -116,13 +113,13 @@ We do not support email as an alerting channel. Alert channels are: SMS, Google 
 ### License tiers
 
 `LicenseManager.gs` defines `TIERS` (Free vs Pro) with per-tier limits:
-`maxRules`, `minPollMinutes`, `allowChat`, `allowMcp`, `allowAiSuggest`,
-`logRetentionDays`. Enforcement is layered: `handleNewRule` (early gate at
-"+ New rule" click — checks `canAddRule()` before opening the editor so the
-user doesn't fill out a rule that won't save), `upsertRule` (defense-in-depth
-rule count + Chat/MCP stripping at save time, also covers programmatic save
-paths that bypass the UI), `handleSaveSettings` (poll floor — now mostly
-unreachable from the dropdown UI but kept as defense-in-depth),
+`maxRules`, `allowChat`, `allowMcp`, `allowAiSuggest`, `logRetentionDays`
+(currently all wide-open on both tiers — the add-on is the free Lite edition
+and Pro is a separate self-hosted product). Enforcement is layered:
+`handleNewRule` (early gate at "+ New rule" click — checks `canAddRule()`
+before opening the editor so the user doesn't fill out a rule that won't
+save), `upsertRule` (defense-in-depth rule count + Chat/MCP stripping at save
+time, also covers programmatic save paths that bypass the UI),
 `handleHelpWriteRuleText` / `handleHelpWriteAlertText` (Pro gate for AI rule
 writing), and `buildRuleEditorCard` (UI hides gated channel sections). Tier is persisted in `settings.license.tier`; for pre-launch
 testing, select `setTierPro` or `setTierFree` from the Apps Script editor's
@@ -151,7 +148,7 @@ When ON:
 - The Settings-card SMS recipients list and the Rule-editor SMS multi-select
   display `Tester` for each name and `+12105551212` for each number, via
   `applyScreenshotName_` / `applyScreenshotPhone_`.
-- `MailWatcher.gs` activity log line uses the same overridden values.
+- `ContextualEvaluator.gs` activity log lines use the same overridden values.
 
 **Real developer PII never enters source code.** The redaction pair list
 (real → demo) lives in UserProperties under
@@ -168,14 +165,12 @@ PII-free even when redactions are configured. The hardcoded demo values
 (`Tester`, `test@example.com`, `+12105551212`) are fictional — `555-1212` is
 the standard demonstration suffix in the North American Numbering Plan.
 
-### Founding-member lifetime offer
+### Founding-member lifetime offer — retired
 
-Launch-only $79 tier capped at the first 500 purchasers, codified in
-`legal/TERMS.md` §6.1. `FOUNDING_MEMBERS_SOLD` and `FOUNDING_MEMBERS_LIMIT`
-in `LicenseManager.gs` drive the scarcity counter on the home card. The
-counter is bumped manually (or via the standalone monitor script in
-`scripts/`); when it reaches 500 the UI hides the
-offer and the developer manually pauses the SKU in Cloud Console.
+The launch-only $79 lifetime tier was retired when the add-on became the
+free Lite edition. `foundingMembersRemaining()` /
+`isFoundingMemberOfferActive()` in `LicenseManager.gs` are kept as stubs
+returning 0/false so older call sites stay safe.
 
 ### Branding
 

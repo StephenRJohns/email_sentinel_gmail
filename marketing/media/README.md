@@ -72,9 +72,9 @@ Before you start recording any of these:
    bodies that produce rich, screenshot-worthy alerts.
 5. **Set Chrome to 1280 × 800** via DevTools → Ctrl+Shift+M → Responsive
    1280 × 800 (only if recording for a 720p / 1080p YouTube target).
-6. **Pre-create the watched Gmail label** (e.g. "Sentinel-Demo") and have
-   one or two SENTINEL_TEST emails sitting in it before you start, so the
-   Scan-now demo lands a real-looking match.
+6. **Have one or two SENTINEL_TEST emails sitting in the inbox** and open
+   one before you start, so the "Evaluate this email" demo lands a
+   real-looking match.
 
 ---
 
@@ -84,7 +84,7 @@ Before you start recording any of these:
 |---|---|---|---|
 | 01 | [Quickstart — install to first alert](01_quickstart.md) | 180 s | Descript |
 | 02 | [Create a rule](02_create_rule.md) | 90 s | Guidde |
-| 03 | [Scan email now](03_manual_scan.md) | 60 s | Guidde |
+| 03 | [Scan email now](03_manual_scan.md) — **OUTDATED, re-record as "Evaluate this email"** | 60 s | Guidde |
 | 04 | [SMS alerts setup](04_sms_setup.md) | 180 s | Guidde |
 | 05 | [Google Chat alerts setup](05_chat_setup.md) | 90 s | Guidde |
 | 06 | [Calendar / Sheets / Tasks alerts](06_calendar_sheets_tasks.md) | 120 s | Descript |

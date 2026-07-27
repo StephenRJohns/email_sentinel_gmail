@@ -5,10 +5,10 @@
  * Cards.gs — All CardService UI for the emAIl Sentinel add-on.
  *
  * Layout overview:
- *   Home card     — quick status, Start/Stop scheduled scans, links to subviews
+ *   Home card     — quick status, links to subviews
  *   Rules card    — list of rules with edit/delete/toggle buttons
- *   Rule editor   — name, labels, rule text, alert format, recipients
- *   Settings card — Gemini key/model, poll interval, business hours, SMS
+ *   Rule editor   — name, rule text, alert format, recipients
+ *   Settings card — Gemini key/model, SMS, Google channels, integrations
  *   Activity card — scrolling log of recent runs
  *   Help card     — usage instructions
  *
@@ -20,14 +20,13 @@
 // background color of every FILLED TextButton in the add-on so the primary
 // CTAs match the logo mark instead of CardService's default Google blue.
 // CardService does NOT expose a text-color setter for TEXT-style buttons, so
-// nav-style links (Settings/Rules/Activity log/Help, Stop scheduled scans, etc.)
+// nav-style links (Settings/Rules/Activity log/Help, etc.)
 // retain the platform blue — Google owns that color. Apply via
 // .setBackgroundColor(BRAND_PURPLE_) immediately after .setTextButtonStyle(FILLED).
 const BRAND_PURPLE_ = '#581c87';
 
 // Lighter/brighter purple used to make a secondary FILLED CTA visually
-// distinct from the primary BRAND_PURPLE_ buttons on the same card — e.g.
-// "Scan email now" sitting beside "Start scheduled scans" on the home card.
+// distinct from the primary BRAND_PURPLE_ buttons on the same card.
 const BRAND_PURPLE_LIGHT_ = '#6d28d9';
 
 // CardService does not auto-pick a contrasting text color when you set a
@@ -66,10 +65,8 @@ function buildUnsavedChangesNotice_() {
 function buildHomeCard() {
   const settings = loadSettings();
   const rules = loadRules();
-  const monitoring = isMonitoringActive();
-  const enabledCount = rules.filter(r => r.enabled).length;
+  const ruleCounts = getRuleStatusCounts_(rules);
 
-  const limits = getTierLimits();
   const planLabel = 'Lite';
 
   // Status rows: bold black title, brand dark purple (#581c87) value.
@@ -82,85 +79,26 @@ function buildHomeCard() {
   };
   const statusSection = CardService.newCardSection()
     .addWidget(statusRow_('Plan', planLabel))
-    .addWidget(statusRow_('Scanning', monitoring ? 'Active' : 'Stopped'))
-    .addWidget(statusRow_('Rules', enabledCount + ' enabled / ' + rules.length + ' total'))
+    .addWidget(statusRow_('Rules', '✅ ' + ruleCounts.active + ' &nbsp;&nbsp; ⚠️ ' + ruleCounts.malformed + ' &nbsp;&nbsp; ⚪ ' + ruleCounts.inactive))
     .addWidget(statusRow_('Gemini API key', settings.geminiApiKey ? 'Configured' : 'NOT configured'));
+
+  // How Lite works: contextual, on-demand evaluation of the open email.
+  statusSection.addWidget(CardService.newTextParagraph()
+    .setText('<b>How it works</b><br>' +
+      '<font color="#888888">Open any email, then open emAIl Sentinel in the ' +
+      'side panel and click <b>Evaluate this email</b>. Every enabled rule is ' +
+      'checked against that message and matches alert your channels.</font>'));
 
   // Lite → Pro automation upsell (this add-on is the free Lite edition; always shown).
   statusSection.addWidget(CardService.newTextParagraph()
     .setText('<b>Want 24/7 automatic monitoring?</b><br>' +
-      '<font color="#888888">Lite scans on a schedule, at most once an hour (a Google add-on ' +
-      'platform limit). emAIl Sentinel Pro is a self-hosted service that monitors continuously ' +
-      'with real-time alerts — across Gmail and Outlook, even when your computer is off.</font>'));
+      '<font color="#888888">Lite evaluates the email you have open, on demand. ' +
+      'emAIl Sentinel Pro is a self-hosted service that monitors your whole mailbox ' +
+      'continuously with real-time alerts — across Gmail and Outlook, even when ' +
+      'your computer is off.</font>'));
   statusSection.addWidget(CardService.newTextButton()
     .setText('Upgrade to Pro')
     .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
-
-  if (monitoring) {
-    statusSection.addWidget(CardService.newTextButton()
-      .setText('Stop scheduled scans')
-      .setOnClickAction(action_('handleStopMonitoring')));
-    const activePollMins = parseInt(settings.pollMinutes, 10) || limits.minPollMinutes;
-    const HOME_POLL_LABELS = {60:'1 hour',120:'2 hours',180:'3 hours',240:'4 hours',360:'6 hours',480:'8 hours',720:'12 hours',1440:'24 hours'};
-    const activePollLabel = HOME_POLL_LABELS[activePollMins] || (Math.round(activePollMins / 60) + ' hours');
-    statusSection.addWidget(CardService.newTextParagraph()
-      .setText('<font color="#888888">Scanning every ' + activePollLabel + '.</font>'));
-  } else {
-    const pollVal = parseInt(settings.pollMinutes, 10) || limits.minPollMinutes;
-    // Inline polling-interval dropdown so the user can change cadence without
-    // a trip to Settings. handleStartMonitoring persists the selected value
-    // into settings.pollMinutes, so the Settings card and next render of the
-    // home card both reflect the choice. Option list mirrors POLL_HOUR_OPTIONS_
-    // in the Settings card (kept in sync manually since they're in different
-    // function scopes).
-    const HOME_POLL_OPTIONS = [
-      { mins: 60,   label: '1 hour' },
-      { mins: 120,  label: '2 hours' },
-      { mins: 180,  label: '3 hours' },
-      { mins: 240,  label: '4 hours' },
-      { mins: 360,  label: '6 hours' },
-      { mins: 480,  label: '8 hours' },
-      { mins: 720,  label: '12 hours' },
-      { mins: 1440, label: '24 hours' }
-    ];
-    const pollSelect = CardService.newSelectionInput()
-      .setType(CardService.SelectionInputType.DROPDOWN)
-      .setFieldName('pollMinutes')
-      .setTitle('Scan email every')
-      .setOnChangeAction(action_('handleHomePollChange'));
-    let homePollSelected = false;
-    HOME_POLL_OPTIONS.forEach(function(opt) {
-      if (opt.mins < limits.minPollMinutes) return;
-      const isSel = opt.mins === pollVal;
-      if (isSel) homePollSelected = true;
-      pollSelect.addItem(opt.label, String(opt.mins), isSel);
-    });
-    if (!homePollSelected) {
-      pollSelect.addItem(
-        Math.round(limits.minPollMinutes / 60) + ' hour' + (limits.minPollMinutes === 60 ? '' : 's'),
-        String(limits.minPollMinutes),
-        true
-      );
-    }
-    statusSection.addWidget(pollSelect);
-    statusSection.addWidget(CardService.newTextButton()
-      .setText(whiteText_('Start scheduled scans'))
-      .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
-      .setBackgroundColor(BRAND_PURPLE_)
-      .setOnClickAction(action_('handleStartMonitoring')));
-  }
-
-  statusSection.addWidget(CardService.newTextButton()
-    .setText(whiteText_('Scan email now'))
-    .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
-    .setBackgroundColor(BRAND_PURPLE_LIGHT_)
-    .setOnClickAction(action_('handleRunCheckNow')));
-  // CardService action handlers run blocking and the platform shows only a
-  // subtle default spinner during execution. Set expectations on the button
-  // beforehand — users have reported that clicking and seeing nothing happen
-  // for 10-60 seconds feels broken even though it isn't.
-  statusSection.addWidget(CardService.newTextParagraph().setText(
-    '<font color="#888888">Scans typically take 10–60 seconds; you\'ll see the result on a confirmation card when it finishes.</font>'));
 
   // First-use onboarding
   var setupSection = null;
@@ -187,11 +125,7 @@ function buildHomeCard() {
     } else {
       steps.push('\u2713 ' + plural_(rules.length, 'rule') + ' created');
     }
-    if (!monitoring) {
-      steps.push('- Pick a scan interval above and click <b>Start scheduled scans</b>');
-    } else {
-      steps.push('\u2713 Scheduled scans active');
-    }
+    steps.push('- Open any email and click <b>Evaluate this email</b> in the side panel');
     setupSection.addWidget(CardService.newTextParagraph().setText(steps.join('<br>')));
   }
 
@@ -203,7 +137,7 @@ function buildHomeCard() {
       .setText('Starter rules')
       .setOnClickAction(navAction_('buildStarterRulesCard')))
     .addWidget(CardService.newTextButton()
-      .setText('Rules')
+      .setText('Rules   ✅ ' + ruleCounts.active + '  ⚠️ ' + ruleCounts.malformed + '  ⚪ ' + ruleCounts.inactive)
       .setOnClickAction(navAction_('buildRulesCard')))
     .addWidget(CardService.newTextButton()
       .setText('Activity log')
@@ -235,144 +169,6 @@ function buildHomeCard() {
   // which should suppress the back arrow on the resulting card.
   builder.setName('home');
   return builder.build();
-}
-
-function handleStartMonitoring(e) {
-  const settings = loadSettings();
-  if (!settings.geminiApiKey) {
-    return notificationResponse_('Add a Gemini API key in Settings first.');
-  }
-  // The home card now includes the polling-interval dropdown alongside the
-  // Start button. Read the selected value from the form event and persist it
-  // to settings.pollMinutes so the Settings card reflects the home choice and
-  // the value sticks across renders.
-  let chosenPoll = parseInt(settings.pollMinutes, 10) || getTierLimits().minPollMinutes;
-  if (e && e.formInput && e.formInput.pollMinutes) {
-    const fromForm = parseInt(e.formInput.pollMinutes, 10);
-    if (fromForm > 0) chosenPoll = fromForm;
-  }
-  const poll = enforcePollFloor(chosenPoll);
-  if (poll.value !== settings.pollMinutes) {
-    settings.pollMinutes = poll.value;
-    saveSettings(settings);
-  }
-  installTrigger(poll.value);
-  var hours = Math.round(poll.value / 60);
-  var atTierMin = poll.value === getTierLimits().minPollMinutes;
-  var tierNote = (atTierMin && getTier() === 'free') ? ' (' + getTier() + ' plan minimum)' : '';
-  var msg = 'Scheduled scans started. Scanning every ' + plural_(hours, 'hour') + tierNote + '.';
-  return refreshHome_(msg);
-}
-
-function handleStopMonitoring(e) {
-  removeTriggers();
-  return refreshHome_('Scheduled scans stopped.');
-}
-
-// Fires when the user changes the home-card polling dropdown. CardService
-// does not auto-save form input values when the user navigates away — only
-// an action button submits them — so without this handler the user could
-// pick "2 hours" on the home card, navigate to Settings, and find the old
-// value still selected because no save ever happened. Persist the chosen
-// value silently here so it sticks regardless of whether the user clicks
-// Start scheduled scans.
-function handleHomePollChange(e) {
-  if (!e || !e.formInput || !e.formInput.pollMinutes) {
-    return CardService.newActionResponseBuilder()
-      .setNavigation(CardService.newNavigation().updateCard(buildHomeCard()))
-      .build();
-  }
-  const fromForm = parseInt(e.formInput.pollMinutes, 10);
-  const settings = loadSettings();
-  if (fromForm > 0) {
-    const poll = enforcePollFloor(fromForm);
-    if (poll.value !== settings.pollMinutes) {
-      settings.pollMinutes = poll.value;
-      saveSettings(settings);
-    }
-  }
-  // CardService rejects an empty ActionResponse on setOnChangeAction — it
-  // needs at least a navigation, notification, or openLink. Re-render the
-  // home card so the response is well-formed; the rebuild reads the just-
-  // saved settings.pollMinutes and selects the same option, so visually
-  // nothing changes for the user beyond a brief refresh.
-  return CardService.newActionResponseBuilder()
-    .setNavigation(CardService.newNavigation().updateCard(buildHomeCard()))
-    .build();
-}
-
-function handleRunCheckNow(e) {
-  // Land the user on the persistent buildScanResultCard_ — same surface the
-  // kebab-menu universal-action path uses. The previous refreshHome_ + toast
-  // path was reported as "no feedback" because the toast vanishes after a few
-  // seconds and the home card otherwise looks identical to its pre-scan
-  // state. The Scan result card has the green ✅ / red ⚠ banner with the
-  // count and stays on screen until the user explicitly navigates back.
-  try {
-    var result = runMailCheck({ force: true }) || {};
-    var summary = plural_(result.messagesChecked || 0, 'new email') + ', ' +
-      plural_(result.matchesFound || 0, 'match', 'matches');
-    var msg = 'Scan complete — ' + summary + '.';
-    if (!loadSettings().geminiApiKey) msg += ' No Gemini API key set — open Settings to add one.';
-    activityLog('Manual scan: ' + summary + '.');
-    return CardService.newActionResponseBuilder()
-      .setNavigation(CardService.newNavigation().pushCard(buildScanResultCard_(msg, true)))
-      .build();
-  } catch (err) {
-    activityLog('Manual scan failed: ' + err);
-    return CardService.newActionResponseBuilder()
-      .setNavigation(CardService.newNavigation().pushCard(
-        buildScanResultCard_('Scan failed: ' + (err.message || err), false)))
-      .build();
-  }
-}
-
-function refreshHome_(message) {
-  return CardService.newActionResponseBuilder()
-    .setNavigation(CardService.newNavigation().updateCard(buildHomeCard()))
-    .setNotification(CardService.newNotification().setText(message))
-    .build();
-}
-
-function buildPreScanCard_() {
-  const card = CardService.newCardBuilder()
-    .setHeader(CardService.newCardHeader().setTitle('Scan email now'));
-  card.addSection(CardService.newCardSection()
-    .addWidget(CardService.newTextParagraph().setText(
-      'Check all watched labels for new messages and evaluate them ' +
-      'against your rules right now, without waiting for the next ' +
-      'scheduled check.<br><br>' +
-      '<font color="#888888">Scans typically take 10–60 seconds. The ' +
-      'button will show a spinner while the scan runs, and a result ' +
-      'card will appear when it finishes.</font>'))
-    .addWidget(CardService.newTextButton()
-      .setText(whiteText_('Run scan now'))
-      .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
-      .setBackgroundColor(BRAND_PURPLE_)
-      .setOnClickAction(action_('handleRunCheckNow'))));
-  return card.build();
-}
-
-// Visual receipt for the universal-action "Scan email now" path. The kebab
-// menu uses UniversalActionResponseBuilder, which does not support toast
-// notifications — the user clicked the menu item and previously had only the
-// Activity log card to look at, with no clear "I just ran" indicator. This
-// card lands prominently with a green ✅ summary on success or a red ⚠ line on
-// failure, plus a button to open the Activity log for the full per-label
-// trace.
-function buildScanResultCard_(message, success) {
-  const accent = success ? '#1e7e34' : '#b00020';
-  const icon   = success ? '✅' : '⚠️';
-  const resultSection = CardService.newCardSection()
-    .addWidget(CardService.newTextParagraph()
-      .setText('<font color="' + accent + '"><b>' + icon + '&nbsp; ' + escapeHtml_(message) + '</b></font>'))
-    .addWidget(CardService.newTextButton()
-      .setText('View activity log')
-      .setOnClickAction(navAction_('buildActivityCard')));
-  return CardService.newCardBuilder()
-    .setHeader(CardService.newCardHeader().setTitle('Scan result'))
-    .addSection(resultSection)
-    .build();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -416,7 +212,6 @@ function buildRulesCard() {
 
 function buildRuleSummarySection_(rule) {
   const status = rule.enabled ? '✅ ON' : '⏸ OFF';
-  const labels = (rule.labels || []).join(', ') || '(no labels)';
   const ruleText = (rule.ruleText || '').length > 140
     ? rule.ruleText.substring(0, 137) + '…'
     : rule.ruleText;
@@ -463,7 +258,6 @@ function buildRuleSummarySection_(rule) {
 
   const section = CardService.newCardSection()
     .setHeader('<b>' + escapeHtml_(rule.name) + '</b> &nbsp; ' + status)
-    .addWidget(CardService.newDecoratedText().setTopLabel('Labels').setText(escapeHtml_(labels)))
     .addWidget(CardService.newDecoratedText().setTopLabel('Rule').setText(escapeHtml_(ruleText)))
     .addWidget(CardService.newDecoratedText().setTopLabel('Channels').setText(channelSummaryHtml));
 
@@ -614,12 +408,6 @@ function buildRuleEditorCard(rule) {
     .setFieldName('name')
     .setTitle('Rule name')
     .setValue(r.name || ''));
-
-  ruleSection.addWidget(CardService.newTextInput()
-    .setFieldName('labels')
-    .setTitle('Gmail labels to watch (comma separated)')
-    .setHint('e.g. INBOX, Vendors, Finance')
-    .setValue((r.labels || ['INBOX']).join(', ')));
 
   const ruleTextSection = CardService.newCardSection();
   ruleTextSection.addWidget(CardService.newTextInput()
@@ -834,7 +622,6 @@ function handleSaveRule(e) {
   };
 
   const name = get('name');
-  const labels = splitCsv_(get('labels'));
   const ruleText = get('ruleText');
   const alertMessagePrompt = get('alertMessagePrompt') || DEFAULT_ALERT_MESSAGE_PROMPT;
   const smsNumbers   = getMultiSelect('smsRecipients'); // values are phone numbers
@@ -851,7 +638,6 @@ function handleSaveRule(e) {
 
   if (!name)     return notificationResponse_('Please enter a rule name.');
   if (!ruleText) return notificationResponse_('Please enter a rule description.');
-  if (!labels.length) return notificationResponse_('Please list at least one Gmail label.');
 
   const limits = getTierLimits();
   let proBlocked = '';
@@ -880,12 +666,11 @@ function handleSaveRule(e) {
     rule = getRuleById(id);
     if (!rule) return notificationResponse_('Rule no longer exists.');
     rule.name = name;
-    rule.labels = labels;
     rule.ruleText = ruleText;
     rule.alertMessagePrompt = alertMessagePrompt;
     rule.alerts = alertsObj;
   } else {
-    rule = createRule(name, labels, ruleText, alertsObj, alertMessagePrompt);
+    rule = createRule(name, ruleText, alertsObj, alertMessagePrompt);
   }
 
   try { upsertRule(rule); }
@@ -965,104 +750,6 @@ function buildSettingsCard() {
     .setTitle('Gemini model');
   GEMINI_MODELS.forEach(m => modelSelect.addItem(m, m, m === (s.geminiModel || GEMINI_DEFAULT_MODEL)));
   aiSection.addWidget(modelSelect);
-
-  const pollSection = CardService.newCardSection()
-    .setHeader('<b>Scan schedule</b>');
-  const tierLimits = getTierLimits();
-  const currentPollMins = parseInt(s.pollMinutes, 10) || tierLimits.minPollMinutes;
-  const POLL_HOUR_OPTIONS_ = [
-    { mins: 60,   label: '1 hour' },
-    { mins: 120,  label: '2 hours' },
-    { mins: 180,  label: '3 hours' },
-    { mins: 240,  label: '4 hours' },
-    { mins: 360,  label: '6 hours' },
-    { mins: 480,  label: '8 hours' },
-    { mins: 720,  label: '12 hours' },
-    { mins: 1440, label: '24 hours' }
-  ];
-  if (isMonitoringActive()) {
-    // Interval cannot be changed while the trigger is installed — changing it
-    // here has no effect until Stop + Start. Show a read-only label matching
-    // the home card's pattern of hiding the control when scanning is active.
-    const activeLabel = POLL_HOUR_OPTIONS_.find(o => o.mins === currentPollMins);
-    const activeDisplay = activeLabel ? activeLabel.label : (currentPollMins / 60) + ' hours';
-    pollSection.addWidget(CardService.newTextParagraph()
-      .setText('Scanning every ' + activeDisplay + '.'));
-    pollSection.addWidget(CardService.newTextParagraph()
-      .setText('<font color="#888888">Stop scheduled scans to change the interval.</font>'));
-  } else {
-    // Polling intervals are constrained to whole hours (Workspace add-on
-    // time-driven triggers don't fire faster than once per hour). Render a
-    // dropdown of hour options at or above the active tier's minimum so the
-    // user cannot enter an invalid value. enforcePollFloor() in
-    // handleSaveSettings remains the defense-in-depth check for any
-    // non-UI code path that writes pollMinutes.
-    const pollSelect = CardService.newSelectionInput()
-      .setType(CardService.SelectionInputType.DROPDOWN)
-      .setFieldName('pollMinutes')
-      .setTitle('Scan email every');
-    let anyPollSelected = false;
-    POLL_HOUR_OPTIONS_.forEach(function(opt) {
-      if (opt.mins < tierLimits.minPollMinutes) return;
-      const selected = opt.mins === currentPollMins;
-      if (selected) anyPollSelected = true;
-      pollSelect.addItem(opt.label, String(opt.mins), selected);
-    });
-    // Edge case: a legacy pollMinutes value not in the option list (e.g. a
-    // pre-grid 45 or 90) — fall back to selecting the tier minimum so the
-    // dropdown isn't shown without a value.
-    if (!anyPollSelected) {
-      pollSelect.addItem(
-        String(tierLimits.minPollMinutes / 60) + ' hour' + (tierLimits.minPollMinutes === 60 ? '' : 's'),
-        String(tierLimits.minPollMinutes),
-        true
-      );
-    }
-    pollSection.addWidget(pollSelect);
-    // The "Scan email now" button itself lives on the home card and on the
-    // kebab "⋮" menu — Settings just points users at it via this hint so we
-    // do not duplicate the same CTA on three cards.
-    const pollHint = isPro()
-      ? 'Pro plan: minimum 1 hour. The 60-minute limit is a Google Workspace add-on platform limit; faster scanning is not possible. For an immediate scan, click <b>Scan email now</b> in the kebab "⋮" menu.'
-      : 'Free plan: minimum 3 hours. Pro lowers it to 1 hour. The 60-minute limit is a Google Workspace add-on platform limit. For an immediate scan, click <b>Scan email now</b> in the kebab "⋮" menu.';
-    pollSection.addWidget(CardService.newTextParagraph()
-      .setText('<font color="#888888">' + pollHint + '</font>'));
-  }
-  pollSection.addWidget(CardService.newTextInput()
-    .setFieldName('maxEmailAgeDays')
-    .setTitle('Only scan emails newer than (days)')
-    .setHint('Default: 30. Emails older than this are ignored.')
-    .setValue(String(s.maxEmailAgeDays || 30)));
-  pollSection.addWidget(CardService.newTextParagraph().setText(
-    '<font color="#888888">Apps Script time-driven triggers run in the background ' +
-    'whether or not Gmail is open in your browser.</font>'));
-
-  const bizSection = CardService.newCardSection()
-    .setHeader('<b>Business hours</b>')
-    .addWidget(CardService.newSelectionInput()
-      .setType(CardService.SelectionInputType.CHECK_BOX)
-      .setFieldName('businessHoursEnabled')
-      .addItem('Only check during business hours', 'true', !!s.businessHoursEnabled));
-  var bizStart = CardService.newSelectionInput()
-    .setType(CardService.SelectionInputType.DROPDOWN)
-    .setFieldName('businessHoursStart')
-    .setTitle('Start');
-  var bizEnd = CardService.newSelectionInput()
-    .setType(CardService.SelectionInputType.DROPDOWN)
-    .setFieldName('businessHoursEnd')
-    .setTitle('End');
-  var savedStart = s.businessHoursStart || '9:00 AM';
-  var savedEnd = s.businessHoursEnd || '9:00 PM';
-  for (var bh = 0; bh < 24; bh++) {
-    for (var bm = 0; bm < 60; bm += 30) {
-      var h12 = bh === 0 ? 12 : bh > 12 ? bh - 12 : bh;
-      var ap = bh < 12 ? 'AM' : 'PM';
-      var tLabel = h12 + ':' + (bm === 0 ? '00' : '30') + ' ' + ap;
-      bizStart.addItem(tLabel, tLabel, tLabel === savedStart);
-      bizEnd.addItem(tLabel, tLabel, tLabel === savedEnd);
-    }
-  }
-  bizSection.addWidget(bizStart).addWidget(bizEnd);
 
   const smsSection = CardService.newCardSection()
     .setHeader('<b>SMS provider</b>')
@@ -1273,17 +960,12 @@ function buildSettingsCard() {
       .addButton(testSmsBtn)
       .addButton(CardService.newTextButton()
         .setText('SMS setup guide')
-        .setOnClickAction(action_('handleShowSmsGuide')))
-      .addButton(CardService.newTextButton()
-        .setText('Reset baseline')
-        .setOnClickAction(action_('handleResetBaseline'))));
+        .setOnClickAction(action_('handleShowSmsGuide'))));
 
   const settingsBuilder = CardService.newCardBuilder()
     .setHeader(CardService.newCardHeader().setTitle('Settings'))
     .addSection(buildUnsavedChangesNotice_())
     .addSection(aiSection)
-    .addSection(pollSection)
-    .addSection(bizSection)
     .addSection(smsSection)
     .addSection(googleSection)
     .addSection(mcpSection)
@@ -1346,15 +1028,6 @@ function handleSaveSettings(e) {
   const prev = loadSettings();
   const smsProvider = get('smsProvider') || 'none';
 
-  const pollRaw = get('pollMinutes');
-  // When scanning is active the interval dropdown is hidden, so pollRaw is
-  // empty — preserve the stored value rather than clobbering it with the
-  // tier minimum.
-  const pollEnforced = enforcePollFloor(pollRaw || prev.pollMinutes || String(getTierLimits().minPollMinutes));
-  if (pollEnforced.invalid) {
-    return notificationResponse_('Scan interval must be a positive whole number of minutes.');
-  }
-
   // Combine the test SMS country code + local digits into E.164.
   var testNumberCombined = { value: '' };
   if (smsProvider !== 'none') {
@@ -1396,11 +1069,6 @@ function handleSaveSettings(e) {
   const next = {
     geminiApiKey: get('geminiApiKey') || prev.geminiApiKey || '',
     geminiModel: get('geminiModel') || GEMINI_DEFAULT_MODEL,
-    pollMinutes: pollEnforced.value,
-    maxEmailAgeDays: Math.max(1, parseInt(get('maxEmailAgeDays') || '30', 10)) || 30,
-    businessHoursEnabled: getCheckbox('businessHoursEnabled'),
-    businessHoursStart: get('businessHoursStart') || '9:00 AM',
-    businessHoursEnd: get('businessHoursEnd') || '9:00 PM',
     smsProvider: smsProvider,
     // Only update the selected provider's fields; preserve all others.
     // For secret fields, blank input means "keep current" — fall back to prev value.
@@ -1428,33 +1096,17 @@ function handleSaveSettings(e) {
     docsId: extractSheetId_(get('docsId'))
   };
 
-  if (next.businessHoursEnabled) {
-    if (!parse12Hour(next.businessHoursStart)) {
-      return notificationResponse_('Business hours start must be 12-hour format, e.g. 9:00 AM.');
-    }
-    if (!parse12Hour(next.businessHoursEnd)) {
-      return notificationResponse_('Business hours end must be 12-hour format, e.g. 9:00 PM.');
-    }
-  }
-
   // Detect whether any field actually changed. If nothing did, skip the
   // save and tell the user — CardService can't disable the Save button
   // reactively, so this is the closest UX we can give.
-  //
-  // Exception: if the user's typed polling value got normalized
-  // (raisedToTierMin / snappedToGrid) and the normalized value happens to
-  // equal the previously-stored value, hasChanges is false but we still want
-  // to surface the correction toast — otherwise the user types e.g. 200,
-  // clicks Save, and the field re-renders as 240 with no explanation.
   var hasChanges = false;
   Object.keys(next).forEach(function(k) {
     var a = next[k] === undefined || next[k] === null ? '' : next[k];
     var b = prev[k] === undefined || prev[k] === null ? '' : prev[k];
     if (String(a) !== String(b)) hasChanges = true;
   });
-  var pollWasCorrected = pollEnforced.raisedToTierMin || pollEnforced.snappedToGrid;
 
-  if (!hasChanges && !pollWasCorrected) {
+  if (!hasChanges) {
     return CardService.newActionResponseBuilder()
       .setNotification(CardService.newNotification().setText('No changes to save.'))
       .build();
@@ -1462,20 +1114,9 @@ function handleSaveSettings(e) {
 
   saveSettings(next);
 
-  if (isMonitoringActive() && next.pollMinutes !== prev.pollMinutes) {
-    installTrigger(next.pollMinutes);
-  }
-
-  var toast = 'Settings saved.';
-  if (pollEnforced.raisedToTierMin) {
-    toast = 'Settings saved. Scan interval raised to every ' + plural_(Math.round(next.pollMinutes / 60), 'hour') + ' (' + getTier() + ' plan minimum).';
-  } else if (pollEnforced.snappedToGrid) {
-    toast = 'Settings saved. Scan interval rounded up to every ' + plural_(Math.round(next.pollMinutes / 60), 'hour') + ' (Gmail add-ons require whole-hour intervals).';
-  }
-
   return CardService.newActionResponseBuilder()
     .setNavigation(CardService.newNavigation().updateCard(buildSettingsCard()))
-    .setNotification(CardService.newNotification().setText(toast))
+    .setNotification(CardService.newNotification().setText('Settings saved.'))
     .build();
 }
 
@@ -1507,57 +1148,6 @@ function handleTestSms(e) {
 function handleShowSmsGuide(e) {
   return CardService.newActionResponseBuilder()
     .setNavigation(CardService.newNavigation().pushCard(buildSmsGuideCard()))
-    .build();
-}
-
-function handleResetBaseline(e) {
-  var section = CardService.newCardSection()
-    .addWidget(CardService.newTextParagraph().setText(
-      '<b>Reset the seen-message baseline?</b><br><br>' +
-
-      '<b>What this does.</b> emAIl Sentinel keeps a per-label list of message ' +
-      'IDs it has already seen so it only alerts on mail that arrives after ' +
-      'install. Resetting that list throws it away. On the next check, every ' +
-      'watched label is re-scanned from scratch — every existing message in ' +
-      'each label is silently absorbed into a fresh baseline (no alerts), ' +
-      'and alerting resumes only for mail that arrives after that point.<br><br>' +
-
-      '<b>When to use it.</b> Reset if any of the following is true:<br>' +
-      '• Alerts started firing for old messages (e.g. after you renamed a label, moved messages between labels, or reinstalled the add-on).<br>' +
-      '• You added a new label to a rule and want a clean cutoff so old messages already in that label are not evaluated.<br>' +
-      '• The seen-ID list got truncated automatically (logged in Activity log) and recent mail may have slipped through.<br>' +
-      '• You want a clean slate after a long pause, and the existing inbox no longer needs to be considered "new."<br><br>' +
-
-      '<b>What might surprise you.</b><br>' +
-      '• <b>Any unread message that arrived after install but has not been alerted yet will be silently treated as already-seen and will never produce an alert.</b> If you had alerts pending for matches that have not yet run, you will lose them.<br>' +
-      '• The reset is global — it clears the baseline for <b>every</b> watched label, not just one. There is no per-label reset.<br>' +
-      '• The first check after reset takes longer than usual because every message in every watched label is fetched and recorded.<br>' +
-      '• Activity log is unaffected and history of past alerts is preserved.<br><br>' +
-
-      '<font color="#888888"><i>This cannot be undone — the previous seen-ID list is deleted, not archived.</i></font>'))
-    .addWidget(CardService.newButtonSet()
-      .addButton(CardService.newTextButton()
-        .setText(whiteText_('Reset'))
-        .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
-        .setBackgroundColor(BRAND_RED_)
-        .setOnClickAction(action_('handleConfirmResetBaseline')))
-      .addButton(CardService.newTextButton()
-        .setText('Cancel')
-        .setOnClickAction(action_('handlePopCard'))));
-  var card = CardService.newCardBuilder()
-    .setHeader(CardService.newCardHeader().setTitle('Confirm reset'))
-    .addSection(section)
-    .build();
-  return CardService.newActionResponseBuilder()
-    .setNavigation(CardService.newNavigation().pushCard(card))
-    .build();
-}
-
-function handleConfirmResetBaseline(e) {
-  resetSeen();
-  return CardService.newActionResponseBuilder()
-    .setNavigation(CardService.newNavigation().popCard())
-    .setNotification(CardService.newNotification().setText('Seen-mail baseline cleared.'))
     .build();
 }
 
@@ -1768,7 +1358,7 @@ function buildHelpCard(askAnswer, askQuestion) {
     .addWidget(CardService.newTextInput()
       .setFieldName('helpSearchQuery')
       .setTitle('Search all topics')
-      .setHint('e.g. "Reset baseline", "scan", "Founding member"'))
+      .setHint('e.g. "evaluate", "SMS", "Gemini pricing"'))
     .addWidget(CardService.newTextButton()
       .setText(whiteText_('Search'))
       .setTextButtonStyle(CardService.TextButtonStyle.FILLED)
@@ -1913,17 +1503,17 @@ function helpTopics_() {
         '2. (Optional) Configure SMS \u2014 pick a provider and add named SMS recipients in Settings.<br>' +
         '3. (Optional) Add Google Chat spaces or MCP servers in Settings if you want to route alerts there.<br>' +
         '4. Open <b>Rules</b> and click <b>+ New rule</b>, or click <b>Starter rules</b> on the home card to create 5 pre-built rules (urgent emails, invoices, shipping updates, security alerts, subscription renewals). Starter rules are created disabled \u2014 edit each to tick channels, then tap <b>On</b> back on the Rules card.<br>' +
-        '5. On the home card, pick a scan interval from the <b>Scan email every</b> dropdown, then click <b>Start scheduled scans</b>. A time-driven trigger runs in the background even when Gmail is closed; the interval you pick is also saved into Settings.<br><br>' +
+        '5. Open any email in Gmail, then open emAIl Sentinel in the side panel and click <b>Evaluate this email</b>. Every enabled rule is checked against that message; matches send alerts to the channels each rule specifies.<br><br>' +
         '<b>Writing a rule</b><br>' +
         'Rules are plain English. Be specific about senders, subjects, attachments, or body keywords. Examples:<br>' +
         '\u2022 "Any email from @example.com with a PDF that looks like an invoice."<br>' +
         '\u2022 "Subject contains URGENT or CRITICAL."<br>' +
         '\u2022 "Email from boss@example.com asking for a status update."<br><br>' +
         'Each rule has an <b>Alert message content</b> field \u2014 plain-English instructions that tell Gemini how to format the alert. The default includes date, sender, subject, summary, and action items. Click <b>Help me write the rule text</b> or <b>Help me write the alert text</b> in the rule editor to have Gemini draft a starting point.<br><br>' +
-        '<b>Labels</b><br>' +
-        'Gmail uses labels rather than folders. Use INBOX for the inbox, or any label name as shown in Gmail. Multiple labels: comma-separated.<br><br>' +
+        '<b>Rule status icons</b><br>' +
+        'The home card and the <b>Rules</b> button show three counts: <b>✅</b> active — enabled and will fire; <b>⚠️</b> malformed/incomplete — enabled with no alert channel configured, or missing a name or rule text; <b>⚪</b> inactive — turned off. Open <b>Rules</b> to see which rule needs attention — a malformed rule shows its <b>Channels</b> row in red if no channel is configured.<br><br>' +
         '<b>Searching help</b><br>' +
-        'Use the <b>Search help</b> box at the top of the Help card to find any keyword or phrase across all topics — e.g. "Reset baseline", "scan", or "Founding member". Each result shows the topic name plus a snippet, and clicking opens the full topic.'
+        'Use the <b>Search help</b> box at the top of the Help card to find any keyword or phrase across all topics — e.g. "evaluate", "SMS", or "Gemini pricing". Each result shows the topic name plus a snippet, and clicking opens the full topic.'
     },
     examples: {
       title: 'Rule examples',
@@ -1981,7 +1571,7 @@ function helpTopics_() {
     pricing: {
       title: 'Gemini pricing & models',
       content:
-        'emAIl Sentinel calls Gemini twice per email per rule: once to evaluate, once to format the alert.<br><br>' +
+        'emAIl Sentinel calls Gemini up to twice per rule each time you evaluate an email: once to evaluate, once to format the alert (only on a match).<br><br>' +
         '<b>Models (select in Settings)</b><br>' +
         '\u2022 <b>2.5 Flash</b> (default) \u2014 fast, highly capable, best for most users<br>' +
         '\u2022 <b>2.5 Flash Lite</b> \u2014 ultra-low-cost, slightly less capable<br>' +
@@ -1990,42 +1580,34 @@ function helpTopics_() {
         '<b>Free tier</b><br>' +
         'Get a key at <a href="https://aistudio.google.com/app/apikey">aistudio.google.com/app/apikey</a>. Free quota resets daily; at the limit Gemini returns 429 and calls resume next day.<br><br>' +
         '<b>Estimate your usage</b><br>' +
-        'new emails/day \u00d7 active rules \u00d7 2 = daily API calls<br>' +
-        '\u2022 20 emails \u00d7 1 rule = 40 calls \u2014 well within free<br>' +
-        '\u2022 50 emails \u00d7 3 rules = 300 calls \u2014 well within free<br>' +
-        '\u2022 100 emails \u00d7 5 rules = 1,000 calls \u2014 approaching limit<br><br>' +
+        'emails you evaluate/day \u00d7 active rules \u00d7 2 = daily API calls<br>' +
+        '\u2022 20 evaluations \u00d7 1 rule = 40 calls \u2014 well within free<br>' +
+        '\u2022 50 evaluations \u00d7 3 rules = 300 calls \u2014 well within free<br>' +
+        '\u2022 100 evaluations \u00d7 5 rules = 1,000 calls \u2014 approaching limit<br><br>' +
         '<b>Paid rates</b> (verify at <a href="https://ai.google.dev/pricing">ai.google.dev/pricing</a>)<br>' +
         '\u2022 Flash: ~$0.075/M input, ~$0.30/M output<br>' +
         '\u2022 Flash Lite: ~$0.04/M input, ~$0.15/M output<br>' +
         '\u2022 Pro: ~$1.25/M input, ~$5.00/M output<br>' +
-        '50 emails/day, 3 rules \u2248 under <b>$1/month</b>.<br><br>' +
+        '50 evaluations/day, 3 rules \u2248 under <b>$1/month</b>.<br><br>' +
         '<b>Tips to minimize usage</b><br>' +
-        '\u2022 Enable <b>Business hours</b> \u2014 skips scans outside your window<br>' +
-        '\u2022 Lower <b>Max email age</b> (Settings \u25b8 Scan schedule) \u2014 skips older messages entirely<br>' +
-        '\u2022 Watch specific labels instead of INBOX<br>' +
+        '\u2022 Only evaluate emails you actually want checked \u2014 evaluation is always on demand<br>' +
+        '\u2022 Disable rules you are not currently using (every enabled rule runs on each evaluation)<br>' +
         '\u2022 Combine related conditions into one rule<br>' +
         '\u2022 Keep alert format prompts concise'
     },
     settings: {
       title: 'Settings & troubleshooting',
       content:
-        '<b>Business hours</b><br>' +
-        'Restrict scans to a daily window. Outside hours, the trigger fires but skips the scan \u2014 no Gemini quota used.<br><br>' +
-        '<b>Scan schedule</b><br>' +
-        'Background scans: <b>Free</b> = every 3 hours minimum; <b>Pro</b> = every 1 hour minimum. The 1-hour hard floor is a <b>Google Workspace add-on platform limit</b>. We could scan faster by running our own backend that stores your Gmail tokens and reads your email on our servers \u2014 but we deliberately don\'t. The add-on runs entirely inside your own Google account; your email content never reaches our infrastructure. The scan-interval floor is the price of that privacy posture. Click <b>Scan email now</b> any time for an immediate on-demand scan. The first run baselines existing messages so you don\'t get a flood of alerts.<br><br>' +
-        '<b>Max email age</b><br>' +
-        'Controls how far back the Service looks when scanning a label. Default is 30 days. Emails older than this are ignored even if they\'re unread \u2014 useful for skipping long-dormant threads and cutting Gemini usage on busy labels.<br><br>' +
-        '<b>Reset baseline</b><br>' +
-        'The first time the Service checks a watched label, it records every existing message ID as a "seen" baseline so you don\'t get a flood of alerts on install \u2014 alerts only fire for mail that arrives after that point. Clicking <b>Reset baseline</b> in Settings deletes that stored set. On the next run, every label is treated as brand-new: existing messages are silently absorbed into a fresh baseline, and alerting resumes for mail that arrives after. Use it if alerts start firing for old mail (e.g. after changing labels or reinstalling), or any time you want a clean slate.<br><br>' +
+        '<b>How evaluation works</b><br>' +
+        'emAIl Sentinel Lite evaluates <b>the email you have open</b>, on demand: open a message, open the add-on panel, click <b>Evaluate this email</b>. The add-on can only read the message you are currently viewing (Google\'s <i>current-message</i> add-on permission) \u2014 it cannot search, scan, or read any other mail. That is a deliberate privacy posture: your mailbox is never read in the background and your email content never reaches our infrastructure. For continuous whole-mailbox monitoring, see <b>emAIl Sentinel Pro</b> (self-hosted, runs 24/7).<br><br>' +
         '<b>Time zone for alerts</b><br>' +
         'All dates rendered in alerts \u2014 the Sheets row Timestamp / Received columns, the Calendar event description, the Tasks notes, and any timestamp Gemini includes in the alert message \u2014 are formatted in your local time zone (taken from your primary Google Calendar). The format is <code>yyyy-MM-dd h:mm:ss AM/PM TZ</code>, e.g. <code>2026-04-27 5:29:58 PM CDT</code>. Underlying milliseconds are preserved internally for sorting; only the user-visible string is localized.<br><br>' +
         '<b>Privacy</b><br>' +
-        'Settings, rules, seen messages, and the activity log are stored in UserProperties \u2014 private to your Google account. Email content goes only to Gemini and your configured alert channels.<br><br>' +
+        'Settings, rules, and the activity log are stored in UserProperties \u2014 private to your Google account. Email content goes only to Gemini and your configured alert channels, and only for messages you explicitly evaluate.<br><br>' +
         '<b>Troubleshooting</b><br>' +
         '\u2022 <i>"No Gemini API key configured"</i> \u2014 open Settings, paste a key, click <b>Test Gemini</b><br>' +
-        '\u2022 <i>"Label \'...\' fetch failed"</i> \u2014 verify the label exists in Gmail (case-insensitive)<br>' +
+        '\u2022 <i>No "Evaluate this email" button</i> \u2014 the button appears when you open a specific email; from the inbox list view the add-on shows the home card instead<br>' +
         '\u2022 <i>SMS not delivered</i> \u2014 check Activity Log for the provider\'s error<br>' +
-        '\u2022 <i>Alerts for old mail</i> \u2014 open Settings, click <b>Reset baseline</b><br>' +
         '\u2022 <i>MCP target (Asana / Teams / Custom) not populated, no error in Activity Log</i> \u2014 push the latest version. The MCP dispatcher now parses Streamable-HTTP <code>text/event-stream</code> responses (Asana V2 returns this) and surfaces tool-level errors as <code>MCP alert to "&lt;name&gt;" FAILED: MCP "&lt;name&gt;" tool error: &lt;detail&gt;</code>. Common details: <i>Project not found</i> (bad <code>project_id</code>), <i>Forbidden</i> (PAT lacks workspace access), <i>Required field missing</i>. All MCP types expect the auth header literal <code>Bearer &lt;token&gt;</code> \u2014 capital B, single space, then the token.<br>' +
         '\u2022 <i>Activity log times or alert dates look off by several hours</i> \u2014 dates use your primary Google Calendar\'s timezone. Fix at <a href="https://calendar.google.com/calendar/u/0/r/settings">calendar.google.com</a> \u25b8 Time zone, then re-run.<br>' +
         '\u2022 <i>Lost edits in the rule or settings editor</i> \u2014 always click <b>Save</b> before tapping the back arrow. Google\'s add-on framework gives no event when the system back arrow is pressed, so the editor cannot prompt to save unsaved changes. Each editor card shows an amber notice at the top as a reminder.<br>' +
@@ -2087,7 +1669,7 @@ function buildStarterRulesCard() {
     return emptyBuilder.addSection(section).build();
   }
 
-  section.setHeader(toCreate.length + ' rules will be created (disabled) watching your INBOX. Edit each rule to add alert recipients and enable it.');
+  section.setHeader(toCreate.length + ' rules will be created (disabled). Edit each rule to add alert recipients and enable it.');
 
   toCreate.forEach(function(r) {
     section.addWidget(CardService.newTextParagraph()
@@ -2125,7 +1707,7 @@ function handleCreateStarterRules(e) {
     STARTER_RULES_.forEach(function(sr) {
       if (existingNames.indexOf(sr.name) >= 0) return;
       if (rules.length >= limits.maxRules) { skipped++; return; }
-      const rule = createRule(sr.name, ['INBOX'], sr.ruleText, {});
+      const rule = createRule(sr.name, sr.ruleText, {});
       rule.enabled = false;
       rules.push(rule);
       count++;
@@ -2647,7 +2229,6 @@ function handleHelpWriteAlertText(e) {
 
   const ctx = {
     name:                  get('name'),
-    labels:                get('labels'),
     ruleText:              get('ruleText'),
     existingAlertPrompt:   get('alertMessagePrompt'),
     channels:              channels,
@@ -2807,7 +2388,6 @@ function handleUseSuggestedFormat(e) {
     r = {
       id: null,
       name:               ctx.name   || '',
-      labels:             splitCsv_(ctx.labels || 'INBOX'),
       ruleText:           ctx.ruleText || '',
       alertMessagePrompt: ctx.suggestion || '',
       alerts: {
@@ -2861,7 +2441,6 @@ function handleHelpWriteRuleText(e) {
   // Stash the rest of the form so the editor can be restored intact after generation
   const ctx = {
     name:               get('name'),
-    labels:             get('labels') || 'INBOX',
     existingRuleText:   get('ruleText'),
     alertMessagePrompt: get('alertMessagePrompt'),
     smsRecipients:      getMultiSelect('smsRecipients'),
@@ -2929,9 +2508,8 @@ function handleGenerateRuleText(e) {
   let ctx = {};
   try { ctx = JSON.parse(ctxRaw || '{}'); } catch (_) {}
 
-  const labels = ctx.labels || 'INBOX';
   const intro = ctx.name
-    ? 'The rule is named "' + ctx.name + '" and watches the "' + labels + '" Gmail ' + (labels.split(',').filter(Boolean).length === 1 ? 'label' : 'labels') + '. '
+    ? 'The rule is named "' + ctx.name + '". '
     : '';
 
   const prompt =
@@ -3009,7 +2587,6 @@ function handleUseSuggestedRuleText(e) {
     r = {
       id: null,
       name:               ctx.name   || '',
-      labels:             splitCsv_(ctx.labels || 'INBOX'),
       ruleText:           ctx.suggestion || '',
       alertMessagePrompt: ctx.alertMessagePrompt || DEFAULT_ALERT_MESSAGE_PROMPT,
       alerts: {

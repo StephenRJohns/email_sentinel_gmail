@@ -1,6 +1,8 @@
 # emAIl Sentinel — E2E Playwright Tests
 
-Automated end-to-end tests for the reliably-passing portion of the test plan. Runs in a headed Chrome window using your existing Google session — no password automation required. Tests that depend on real email delivery, time-driven trigger state, multi-step modal workflows, or specific tier flips remain manual per `testing/e2e_test_plan.md`.
+Automated end-to-end tests for the reliably-passing portion of the test plan. Runs in a headed Chrome window using your existing Google session — no password automation required. Tests that would dispatch real alerts (SMS/Chat/MCP/Calendar/Sheets/Tasks/Docs), depend on multi-step modal workflows, or need visual color checks remain manual per `testing/e2e_test_plan.md`.
+
+> **Rewritten 2026-07-26 for the contextual-only flow** (open an email → **Evaluate this email** → "Evaluation result" card; no scheduled scans, no labels field). Selectors are unverified against the live UI — expect drift on the first run. The `S<number>` prefixes in spec test names are legacy identifiers kept for `--grep` stability; the test plan itself has been renumbered (its new §15 covers the contextual-only posture).
 
 ---
 
@@ -55,20 +57,17 @@ npm run report
 
 | Section | Description | Tests |
 |----------|-------------|-------|
-| S2 | Home card, Settings nav, polling field validation (Free), max-age field presence | 3 |
+| S2 | Home card status rows (Plan "Lite", Rules counts, Gemini key), Settings nav, contextual-only regression guard (no scheduled-scan / business-hours / max-age / Reset-baseline fields) | 3 |
 | S3 | Starter rules preview + creation toast | 1 |
-| S5 | "Scan email now" produces a result card | 1 |
+| S5 | Self-send a matching email, open it, click "Evaluate this email" → "Evaluation result" card | 1 |
 | S8 | Activity log UI — Refresh + Clear button presence | 2 |
 | S12 | Google Docs ID field presence in Settings | 1 |
 | S13 | External integrations editor opens with renamed Type labels | 1 |
 | S14 | Help card navigation, footer credit, support links, keyword search (find/empty/no-match), per-topic content fingerprint, trademark-footer Slack-omission guard, Community home-card button | 9 |
-| S17 | Reset baseline confirmation card opens + Cancel pops cleanly | 1 |
 | S17b | Unsaved-changes notice on Settings card | 1 |
-| S18 | Business hours checkbox visibility | 1 |
-| S19 | Max email age field persistence + validation | 3 |
-| S20 | Free-plan home-card visibility (plan label, Upgrade button, founding-member counter, promo section consistency) | 3 |
+| S20 | Lite home-card visibility (Plan row, "Upgrade to Pro" link, promo section consistency) | 2 |
 
-**Total: 27 automated tests in `e2e.spec.js`.** Plus 7 in `script_a.spec.js` and 5 in `script_b.spec.js` (the latter is RETIRED — see file header).
+**Total: 21 automated tests in `e2e.spec.js`.** Plus 7 in `script_a.spec.js` and 5 in `script_b.spec.js` (the latter is RETIRED — see file header). The old S17 Reset-baseline, S18 business-hours, and S19 max-email-age tests were deleted with the features.
 
 ---
 
@@ -76,28 +75,24 @@ npm run report
 
 The following test plan sections are NOT automated. Verify these by hand against `testing/e2e_test_plan.md`:
 
-| Section | Why manual |
+| Section (new plan numbering) | Why manual |
 |---------|------------|
-| S2 Polling dropdown options | Verifying which hour options the dropdown offers per tier requires reading the rendered option list, which Apps Script SelectionInput doesn't expose to Playwright reliably (custom Material control, not native `<select>`). Manual on the test plan. |
-| S4 Create test rule | Apps Script's FILLED-button rendering of "+ New rule" doesn't reliably expose the visible label as the accessible name in Playwright |
-| S6+S7 Send + verify match | Real outbound email send and inbox delivery; flaky in automation |
-| S9–S13 Alert channels | SMS/Chat/MCP/Calendar/Sheets/Tasks/Docs — would dispatch real alerts and burn provider credits |
-| S15 Start scheduled scans | Depends on Gemini-key state and the time-driven trigger lifecycle |
-| S15 Home polling dropdown auto-save | Requires changing the SelectionInput value, which Apps Script renders as a custom Material control Playwright can't interact with reliably. The `setOnChangeAction` save path is exercised only via manual test. |
-| S16 Stop scheduled scans | Depends on S15 having run |
-| S17 Confirmation dialogs | Multi-step Clear→Cancel→Clear→Clear sequences flake on toast detection |
-| S17f Action color conventions | CardService doesn't expose button background color or text color to Playwright in a stable way; visual color check is manual. |
-| S20 Rule editor Pro-only labels / AI button "(Pro)" suffix | Same "+ New rule" rendering issue as S4 |
-| S21 Pro plan unlocks | Tier-flip dependent; test cannot enforce the live tier |
+| §4 Create a dedicated test rule via "+ New rule" | Apps Script's FILLED-button rendering of "+ New rule" doesn't reliably expose the visible label as the accessible name in Playwright (the automated S5 test relies on a pre-enabled rule instead) |
+| §7 Evaluate a non-matching email | Needs a second seeded email guaranteed NOT to match; cheap to do by hand |
+| §9–13 Alert channels | SMS/Chat/MCP/Calendar/Sheets/Tasks/Docs — would dispatch real alerts and burn provider credits |
+| §15 Contextual-only posture (kebab contents, empty Triggers table, single `gmail.addons.current.message.readonly` scope) | The Settings-fields half is automated (S2 regression guard); the Apps Script Triggers table and the OAuth consent screen live outside the Gmail iframe |
+| §16 Confirmation dialogs | Multi-step Clear→Cancel→Clear→Clear sequences flake on toast detection |
+| §20 Action color conventions | CardService doesn't expose button background color or text color to Playwright in a stable way; visual color check is manual. |
+| §22 Promo unlock of the AI "Help me write" buttons | Same "+ New rule" rendering issue as §4 (the buttons live inside the rule editor) |
 
 ---
 
 ## Tier selection
 
-`run_pro_e2e_tests.sh` exports `TEST_TIER=pro`; `run_free_e2e_tests.sh` leaves it unset (treated as `free`). Most tests run in both modes. A small subset is gated:
+`run_pro_e2e_tests.sh` exports `TEST_TIER=pro`; `run_free_e2e_tests.sh` leaves it unset (treated as `free`). The two tiers are now functionally identical in `LicenseManager.gs` (both allow unlimited rules and all channels; only the AI "Help me write" buttons and the promo section differ), so most tests run identically in both modes. The remaining gates:
 
-- `test.skip(process.env.TEST_TIER === 'pro', ...)` — tests that assert Free-only UI (Free indicator, founding-member counter, "clamps to 180" toast). They are skipped on Pro runs.
-- No Free-skipping tests yet; add `test.skip(process.env.TEST_TIER !== 'pro', ...)` if you ever introduce Pro-only assertions.
+- `test.skip(process.env.TEST_TIER === 'pro', ...)` — the e2e promo-section test (the promo section is hidden once `isPro()`).
+- `test.skip(process.env.TEST_TIER !== 'pro', ...)` — Tasks 3/4 in both script specs. Their skip reason still cites the old Free-tier 3-rule quota, which no longer exists; revisit on the first live run.
 
 Before running the Pro wrapper, flip the live tier by running `setTierPro` from the Apps Script editor (in `LicenseManager.gs`); revert afterward with `setTierFree`. Both are no-arg wrappers around the underscore-private `setTier_(tier)` function (private helpers don't show up in the editor's function dropdown). The wrapper script prints a reminder, but doesn't enforce the flip — running the Pro suite without flipping the tier produces tier-mismatch failures.
 

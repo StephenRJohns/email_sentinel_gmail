@@ -1,3 +1,5 @@
+> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Scheduled scans, label scanning, and the Reset baseline button no longer exist; log entries now come from on-demand Evaluate this email runs.
+
 # Activity log & troubleshooting
 **Duration:** 120 s
 **Tool:** Descript (heavier on narration than clicks)
