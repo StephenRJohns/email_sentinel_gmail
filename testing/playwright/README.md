@@ -65,7 +65,7 @@ npm run report
 | S13 | External integrations editor opens with renamed Type labels | 1 |
 | S14 | Help card navigation, footer credit, support links, keyword search (find/empty/no-match), per-topic content fingerprint, trademark-footer Slack-omission guard, Community home-card button | 9 |
 | S17b | Unsaved-changes notice on Settings card | 1 |
-| S20 | Lite home-card visibility (Plan row, "Upgrade to Pro" link, promo section consistency) | 2 |
+| S20 | Lite home-card visibility (Plan row, "Upgrade to Pro" link, promo section absent) | 2 |
 
 **Total: 21 automated tests in `e2e.spec.js`.** Plus 7 in `script_a.spec.js` and 5 in `script_b.spec.js` (the latter is RETIRED — see file header). The old S17 Reset-baseline, S18 business-hours, and S19 max-email-age tests were deleted with the features.
 
@@ -83,18 +83,17 @@ The following test plan sections are NOT automated. Verify these by hand against
 | §15 Contextual-only posture (kebab contents, empty Triggers table, single `gmail.addons.current.message.readonly` scope) | The Settings-fields half is automated (S2 regression guard); the Apps Script Triggers table and the OAuth consent screen live outside the Gmail iframe |
 | §16 Confirmation dialogs | Multi-step Clear→Cancel→Clear→Clear sequences flake on toast detection |
 | §20 Action color conventions | CardService doesn't expose button background color or text color to Playwright in a stable way; visual color check is manual. |
-| §22 Promo unlock of the AI "Help me write" buttons | Same "+ New rule" rendering issue as §4 (the buttons live inside the rule editor) |
+| §22 AI "Help me write" buttons present with no upgrade prompt | Same "+ New rule" rendering issue as §4 (the buttons live inside the rule editor) |
 
 ---
 
 ## Tier selection
 
-`run_pro_e2e_tests.sh` exports `TEST_TIER=pro`; `run_free_e2e_tests.sh` leaves it unset (treated as `free`). The two tiers are now functionally identical in `LicenseManager.gs` (both allow unlimited rules and all channels; only the AI "Help me write" buttons and the promo section differ), so most tests run identically in both modes. The remaining gates:
+`run_pro_e2e_tests.sh` exports `TEST_TIER=pro`; `run_free_e2e_tests.sh` leaves it unset (treated as `free`). The two tiers are now **completely identical** — every feature is free, the AI "Help me write" gate was removed, and the promo section no longer renders for anyone — so the suite runs the same in both modes. Remaining tier-conditioned skips:
 
-- `test.skip(process.env.TEST_TIER === 'pro', ...)` — the e2e promo-section test (the promo section is hidden once `isPro()`).
-- `test.skip(process.env.TEST_TIER !== 'pro', ...)` — Tasks 3/4 in both script specs. Their skip reason still cites the old Free-tier 3-rule quota, which no longer exists; revisit on the first live run.
+- (None — the former Free-tier 3-rule-quota skips on Tasks 3/4 were removed; every test now runs regardless of `TEST_TIER`.)
 
-Before running the Pro wrapper, flip the live tier by running `setTierPro` from the Apps Script editor (in `LicenseManager.gs`); revert afterward with `setTierFree`. Both are no-arg wrappers around the underscore-private `setTier_(tier)` function (private helpers don't show up in the editor's function dropdown). The wrapper script prints a reminder, but doesn't enforce the flip — running the Pro suite without flipping the tier produces tier-mismatch failures.
+No Apps Script tier flip is needed before either wrapper — all features are free and the tiers are identical.
 
 ---
 

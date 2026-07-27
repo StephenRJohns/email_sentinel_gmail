@@ -76,7 +76,7 @@ offer_suite_and_exit() {
   echo ""
   echo "Run the Playwright suite now?"
   echo "  [f]ree  — run_free_e2e_tests.sh"
-  echo "  [p]ro   — run_pro_e2e_tests.sh (requires setTierPro in Apps Script first)"
+  echo "  [p]ro   — run_pro_e2e_tests.sh (no tier flip needed; tiers are identical)"
   echo "  [n]o    — exit without running"
   local ans cmd=""
   read -rp "Choice: " ans

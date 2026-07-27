@@ -78,14 +78,7 @@ write_template() {
 - [ ] Key pasted; Save settings toast confirmed
 - [ ] Test Gemini returned "Gemini OK" toast
 
-## 2b · Task 2b — Redeem Pro promo code
-
-- [ ] Promo code section visible at bottom of home card
-- [ ] Tester entered the code and clicked Redeem without confusion
-- [ ] "Pro plan activated" toast appeared
-- [ ] Home card refreshed: promo section no longer visible
-
-## 2c · Task 2c — Add a Google Chat space
+## 2b · Task 2b — Add a Google Chat space
 
 - [ ] Tester navigated to chat.google.com without losing context
 - [ ] Tester found Apps & integrations → Webhooks in Google Chat
@@ -119,7 +112,7 @@ write_template() {
 
 - [ ] Tester explained product purpose in own words coherently
 - [ ] Tester identified at least one specific confusion point
-- [ ] Purchase intent recorded (would pay \$4.99/month / free tier enough / no)
+- [ ] Pro interest recorded (self-hosted 24/7 monitoring: interested / not / undecided)
 - [ ] Session produced usable signal for Tasks 1–4
 EOF
 }

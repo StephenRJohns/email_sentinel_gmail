@@ -22,7 +22,7 @@ Two parallel testing programs. Script A validates the core onboarding and five-G
 
 ### What it tests
 
-The critical first-use path for a new Google Workspace user: install the add-on, enter a Gemini API key, redeem a Pro promo code, set up a Google Chat space webhook, create a rule with all five Google alert channels selected, send a test email, open it and click **Evaluate this email**, and verify alerts appear in Calendar, Sheets, Tasks, Docs, and Chat.
+The critical first-use path for a new Google Workspace user: install the add-on, enter a Gemini API key, set up a Google Chat space webhook, create a rule with all five Google alert channels selected, send a test email, open it and click **Evaluate this email**, and verify alerts appear in Calendar, Sheets, Tasks, Docs, and Chat.
 
 Session length: 20 minutes, unmoderated, screen + audio recording.
 
@@ -70,10 +70,9 @@ Round 2 is optional but strongly recommended if Round 1 surfaces critical blocke
 
 - [ ] GCP sandbox project created with capped Gemini key (`step1_create_sandbox.sh`)
 - [ ] Marketplace SDK install URL live and validated on a fresh Google account (`step2a_enable_sdk.sh` + manual steps 2b–2f)
-- [ ] `PROMO_SERVICE_URL` Script Property set on the test-deployment project
 - [ ] Pre-flight self-test (`run_script_a.sh` + `walk_script_a.sh`) passes in under 14 minutes
-- [ ] 11 promo codes minted (`tools/promo/cli.py mint`) — 10 for testers, 1 reserve
 - [ ] Scripts filled with real values (`step4b_fill_scripts.sh`) and reviewed — no placeholder strings visible
+      (no promo codes needed — all features are free)
 - [ ] UserTesting test submitted and payment processed
 
 ---

@@ -165,7 +165,7 @@ test('Task 2 · Gemini key + SMS test number save and Send test SMS reports OK',
 // in playwright/README.md; same caveat as Script A T3.
 
 test('Task 3 · create rule with SMS recipient ticked', async ({ page }) => {
-  test.skip(process.env.TEST_TIER !== 'pro', 'Free tier 3-rule quota is filled by S3 starter rules — Task 3 requires Pro');
+  // (Former Free-tier 3-rule-quota skip removed — rules are unlimited on every tier.)
   test.setTimeout(180_000);
   const frame = await openAddon(page);
   // The Rules nav button label carries live counts — match on the prefix.
@@ -210,7 +210,6 @@ test('Task 3 · create rule with SMS recipient ticked', async ({ page }) => {
 test('Task 4 · self-send DEMO email and Evaluate this email reports a match', async ({ page }) => {
   const email = process.env.GOOGLE_EMAIL;
   test.skip(!email, 'GOOGLE_EMAIL not set in e2e.config.env');
-  test.skip(process.env.TEST_TIER !== 'pro', 'Task 3 is skipped on Free tier (no DEMO rule created), so evaluation will find 0 matches');
   test.setTimeout(300_000);
   await sendTestEmail(page, SCRIPT_B_EMAIL_SUBJECT, email);
   await page.waitForTimeout(10_000);

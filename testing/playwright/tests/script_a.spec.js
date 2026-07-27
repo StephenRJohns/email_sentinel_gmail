@@ -26,13 +26,11 @@ const {
 // Required env in e2e.config.env:
 //   GOOGLE_EMAIL                  — required for Task 4 self-send
 //   GEMINI_API_KEY                — required for Task 2a
-//   TEST_PROMO_CODE               — optional; Task 2b skips if absent
 //   CHAT_SPACE_NAME / CHAT_WEBHOOK_URL — optional; Task 2c skips if absent
 //
-// Re-run safety: every task is idempotent on its own happy path EXCEPT
-// Task 2b. Promo codes are single-use — running this spec twice with the
-// same TEST_PROMO_CODE will fail the second run on the redemption toast.
-// Mint a fresh code for each run, or comment out the T2b test.
+// Re-run safety: every task is idempotent on its own happy path.
+// (TEST_PROMO_CODE is no longer used — the promo section was removed when
+// all features went free; Task 2b now just asserts the section is absent.)
 
 const SCRIPT_A_RULE_NAME    = 'Script A — DEMO test rule';
 const SCRIPT_A_RULE_TEXT    = 'Any email with the word DEMO in the subject line.';
@@ -76,30 +74,14 @@ test('Task 2a · Gemini key saves and Test Gemini reports OK', async ({ page }) 
   await expectToast(page, /Gemini OK|model responded/i, 60_000);
 });
 
-// ─── Task 2b · Redeem the Pro promo code ─────────────────────────────────────
-// Single-use: re-running this test with the same TEST_PROMO_CODE will fail.
-// Skipped automatically when already on Pro (the promo section is not rendered).
+// ─── Task 2b · Promo redemption — RETIRED (all features free) ────────────────
+// The promo-code section was removed from the home card when the last in-app
+// feature gate (AI rule writing) went free. This test now asserts the section
+// stays gone; TEST_PROMO_CODE is no longer used.
 
-test('Task 2b · promo code redeems and flips account to Pro', async ({ page }) => {
-  const code = process.env.TEST_PROMO_CODE;
-  test.skip(!code, 'TEST_PROMO_CODE not set — mint one with tools/promo and add to e2e.config.env');
+test('Task 2b · promo section is not rendered (all features free)', async ({ page }) => {
   const frame = await openAddon(page);
-  // Promo section is on the home card (bottom). No navigation needed.
-  const promoInput = frame.getByLabel('Enter promo code', { exact: false });
-  // Section is double-gated: hidden on Pro, hidden when PROMO_SERVICE_URL not set.
-  if (!(await promoInput.isVisible({ timeout: 10_000 }).catch(() => false))) {
-    test.skip(true, 'Promo section not rendered (already Pro, or PROMO_SERVICE_URL unset)');
-  }
-  await fillField(frame, 'Enter promo code', code);
-  await clickButton(frame, 'Redeem code');
-  // Accept either a successful redemption or an "already redeemed" response.
-  // The code is single-use; running both Pro and Free suites back-to-back
-  // consumes the code in the first run — skip rather than fail on the second.
-  await expectToast(page, /Pro plan activated|Welcome|already redeemed/i, 30_000);
-  const bodyText = await getFrame(page).locator('body').textContent().catch(() => '');
-  if (/already redeemed/i.test(bodyText)) {
-    test.skip(true, 'TEST_PROMO_CODE was already redeemed by a prior run — mint a fresh code in e2e.config.env');
-  }
+  await expect(frame.getByLabel('Enter promo code', { exact: false })).toHaveCount(0);
 });
 
 // ─── Task 2c · Add a Google Chat space ───────────────────────────────────────
@@ -129,7 +111,7 @@ test('Task 2c · add Chat space saves with the supplied webhook URL', async ({ p
 // resolution rather than logic bugs.
 
 test('Task 3 · create rule with all five Google channels ticked', async ({ page }) => {
-  test.skip(process.env.TEST_TIER !== 'pro', 'Free tier 3-rule quota is filled by S3 starter rules — Task 3 requires Pro');
+  // (Former Free-tier 3-rule-quota skip removed — rules are unlimited on every tier.)
   test.setTimeout(180_000);
   const frame = await openAddon(page);
   // The Rules nav button label carries live counts — match on the prefix.
@@ -178,7 +160,6 @@ test('Task 3 · create rule with all five Google channels ticked', async ({ page
 test('Task 4 · self-send DEMO email and Evaluate this email reports a match', async ({ page }) => {
   const email = process.env.GOOGLE_EMAIL;
   test.skip(!email, 'GOOGLE_EMAIL not set in e2e.config.env');
-  test.skip(process.env.TEST_TIER !== 'pro', 'Task 3 is skipped on Free tier (no DEMO rule created), so evaluation will find 0 matches');
   test.setTimeout(300_000);
   await sendTestEmail(page, SCRIPT_A_EMAIL_SUBJECT, email);
   // 10s for the message to land in the inbox.

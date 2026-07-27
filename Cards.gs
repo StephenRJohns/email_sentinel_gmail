@@ -163,7 +163,12 @@ function buildHomeCard() {
     .addSection(statusSection);
   if (setupSection) builder.addSection(setupSection);
   builder.addSection(navSection);
-  if (!isPro() && getPromoServiceUrl_()) builder.addSection(buildPromoSection_());
+  // The promo-code section was removed when the last in-app feature gate
+  // (AI rule writing) went free: with both tiers identical, "upgrade to Pro
+  // with a promo code" would change nothing user-visible. The redemption
+  // backend (PromoCode.gs, handleRedeemPromoCode) is kept for the shared
+  // promo service; re-add buildPromoSection_() here if a gated feature
+  // ever returns.
   // Name the home card so Gmail's nav tracking treats kebab-menu →
   // Home (which uses displayAddOnCards) as a stack-replacing root,
   // which should suppress the back arrow on the resulting card.
@@ -415,19 +420,11 @@ function buildRuleEditorCard(rule) {
     .setTitle('Rule text (plain English)')
     .setMultiline(true)
     .setValue(r.ruleText || ''));
-  if (isPro()) {
-    ruleTextSection.addWidget(CardService.newTextButton()
-      .setText('Help me write the rule text')
-      .setOnClickAction(CardService.newAction()
-        .setFunctionName('handleHelpWriteRuleText')
-        .setParameters({ ruleId: r.id || '' })));
-  } else {
-    ruleTextSection.addWidget(CardService.newTextParagraph()
-      .setText('<font color="#581c87">Upgrade to Pro to use AI assistance for generating rule text.</font>'));
-    ruleTextSection.addWidget(CardService.newTextButton()
-      .setText('Upgrade to Pro')
-      .setOpenLink(CardService.newOpenLink().setUrl(UPGRADE_URL)));
-  }
+  ruleTextSection.addWidget(CardService.newTextButton()
+    .setText('Help me write the rule text')
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('handleHelpWriteRuleText')
+      .setParameters({ ruleId: r.id || '' })));
 
   // ── Section 2: Alert channels ──────────────────────────────────────────────
   const channelsSection = CardService.newCardSection()
@@ -2430,9 +2427,6 @@ function handleHelpWriteRuleText(e) {
       v.stringInputs.value.indexOf('true') >= 0);
   };
 
-  if (!isPro()) {
-    return notificationResponse_(upgradeRequiredMessage('AI-assisted rule writing'));
-  }
   const s = loadSettings();
   if (!s.geminiApiKey) {
     return notificationResponse_('Add a Gemini API key in Settings first.');

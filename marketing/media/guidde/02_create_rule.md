@@ -81,11 +81,8 @@ Plain English. No regex. Get "e-mail Sentinel" — link below.
 
 ## Production notes
 
-- **The "Help me write the rule text" button only renders on the Pro
-  tier** — run `setTierPro` from the Apps Script editor (or redeem a
-  promo code) before recording, otherwise Scene 4 shows an
-  Upgrade-to-Pro prompt instead of the helper. The alert-text helper
-  in Scene 6 is available on every tier.
+- Both AI helpers are free for everyone — no tier setup needed before
+  recording.
 - When you click "Help me write the rule text" in Scene 4, the card
   pre-populates its input with whatever you typed in the rule field —
   that is intentional and looks natural on camera.
@@ -101,8 +98,7 @@ Plain English. No regex. Get "e-mail Sentinel" — link below.
 
 Before you start: Gmail open, demo account, Screenshot mode ON, the
 side panel open on the home card, a Gemini key already saved in
-Settings, tier set to Pro (`setTierPro`) so the rule-text helper
-renders, at least one SMS recipient already added so the SMS checkbox
+Settings, at least one SMS recipient already added so the SMS checkbox
 section is not empty, and one customer-escalation-looking email in
 the inbox for the closing beat.
 

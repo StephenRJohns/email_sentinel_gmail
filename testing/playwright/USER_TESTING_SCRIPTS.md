@@ -62,7 +62,7 @@ npx playwright test tests/script_a.spec.js --grep "Task 1"
 # T2a — Gemini key + Test Gemini
 npx playwright test tests/script_a.spec.js --grep "Task 2a"
 
-# T2b — Promo code redemption (single-use; consumes TEST_PROMO_CODE)
+# T2b — Promo section absence check (the section was removed — all features free)
 npx playwright test tests/script_a.spec.js --grep "Task 2b"
 
 # T2c — Add Chat space (needs CHAT_WEBHOOK_URL)
@@ -129,9 +129,9 @@ npx playwright test tests/script_a.spec.js --grep "Task 2"
 |---|---|
 | Any | Chrome on port 9222 (the wrapper handles this — run it once at session start). |
 | A T2a / A T4 / B all | `GEMINI_API_KEY`, `GOOGLE_EMAIL` in `e2e.config.env`. |
-| A T2b | `TEST_PROMO_CODE` minted via `python -m tools.promo.cli mint …`. Single-use — fresh code per run. |
+| A T2b | Nothing — asserts the promo section is absent (all features free). |
 | A T2c, A T3 chat tickbox | `CHAT_WEBHOOK_URL` (and optionally `CHAT_SPACE_NAME`). |
 | B T2 | `SMS_PROVIDER` pre-selected in Settings on the test account (Material dropdown is not Playwright-controllable). `SMS_API_KEY`, `SMS_TEST_NUMBER` in env. Country code pre-set in Settings. Textbelt = 1 SMS/24h. |
 | A T4, B T4 | Sends a real outbound email to `GOOGLE_EMAIL`, opens it in the message view, and runs a real Gemini-backed evaluation ("Evaluate this email") against your live key. |
-| A T2b retry | Fails on the second run — promo codes are single-use. Mint a fresh code. |
+| A T2b retry | Idempotent — just re-asserts the promo section is absent. |
 | B T2 retry | Textbelt free tier rate-limits to 1 SMS/day; second run within 24h returns "rate-limited" (the assertion accepts that wording). |

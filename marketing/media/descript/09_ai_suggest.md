@@ -17,7 +17,7 @@ Describe what you want in a sentence. Gemini writes the rule.
 ## Scene 1 — where it lives (0:08–0:18)
 ON-SCREEN: Rule editor → "Help me write the rule text" button.
 VOICEOVER:
-AI rule writing is built into the rule editor. You can always
+AI rule writing is built in and free for everyone. You can always
 write the rule text yourself — but if you would rather describe it,
 this helper does the drafting.
 
@@ -61,12 +61,8 @@ Sentinel". Link below.
 
 ## Production notes
 
-- **The "Help me write the rule text" button only renders on the Pro
-  tier** — run `setTierPro` from the Apps Script editor (or redeem a
-  promo code) before recording, otherwise the editor shows an
-  Upgrade-to-Pro prompt in its place. (Note: this gate contradicts
-  the "fully featured Lite" README claim — resolve that product
-  question before publishing this video.)
+- Both AI helpers are free for everyone — no tier setup needed
+  before recording.
 - For Scene 3, the exact suggestion you get from Gemini varies
   per run. If you get an awkward one during recording, regenerate
   — the user does this anyway in real life.
@@ -81,8 +77,8 @@ Marked Descript because of the heavier narration, but Guidde works
 fine for capturing the click sequence — just overdub.
 
 Before you start: Gmail open, demo account, Screenshot mode ON, a
-Gemini key already saved in Settings, tier set to Pro (`setTierPro`)
-so the helper button renders, side panel open on the home card.
+Gemini key already saved in Settings, side panel open on the home
+card.
 
 1. Hit **Start capture** in the Guidde extension.
 2. Click **Rules** on the home card.

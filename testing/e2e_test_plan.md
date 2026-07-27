@@ -414,7 +414,7 @@ Sections 9–13 are optional alert-channel tests. Section 23 is a server-side se
 
 ---
 
-## 22 · Lite Plan, Pro Upsell & Promo Redemption
+## 22 · Lite Plan & Pro Upsell (all features free)
 
 *This add-on is the free **Lite** edition — fully featured, no caps. Both license tiers in `LicenseManager.gs` are identical (unlimited rules; Chat, External integrations, and AI assistance all enabled); the tier flag only controls the promo-redemption section's visibility. "Pro" as sold is the separate self-hosted product the Upgrade buttons link to.*
 
@@ -423,8 +423,8 @@ Sections 9–13 are optional alert-channel tests. Section 23 is a server-side se
 - [ ] **No feature gating.** Open the rule editor: the Google Chat and External integrations channel sections render their selection widgets (or the "configure in Settings" prompts) with no "upgrade to Pro to use this channel" text. The "Help me write the rule text" and "Help me write the alert text" AI buttons are present with no upgrade prompt, and clicking each produces a Gemini suggestion card with **Use this** / **Try again** buttons.
 - [ ] **Unlimited rules.** With 5+ rules already present, "+ New rule" still opens the editor and a new rule saves successfully — no rule-limit toast.
 - [ ] **No founding-member offer.** The home card shows no "Founding-member lifetime" scarcity paragraph (the lifetime add-on offer was retired; `foundingMembersRemaining()` returns 0).
-- [ ] **Promo redemption UI.** When the add-on project's `PROMO_SERVICE_URL` Script Property is set (and the tier is not already Pro), the **home card** shows a section at the bottom titled **"Enter a promo code to upgrade to Pro"** containing an `Enter promo code` text input (hint: "Format: SENT-XXXX-XXXX — case-insensitive") and a purple `Redeem code` button. The section sits below the nav buttons with the natural CardService divider above it. The section is hidden entirely for Pro-tier users and for users without the property configured. The redemption flow itself (POST to the standalone service, response parsing, tier flip, toast "Pro plan activated. Welcome!") remains manual — the back-end is exercised hermetically by Section 23. Automated smoke check: the promo-section spec in `testing/playwright/tests/e2e.spec.js` skips silently when the section is not rendered, otherwise asserts input + button + hint all render together.
-- [ ] **Tier flip helpers (pre-launch testing).** `setTierPro` / `setTierFree` in `LicenseManager.gs` still run from the Apps Script editor's function dropdown. After `setTierPro` + a Gmail tab reload (F5 — the panel caches card state), the promo section disappears; after `setTierFree` + reload it returns (when the property is set). Feature behavior is otherwise identical on both tiers.
+- [ ] **No promo redemption UI.** The home card shows NO "Enter a promo code to upgrade to Pro" section, regardless of tier or the `PROMO_SERVICE_URL` Script Property — the section was removed when the last in-app feature gate (AI rule writing) went free. Automated check: the promo-section spec in `testing/playwright/tests/e2e.spec.js` asserts the input and Redeem button are absent. (The redemption back-end still exists and is exercised hermetically by Section 23.)
+- [ ] **Tier flip helpers (pre-launch testing).** `setTierPro` / `setTierFree` in `LicenseManager.gs` still run from the Apps Script editor's function dropdown, but feature behavior is identical on both tiers — after either helper + a Gmail tab reload (F5), nothing user-visible changes.
 
 ---
 

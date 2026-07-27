@@ -9,7 +9,7 @@
 #   ./testing/run_script_a.sh --debug                # Playwright Inspector
 #
 # See testing/playwright/USER_TESTING_SCRIPTS.md for per-task pre-flight
-# reminders (Gemini key, promo code, Chat webhook URL, etc.).
+# reminders (Gemini key, Chat webhook URL, etc.).
 
 echo "============================================================"
 echo "  SCRIPT A — five Google channels (UserTesting Round 1)"
@@ -18,8 +18,7 @@ echo "  Mirrors usertesting/docs/script_a_core.md."
 echo ""
 echo "  Per-task pre-flight (set in testing/playwright/e2e.config.env):"
 echo "    T2a   GEMINI_API_KEY"
-echo "    T2b   TEST_PROMO_CODE  (single-use; mint a fresh code each run)"
-echo "    T2c   CHAT_WEBHOOK_URL (and optionally CHAT_SPACE_NAME)"
+echo "    T2b/T3 CHAT_WEBHOOK_URL (and optionally CHAT_SPACE_NAME)"
 echo "    T4    GOOGLE_EMAIL     (a real email is sent + Gemini scan runs)"
 echo ""
 echo "  Missing env vars cause the affected task to skip cleanly."

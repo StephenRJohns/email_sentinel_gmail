@@ -113,15 +113,17 @@ We do not support email as an alerting channel. Alert channels are: SMS, Google 
 ### License tiers
 
 `LicenseManager.gs` defines `TIERS` (Free vs Pro) with per-tier limits:
-`maxRules`, `allowChat`, `allowMcp`, `allowAiSuggest`, `logRetentionDays`
-(currently all wide-open on both tiers — the add-on is the free Lite edition
-and Pro is a separate self-hosted product). Enforcement is layered:
-`handleNewRule` (early gate at "+ New rule" click — checks `canAddRule()`
-before opening the editor so the user doesn't fill out a rule that won't
-save), `upsertRule` (defense-in-depth rule count + Chat/MCP stripping at save
-time, also covers programmatic save paths that bypass the UI),
-`handleHelpWriteRuleText` / `handleHelpWriteAlertText` (Pro gate for AI rule
-writing), and `buildRuleEditorCard` (UI hides gated channel sections). Tier is persisted in `settings.license.tier`; for pre-launch
+`maxRules`, `allowChat`, `allowMcp`, `allowAiSuggest`, `logRetentionDays` —
+all wide-open on both tiers, and **every feature is free** (decided
+2026-07-26): there are no in-app feature gates left. The add-on is the free
+Lite edition; "Pro" is only the separate self-hosted product the upsell
+links to. The enforcement plumbing is kept dormant for a future gated
+feature: `handleNewRule` checks `canAddRule()`, `upsertRule` strips
+Chat/MCP when `allowChat`/`allowMcp` are false, and `buildRuleEditorCard`
+hides gated channel sections — all no-ops at current limits. The home-card
+promo-code section was removed for the same reason (redemption would change
+nothing user-visible); `PromoCode.gs` and `handleRedeemPromoCode` remain
+for the shared promo service. Tier is persisted in `settings.license.tier`; for pre-launch
 testing, select `setTierPro` or `setTierFree` from the Apps Script editor's
 function dropdown (in `LicenseManager.gs`) and click Run. These are no-arg
 wrappers around the underscore-private `setTier_(tier)` helper. Automatic

@@ -5,7 +5,6 @@
 **Pre-supplied to tester:**
 - Test-deployment install URL (issued by developer; see "Pre-flight" section below)
 - Gemini API key (rotate after the round; see "Credentials" section)
-- One-time-use Pro promo code (unique per tester; revoked / single-use after redemption)
 
 ---
 
@@ -34,7 +33,7 @@ Tester must answer **yes** to one of:
 
 ## Tester briefing (read by tester at session start)
 
-You're going to test a Gmail add-on called emAIl Sentinel that's in private pre-launch testing. You'll install it, set it up, and create one rule that alerts you in **five Google places at once** — Calendar, Chat, Sheets, Tasks, and Docs — when a matching email arrives. We've supplied a promo code that unlocks the AI writing-assistance features for this session.
+You're going to test a Gmail add-on called emAIl Sentinel that's in private pre-launch testing. You'll install it, set it up, and create one rule that alerts you in **five Google places at once** — Calendar, Chat, Sheets, Tasks, and Docs — when a matching email arrives.
 
 **Important — you'll see a warning page during install** that says *"This app hasn't been verified by Google yet."* That's expected — this is a private pre-launch test, not a publicly listed app. Click **Continue** and **Allow** when you see those screens.
 
@@ -50,7 +49,6 @@ Please **think aloud the entire time** — narrate what you're looking at, what 
 
 - **Gemini API key:** `<DEV_GEMINI_KEY>` — paste this into Settings → Gemini API key when prompted.
 - **Test-deployment install URL:** `<TEST_DEPLOYMENT_URL>` — the URL you'll visit to install the add-on.
-- **Pro promo code:** `<TESTER_PROMO_CODE>` — a one-time code that flips your account to the Pro tier, which unlocks the AI "Help me write" assistance buttons. You'll redeem it in Task 2.
 
 ---
 
@@ -64,7 +62,7 @@ Please **think aloud the entire time** — narrate what you're looking at, what 
 
 **Tell us out loud:** What did you expect to see when the icon opened? What does the home card look like? In your own words, what does this product do?
 
-### Task 2 — Setup: Gemini key, redeem Pro code, add a Chat space (8 min)
+### Task 2 — Setup: Gemini key, add a Chat space (8 min)
 
 This is the longest task. Take your time and narrate as you go — the order of these sub-tasks reflects how a real new user would set things up before writing rules.
 
@@ -75,13 +73,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
 3. Click **Save settings**. You should see a confirmation toast.
 4. Click **Test Gemini**. You should see *"Gemini OK — model responded."*
 
-#### 2b. Redeem the Pro promo code
-
-1. Return to the home card (open the kebab "⋮" menu and pick **Home**, or tap the back arrow if visible). At the bottom of the home card you should see a section titled **Enter a promo code to upgrade to Pro**.
-2. Paste the code the moderator gave you into the **Enter promo code** field: `<TESTER_PROMO_CODE>`.
-3. Click **Redeem code**. You should see a toast: *"Pro plan activated. Welcome!"* The home card refreshes and the promo code section is no longer visible (your account is now Pro).
-
-#### 2c. Add a Google Chat space
+#### 2b. Add a Google Chat space
 
 1. Open a new browser tab and go to `chat.google.com`.
 2. In the left sidebar under **Spaces**, either pick an existing Space you have permission to add webhooks to, or click **+** at the top of the Spaces list to create a new one (give it any name like "emAIl Sentinel test"). If creating a new Space, you can leave it as just yourself — webhooks work in single-member Spaces.
@@ -96,21 +88,20 @@ This is the longest task. Take your time and narrate as you go — the order of 
 
 **Tell us out loud:**
 - (2a) Did you understand what a "Gemini API key" is from the on-card text alone?
-- (2b) Was the promo redemption smooth? Did anything about the promo code section at the bottom of the home card feel out of place or hidden?
-- (2c) How easy was it to find the webhook setting in Google Chat? At any point did you feel lost? If so, where?
+- (2b) How easy was it to find the webhook setting in Google Chat? At any point did you feel lost? If so, where?
 
 ### Task 3 — Create your first rule with all five Google channels (4 min)
 
 1. Return to the home card (open the kebab "⋮" menu and pick **Home**, or use the back arrow if visible).
 2. Click **Rules** → **+ New rule**.
 3. Give the rule any name you want (e.g. "My first rule").
-4. In **Rule text**, write a plain-English description of what kind of email should trigger this rule. Type one yourself — for example: *"Any email with the word DEMO in the subject line."* Below the text field you will also see a button labeled **Help me write the rule text** (because you are on Pro). Do not click it for this task; just note that it is there.
+4. In **Rule text**, write a plain-English description of what kind of email should trigger this rule. Type one yourself — for example: *"Any email with the word DEMO in the subject line."* Below the text field you will also see a button labeled **Help me write the rule text**. Do not click it for this task; just note that it is there.
 5. Under **Alert channels**, tick **all five Google channels**:
    - **Google Calendar — create an event**
    - **Google Sheets — append a log row**
    - **Google Tasks — create a task**
    - **Google Docs — append a log entry**
-   - And under **Google Chat spaces**, tick the space you added in Task 2c (if you got that far). If you did not finish 2c, skip the Chat tickbox.
+   - And under **Google Chat spaces**, tick the space you added in Task 2b (if you got that far). If you did not finish 2b, skip the Chat tickbox.
 6. Click **Save**.
 
 **Tell us out loud:** How did you decide what to type as the rule text? Did the five channel tickboxes feel like too many, the right amount, or were any of them surprising? What did you expect to see after Save?
@@ -126,7 +117,7 @@ This is the longest task. Take your time and narrate as you go — the order of 
    - **Sheets** — open the spreadsheet titled *"emAIl Sentinel Log"* in your Drive (`drive.google.com`) — a new row appended.
    - **Tasks** (`tasks.google.com`) — a new task in your default list.
    - **Docs** — open the doc titled *"emAIl Sentinel Log"* in your Drive — a new entry appended.
-   - **Chat** — open the Space you set up in Task 2c — a new message from the webhook with the alert text.
+   - **Chat** — open the Space you set up in Task 2b — a new message from the webhook with the alert text.
 
 **Tell us out loud:** Which channels showed up? Which surface felt the most useful for catching the alert? Were any of the five formats confusing or unhelpful? How confident are you that this would work for a real email you cared about?
 
@@ -152,8 +143,7 @@ If you run into a technical problem during the session or have a question for th
 
 - The "unverified app" warning will be Google's standard consent screen until OAuth verification clears. Don't try to skip it — that bail rate is a useful pre-launch signal.
 - Pre-supplied Gemini key should be on a dedicated dev account with a $5–10 billing cap. Rotate after the round.
-- **Promo codes are dev-mint, tester-redeem-only.** Testers can never create promo codes — the add-on UI exposes only the redemption section (input + Redeem code button), and code minting lives in the separate standalone admin/service Apps Script project that testers have no access to. Mint one unique code per tester (10 codes for a 10-session round) via that standalone project — see `scripts/PromoCodeAdmin.gs`. Each tester's code substitutes for `<TESTER_PROMO_CODE>` in their copy of this script. Codes are single-use; reusing one across two testers will lock the second tester out of Pro. Unredeemed codes are voided at the round close as part of the same secret-rotation pass that revokes the Gemini key.
-- The `PROMO_SERVICE_URL` Script Property must be set on the test-deployment Apps Script project — without it the promo code section at the bottom of the home card will not render and Task 2b is impossible.
+- **No promo codes are needed.** Every feature — including the AI "Help me write" buttons — is free for all users; the promo-code section was removed from the home card. (The standalone promo service still exists for other uses but plays no part in this round.)
 - **Chat-setup is the highest-friction task.** Real testers will struggle with the chat.google.com Apps & integrations menu. Before declaring the test broken: a tester who narrates getting stuck at webhook creation but completes Tasks 3 and 4 with the four free Google channels still produces a complete-enough session to count for Round 1. The Chat-completion rate is itself the metric we're measuring on this task.
 - If a tester closes Gmail mid-task or the add-on icon doesn't appear after install, that's a finding — don't coach them around it.
 - Watching the recordings: pay particular attention to Task 1 ("what does this product do") — if the home card doesn't communicate the value prop in 30 seconds without explanation, that's the highest-priority fix. Also watch Task 2c (Chat setup) closely — that step has the highest expected difficulty and the most variance per tester.

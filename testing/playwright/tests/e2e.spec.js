@@ -365,20 +365,14 @@ test('S20: home card shows Lite plan row and Upgrade to Pro link', async ({ page
   await expect(frame.getByRole('button', { name: /Upgrade to Pro/i }).first()).toBeVisible();
 });
 
-// The promo code section on the home card is double-gated: only Free users
-// see it, and only when the PROMO_SERVICE_URL Script Property is set on the
-// add-on project. On test accounts where the property is not set, the section
-// is not rendered and there is nothing to assert — the test exits cleanly.
-// When rendered, the test asserts internal consistency (input + button + hint
-// must all be present together — partial rendering would indicate a UI bug).
-// Server-side redemption logic (`runPromoServiceTests`) lives in the
-// standalone admin/service project and is exercised by manual section 22.
+// The promo-code section was removed from the home card when the last in-app
+// feature gate (AI rule writing) went free — with both tiers identical, a
+// "upgrade to Pro" promo box would change nothing user-visible. This test now
+// asserts the section stays gone. Server-side redemption logic
+// (`runPromoServiceTests`) still lives in the standalone admin/service project.
 
-test('S20: promo redemption section renders consistently when configured', async ({ page }) => {
-  test.skip(process.env.TEST_TIER === 'pro', 'Free-tier-only — the promo section is gated on !isPro().');
+test('S20: promo redemption section is not rendered (all features free)', async ({ page }) => {
   const frame = await openAddon(page);
-  const promoInput = frame.getByLabel('Enter promo code', { exact: false });
-  if (!(await promoInput.isVisible().catch(() => false))) return;
-  await expect(frame.getByRole('button', { name: 'Redeem code' })).toBeVisible();
-  await expect(frame.getByText(/SENT-XXXX-XXXX/)).toBeVisible();
+  await expect(frame.getByLabel('Enter promo code', { exact: false })).toHaveCount(0);
+  await expect(frame.getByRole('button', { name: 'Redeem code' })).toHaveCount(0);
 });
