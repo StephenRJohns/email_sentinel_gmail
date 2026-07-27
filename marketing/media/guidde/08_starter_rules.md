@@ -1,5 +1,3 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Starter rules no longer watch a Gmail label (Scene 1/3 "watching INBOX" and checklist step 10 are stale); rules apply to whichever email you evaluate.
-
 # Starter rules
 **Duration:** 60 s
 **Tool:** Guidde
@@ -22,9 +20,9 @@ and delivery updates, Security and account alerts, Bills and
 subscription renewals.
 VOICEOVER:
 Click Starter rules. Five templates are available out of the box,
-each watching INBOX with a battle-tested rule text. They are
-created in a disabled state so you can pick channels and enable
-the ones you want.
+each with a battle-tested rule text. They are created in a
+disabled state so you can pick channels and enable the ones you
+want.
 
 ## Scene 2 — create the set (0:18–0:35)
 ON-SCREEN: Click "Create starter rules". The toast confirms how
@@ -36,12 +34,12 @@ so you can configure channels before they start firing.
 
 ## Scene 3 — enable one (0:35–0:50)
 ON-SCREEN: Open the "Urgent emails" rule, add an SMS recipient,
-confirm the watched label is INBOX (or switch it), Save, then on
-the Rules card click **On** for that rule.
+Save, then on the Rules card click **On** for that rule.
 VOICEOVER:
-For each starter rule you want to use, confirm the Gmail label,
-pick your alert channels, and click On. The starter rule
-text is a starting point — refine it once you see real alerts.
+For each starter rule you want to use, pick your alert channels
+and click On. Every enabled rule runs whenever you evaluate an
+open email — and the starter text is a starting point; refine it
+once you see real alerts.
 
 ## End card (0:50–0:55)
 ON-SCREEN: Logo + Marketplace URL
@@ -82,10 +80,9 @@ saved in Settings, side panel open on the home card.
     has at least one matching SMS recipient for).
 8. Scroll to the SMS recipients section.
 9. Check at least one SMS recipient.
-10. Confirm the Gmail label is **INBOX** (or change it).
-11. Click **Save**.
-12. (Back on the Rules card.) Click **On** to enable the rule (the toggle flips to **Off** and the section header shows ✅ ON).
-13. Hit **Stop capture** in Guidde.
+10. Click **Save**.
+11. (Back on the Rules card.) Click **On** to enable the rule (the toggle flips to **Off** and the section header shows ✅ ON).
+12. Hit **Stop capture** in Guidde.
 
 After capture: replace the auto-generated voiceover with the
 storyboard VOICEOVER lines. Trim aggressively — this video should

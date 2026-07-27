@@ -1,5 +1,3 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The Scan email now button, Run scan now, and the scan-result card no longer exist; the demo alert now comes from opening the test email and clicking Evaluate this email.
-
 # Quickstart — install to first alert
 **Duration:** 180 s
 **Tool:** Descript (narrative; some screen recording, some talking)
@@ -13,25 +11,27 @@ their first alert — all in three minutes.
 
 ## Hook (0:00–0:08)
 ON-SCREEN: Phone notification sliding in: "AWS — Unusual sign-in attempt
-blocked" — then cut to a Gmail inbox with the sidebar open.
+blocked" — then cut to an open email in Gmail with the sidebar open.
 VOICEOVER:
-Important emails get buried. "e-mail Sentinel" reads your Gmail with AI.
-It texts you the ones you cannot afford to miss.
+Important emails get buried. Open one, click Evaluate, and "e-mail
+Sentinel" texts you if it is one you cannot afford to miss.
 
 ## Scene 1 — install (0:08–0:30)
 ON-SCREEN: Google Workspace Marketplace listing → click Install → consent
 screen → finish.
 VOICEOVER:
 Install from the Google Workspace Marketplace. "e-mail Sentinel" runs
-entirely inside your own Google account. Your email never leaves
-Google's servers.
+entirely inside your own Google account, and it can only read the
+email you have open — never your whole mailbox, never in the
+background.
 
 ## Scene 2 — open in Gmail (0:30–0:50)
 ON-SCREEN: Gmail loads, the "e-mail Sentinel" sidebar icon appears on the
 right rail. Click it; the home card opens.
 VOICEOVER:
-Open Gmail. Click the sidebar icon. The home card has rules,
-settings, and a Scan email now button for instant checks.
+Open Gmail. Click the sidebar icon. The home card has your rules,
+settings, and the activity log — and when you open an email, the
+panel offers to evaluate it.
 
 ## Scene 3 — Gemini key (0:50–1:15)
 ON-SCREEN: Click Settings → paste a Gemini API key → Save.
@@ -42,25 +42,25 @@ than enough for personal use. The key stays in your account.
 We never see it.
 
 ## Scene 4 — first rule via starter (1:15–1:45)
-ON-SCREEN: Rules card → "Starter rules" → pick "Critical security
-alerts" → create. Open the rule, add Calendar as the alert channel,
+ON-SCREEN: Rules card → "Starter rules" → create. Open the
+"Security & account alerts" rule, add Calendar as the alert channel,
 enable.
 VOICEOVER:
-For your first rule, pick a starter template. We will use Critical
-security alerts. It watches your inbox for AWS, Cloudflare, and
-Google security notifications. Add Calendar as the alert channel.
+For your first rule, pick a starter template. We will use Security
+and account alerts. It matches password resets, suspicious logins,
+and security notifications. Add Calendar as the alert channel.
 Then enable it.
 
 ## Scene 5 — trigger an alert (1:45–2:25)
 ON-SCREEN: Send a SENTINEL_TEST email to yourself (use the AWS sample
-from `work/marketing/screenshot_plan.md`). Back in Gmail, click the
-3-dot menu → Scan email now → Run scan now. Wait for the green
-"Scan complete — 1 match" card.
+from `work/marketing/screenshot_plan.md`). Open the arrived email —
+the side panel shows **Evaluate this email**. Click it. Wait for the
+green "✅ 1 of 1 rule matched." Evaluation result card.
 VOICEOVER:
-Send yourself a test alert. Click Scan email now. Gemini reads the
-message. It decides if the message matches your rule. Then it writes
-a summary. A Calendar event lands on your calendar with the time,
-the source, and the action items.
+Send yourself a test alert and open it. Click Evaluate this email.
+Gemini reads the message. It decides if the message matches your
+rule. Then it writes a summary. A Calendar event lands on your
+calendar with the time, the source, and the action items.
 
 ## Scene 6 — see the alert (2:25–2:55)
 ON-SCREEN: Switch to Google Calendar — show the event Gemini just
@@ -119,19 +119,19 @@ Calendar open in another tab.
 13. Click **Rules** on the home card.
 14. Click **Starter rules**.
 15. Click **Create starter rules**.
-16. In the Rules list, click the **Critical security alerts** rule.
+16. In the Rules list, click the **Security & account alerts** rule.
 17. Check the **Calendar** alert channel.
 18. Click **Save**.
-19. (Back on the Rules card.) Click the **On** toggle on the Critical security alerts rule.
+19. (Back on the Rules card.) Click the **On** toggle on the Security & account alerts rule.
 20. Open a new Gmail compose window. To: yourself. Subject: paste the
     AWS sample subject line. Body: paste the AWS sample body. Send.
-21. Wait ~5 s for the email to arrive in INBOX.
-22. Back in the side panel, click the **3-dot menu** → **Scan email now**.
-23. Click **Run scan now**.
-24. Wait for the green ✅ result card.
-25. Switch to the **Google Calendar** tab.
-26. Click the newly-created event so the description panel opens.
-27. Hit **Stop capture** in Guidde.
+21. Wait ~5 s for the email to arrive, then **open it** in Gmail —
+    the side panel switches to the contextual card.
+22. Click **Evaluate this email**.
+23. Wait for the green ✅ **Evaluation result** card ("Match — alerts sent").
+24. Switch to the **Google Calendar** tab.
+25. Click the newly-created event so the description panel opens.
+26. Hit **Stop capture** in Guidde.
 
 After capture: drop the storyboard voiceover into Descript over your
 captured screen recording, or import into Guidde and replace its

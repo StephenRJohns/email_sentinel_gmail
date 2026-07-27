@@ -1,13 +1,3 @@
-********************************************************************************
-* OUTDATED (2026-07-26): the add-on is now CONTEXTUAL-ONLY. gmail.readonly     *
-* was replaced by gmail.addons.current.message.readonly (no CASA required).    *
-* The demo flow must show: open an email -> open the add-on panel -> click     *
-* "Evaluate this email" -> result card. There are no scheduled scans, no       *
-* "Scan email now", no labels, no baseline. Rewrite this script before         *
-* recording. See docs/oauth_verification/submission_answers.md for the         *
-* current scope list and justifications.                                       *
-********************************************************************************
-
 emAIl Sentinel — OAuth Verification Video Script
 =================================================
 
@@ -35,9 +25,12 @@ NOTE ON AUTOMATION:
 
 
 
-Purpose: Demonstrate to Google's trust & safety team that gmail.readonly is used
-solely to read the user's own Gmail messages for rule evaluation, and that no data
-is stored externally or shared beyond the alert channels the user explicitly configures.
+Purpose: Demonstrate to Google's trust & safety team that the add-on's only Gmail
+scope — gmail.addons.current.message.readonly — is used solely to read the one
+message the user has open, only when the user clicks "Evaluate this email", and
+that no data is stored externally or shared beyond Google's Gemini API and the
+alert channels the user explicitly configures. No restricted scope is requested;
+there is no background access.
 
 Target length: ~2 minutes. No narration required, but on-screen captions help.
 Record at 1280x800 or higher. Use your real Gmail account (not a test account) so
@@ -58,11 +51,15 @@ THEN RECORD:
 3. Google's OAuth consent screen appears automatically — pause here for 2-3 seconds
    so reviewers can read it. It will show:
      - App name: emAIl Sentinel
-     - Scopes requested: View your email messages and settings (gmail.readonly),
-       plus Calendar, Sheets, Tasks, Docs, and external requests
+     - Scopes requested: the Gmail current-message scope (Google words it roughly
+       as "View your email messages when the add-on is running"; the scope ID
+       gmail.addons.current.message.readonly is authoritative), plus Calendar,
+       Sheets, Tasks, Docs, and external requests. Note there is NO whole-mailbox
+       Gmail scope in the list.
    [NARRATOR: This is the OAuth consent screen users see when installing emAIl Sentinel.
-   All requested scopes are listed here — gmail.readonly is used solely to read the
-   user's own messages for rule evaluation. No other Gmail access is requested.]
+   The only Gmail permission requested is the current-message scope — the add-on can
+   read a message only while the user has it open and is interacting with the add-on.
+   No whole-mailbox access is requested.]
 4. Click "Allow". The install completes.
    [NARRATOR: The user grants permission. The add-on is now installed in their account.]
 5. Open Gmail. The emAIl Sentinel icon appears in the right-hand add-on rail.
@@ -72,19 +69,18 @@ PART 2 — INITIAL SETUP IN SETTINGS (30 seconds)
 ------------------------------------------------
 6. Click the emAIl Sentinel icon. The home card loads.
 7. Click "Settings" (via the three-dot menu or nav button).
-8. In the Gemini API key field, paste a key (already configured — the masked
+8. Show the Gemini API key field (already configured — the masked
    "Current key: ....XXXX" display is visible, showing the key is stored privately
    in Google UserProperties, not transmitted anywhere).
    [NARRATOR: The Gemini API key is stored privately in Google UserProperties — only
    the last four characters are shown. The key never leaves the user's own Google
    account except when making calls to Google's Gemini API.]
 9. Scroll down briefly to show the SMS provider section (set to None) and the
-   Google alert channels section (Calendar, Sheets, Tasks, Docs checkboxes).
+   Google alert channels section (Chat spaces, Calendar, Sheets, Tasks, Docs).
    [NARRATOR: Alert channels are entirely user-configured. Here we can see SMS is
    disabled. Alerts can be sent via Google Calendar, Sheets, Tasks, or Docs — all within
    the user's own Google account.]
 10. Click "Test Gemini". Toast appears: "Gemini OK — model responded."
-    (This shows gmail.readonly data is sent only to Google's own Gemini API.)
     [NARRATOR: This confirms the Gemini API key is valid. The only external network
     call emAIl Sentinel makes is to Google's own Gemini API — no other third-party
     services receive any data.]
@@ -95,10 +91,9 @@ PART 3 — CREATE A RULE (20 seconds)
 11. Navigate to Rules → "+ New rule".
 12. Enter:
       Name: Video demo rule
-      Gmail label: INBOX
       Rule text: Any email with SENTINEL_TEST in the subject line.
-    [NARRATOR: Rules are written in plain English. This rule watches the inbox for
-    any email with SENTINEL_TEST in the subject line.]
+    [NARRATOR: Rules are written in plain English. This rule matches any email with
+    SENTINEL_TEST in the subject line.]
 13. Leave all alert channels unchecked (no SMS, no Chat — keeping it simple).
 14. Click "Save". Toast: "Rule saved."
     [NARRATOR: The rule is saved to the user's own Google UserProperties — no
@@ -106,72 +101,77 @@ PART 3 — CREATE A RULE (20 seconds)
 15. Rule appears in the list with ON status.
 
 
-PART 4 — BASELINE RUN (10 seconds)
-------------------------------------
-16. Return to the home card. Click "Scan email now".
-17. Toast appears showing check result (e.g. "0 new email(s), 0 match(es)").
-    [NARRATOR: The first run establishes a baseline. Existing messages are recorded
-    so that only new arrivals trigger alerts — no alerts fire on this run.]
-18. Click "Activity log". The log shows the baseline run entry — no emails matched.
-    (This demonstrates that gmail.readonly is used to read messages, evaluate them
-    locally against the rule via Gemini, and log the result — nothing else.)
-    [NARRATOR: The activity log shows exactly what occurred: gmail.readonly was used
-    to read messages in the inbox, they were evaluated against the rule via Gemini,
-    and the result was logged privately here in the user's own account.]
+PART 4 — NO ACCESS WITHOUT AN OPEN MESSAGE (10 seconds)
+--------------------------------------------------------
+16. Go back to the Gmail inbox LIST view (no message open). Open the add-on panel.
+17. Only the home card renders — there is no button or path that reads any message
+    from here. Pause for 2-3 seconds.
+    [NARRATOR: From the inbox view, the add-on cannot read anything. It has no
+    whole-mailbox permission — Gmail access is only possible on a message the user
+    opens, and only when they explicitly ask for an evaluation.]
 
 
-PART 5 — SEND TEST EMAIL AND TRIGGER A MATCH (30 seconds)
------------------------------------------------------------
-19. Open Gmail Compose in the same tab or a new window.
-20. Address it to your own Gmail address.
-21. Subject: SENTINEL_TEST — video demo
-22. Body: (leave blank or type anything)
-23. Send. Wait ~10 seconds and confirm the email arrives in your inbox.
+PART 5 — SEND TEST EMAIL AND EVALUATE IT (30 seconds)
+-------------------------------------------------------
+18. Open Gmail Compose.
+19. Address it to your own Gmail address.
+20. Subject: SENTINEL_TEST — video demo
+21. Body: (leave blank or type anything)
+22. Send. Wait ~10 seconds and open the arrived email.
     [NARRATOR: We send a test email to our own address using the trigger phrase in
-    the subject line.]
-24. Return to the add-on. Click "Scan email now" from the home card.
-25. Toast shows: "Check complete: 1 new email(s), 1 match(es)."
-    [NARRATOR: emAIl Sentinel detects the new message and evaluates it against our
-    rule using the Gemini API. One match is found.]
+    the subject line, then open it.]
+23. With the email open, the add-on panel shows the contextual card with the
+    "Evaluate this email" button. Pause for 2 seconds before clicking.
+    [NARRATOR: With a message open, the add-on offers to evaluate it. Nothing has
+    been read yet — Gmail access happens only when this button is clicked.]
+24. Click "Evaluate this email". The button shows a spinner while Gemini evaluates.
+25. The "Evaluation result" card appears: green "✅ 1 of 1 rule matched." banner and
+    a "✅ Match — alerts sent" row for "Video demo rule" with Gemini's reason.
+    [NARRATOR: The add-on reads the open message, sends the sender, subject, and a
+    body excerpt to Google's Gemini API for evaluation, and shows the per-rule
+    result. One match is found.]
 
 
 PART 6 — SHOW THE ACTIVITY LOG (20 seconds)
 --------------------------------------------
-26. Click "Activity log".
+26. Click "View activity log" on the result card (or Activity log from the menu).
 27. The log shows:
-      - Label "INBOX": 1 new message(s)
-      - From: [your address] | Subject: SENTINEL_TEST...
+      - Evaluating open email — From: [your address] | Subject: SENTINEL_TEST...
       - Evaluating against rule "Video demo rule"...
       - MATCH! [Gemini reason]
 28. Pause here for 3-4 seconds. This is the key frame for reviewers — it shows
-    exactly what gmail.readonly data is accessed (sender, subject, snippet) and
-    that it goes to Gemini for evaluation only, with the result logged privately
+    exactly what current-message data is accessed (sender, subject, body excerpt)
+    and that it goes to Gemini for evaluation only, with the result logged privately
     in the user's own Google account (UserProperties).
-    [NARRATOR: This is the complete picture of how gmail.readonly is used. The
-    add-on reads the sender, subject, and message snippet — sends that to Google's
-    Gemini API for rule evaluation — and logs the result here in the user's own
-    Google account. No email content is stored externally or shared with any
-    third party.]
+    [NARRATOR: This is the complete picture of how the current-message scope is used.
+    The add-on reads the sender, subject, and a body excerpt of the one open message —
+    sends that to Google's Gemini API for rule evaluation — and logs the result here
+    in the user's own Google account. No email content is stored externally or shared
+    with any third party, and no other message was ever accessed.]
 
 
 PART 7 — CLOSE OUT (optional, 10 seconds)
 -------------------------------------------
-29. Navigate to Help (three-dot menu → Help).
-30. Show the Privacy section briefly — it states that email content is sent only
-    to Google's Gemini API and user-configured alert channels, never elsewhere.
-    [NARRATOR: The built-in Privacy section confirms the data handling policy:
-    email content is sent only to Google's Gemini API and the alert channels the
-    user explicitly configures. No data is stored externally or shared with
-    third parties.]
+29. Navigate to Help (three-dot menu → Help) → "Settings & troubleshooting".
+30. Show the "How evaluation works" / Privacy text briefly — it states the add-on
+    reads only the email the user has open, on demand, and that content goes only
+    to Gemini and the user's configured alert channels.
+    [NARRATOR: The built-in Help confirms the data-handling posture: the add-on reads
+    only the email you have open, only when you ask, and content goes only to Google's
+    Gemini API and the alert channels you configure.]
 31. End recording.
 
 
 KEY POINTS TO MAKE VISIBLE ON SCREEN
 --------------------------------------
-- The OAuth consent screen (Part 1, step 3) — let it sit for a moment
+- The OAuth consent screen (Part 1, step 3) — no whole-mailbox Gmail scope listed
 - The masked API key display — shows credentials stay in UserProperties
-- The Activity log match entry (Part 6, step 27) — the clearest demonstration
-  of what gmail.readonly is used for
+- The inbox list view with no evaluate capability (Part 4) — proves no background
+  or whole-mailbox access exists
+- The "Evaluate this email" button on an open message (Part 5, step 23) — the
+  explicit user action that gates all Gmail access
+- The Activity log evaluation entry (Part 6, step 27) — the clearest demonstration
+  of what the current-message scope is used for
 - "Gemini OK — model responded" toast — shows the only external call is to Google
 
 

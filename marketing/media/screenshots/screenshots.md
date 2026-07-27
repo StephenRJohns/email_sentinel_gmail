@@ -101,17 +101,17 @@ Use a dedicated demo Gmail account for the screenshots so no real recipient name
 - **SMS phone mockup** (highest impact) — wrap an SMS screenshot in a device frame at mockuphone.com before uploading to Marketplace.
 - **Google Chat message** — shows the formatted alert card in the chat stream.
 
-**Suggested caption:** `Alerts delivered to Calendar, Chat, SMS, Sheets, Tasks, or your own webhook`
+**Suggested caption:** `Alerts delivered to Calendar, Chat, SMS, Sheets, Tasks, Docs, or your own webhook`
 
 ---
 
-## Shot 4 — Channel breadth: all six alert destinations
+## Shot 4 — Channel breadth: all seven alert destinations
 
 **Goal:** Communicate flexibility — this is not just an SMS tool.
 
-**Capture:** Open the rule editor's Alert Channels section showing all channel options (SMS, Google Chat, Calendar, Sheets, Tasks, External integrations). Or build a 1280×800 composite in Figma / GIMP: place the channel-selection card on the left half with a soft brand-purple background and a label listing all six channel names on the right.
+**Capture:** Open the rule editor's Alert Channels section showing all channel options (SMS, Google Chat, Calendar, Sheets, Tasks, Docs, External integrations). Or build a 1280×800 composite in Figma / GIMP: place the channel-selection card on the left half with a soft brand-purple background and a label listing all seven channel names on the right.
 
-**Suggested caption:** `Six alert channels — bring your own SMS provider or MCP server`
+**Suggested caption:** `Seven alert channels — bring your own SMS provider or MCP server`
 
 ---
 

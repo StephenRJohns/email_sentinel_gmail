@@ -1,5 +1,3 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The trigger steps (checklist 25–27: kebab "Scan email now" → "Run scan now" → result card) no longer exist; trigger a match by opening a test email and clicking **Evaluate this email**.
-
 # External integrations
 **Duration:** ~3:05 min
 **Tool:** Guidde
@@ -92,16 +90,19 @@ exposed from the Worker. Save.
 
 ## Scene 6 — attach to a rule and trigger (2:15–2:40)
 ON-SCREEN: Open a rule → check the "Demo MCP" external
-integration checkbox → Save → trigger a match. Cut to the
-Cloudflare Worker logs panel — the [ALERT RECEIVED] line
-appears with the full alert text visible.
+integration checkbox → Save → open the SENTINEL_TEST email in
+Gmail → click **Evaluate this email** → the Evaluation result
+card shows "✅ Match — alerts sent". Cut to the Cloudflare Worker
+logs panel — the [ALERT RECEIVED] line appears with the full
+alert text visible.
 VOICEOVER:
-On any rule, check the integration, save, and trigger a match.
-The Cloudflare Worker logs panel shows the alert arriving in
-real time — the bracketed ALERT RECEIVED line is the Worker
-console-logging the message field "e-mail Sentinel" sent. From
-here, the Worker can do anything code can do — relay to Slack
-via webhook, write to a database, call another API.
+On any rule, check the integration and save. Then open a matching
+email and click Evaluate this email. The Cloudflare Worker logs
+panel shows the alert arriving in real time — the bracketed ALERT
+RECEIVED line is the Worker console-logging the message field
+"e-mail Sentinel" sent. From here, the Worker can do anything code
+can do — relay to Slack via webhook, write to a database, call
+another API.
 
 ## Scene 7 — error handling (2:40–2:55)
 ON-SCREEN: Activity log showing an MCP error like 'MCP "Demo MCP"
@@ -153,7 +154,9 @@ focused on the Worker's overview page (so Scene 4's URL copy is
 one click), the Worker's **Observability** tab open in a third browser tab
 with **Live** already clicked (so Scene 6's live tail
 is already streaming when an alert fires), at least one rule
-already saved, side panel open on the home card.
+already saved and enabled, one SENTINEL_TEST email matching that
+rule already sitting in the inbox, side panel open on the home
+card.
 
 **Guidde capture note:** Guidde captures on user interaction (click, scroll, type), not on tab switches. After each tab switch below, the next step is an explicit click or scroll so the new tab is captured into the recording. Plain hover usually does not trigger a frame.
 
@@ -162,7 +165,7 @@ already saved, side panel open on the home card.
 3. Switch back to Gmail. **Click somewhere in the Gmail content area** (e.g., the inbox row count) so Guidde re-captures the Gmail tab.
 4. Click the **3-dot menu** → **Help**.
 5. In the Help card, click the **Search help** box, type `Integrations`, then click **Search**. The results card shows "2 topics matched." Click **Open: Alert channel setup**. Scroll to the **Custom — Cloudflare Worker MCP server** subsection and click the code block (or any text within it) so it captures.
-6. Click the **Home** button on the Help card to return home.
+6. Click the **3-dot menu** → **Home** to return to the home card.
 7. Switch to the **Cloudflare** Worker overview tab. **Click anywhere on the page** (e.g., on the page background or a non-action element) so Guidde captures the new tab before you interact with the URL.
 8. Right-click the URL at the top of the page (`https://es-demo-mcp.jjjjj-enterprises-llc.workers.dev/`) and pick **Copy link address** from the context menu.
 9. Switch back to Gmail. **Click somewhere in Gmail** (e.g., the inbox area) so Guidde re-captures the Gmail tab.
@@ -181,9 +184,11 @@ already saved, side panel open on the home card.
 22. Scroll to the **External integrations** section in the rule editor.
 23. Check **Demo MCP**.
 24. Click **Save**.
-25. Click **3-dot menu** → **Scan email now**.
-26. Click **Run scan now**.
-27. Wait for the green ✅ result card.
+25. In Gmail, open the prepared **SENTINEL_TEST** email — the side
+    panel switches to the contextual card.
+26. Click **Evaluate this email**.
+27. Wait for the **Evaluation result** card with the green
+    "✅ Match — alerts sent" row.
 28. Switch to the **Cloudflare** Observability tab. **Click on the live-events panel** (or click any of the new event rows) and **scroll down to the latest entry**. The new `[ALERT RECEIVED] <your alert text>` line is at the bottom of the live tail. The click + scroll forces Guidde to capture this tab.
 29. Switch back to Gmail. **Click somewhere in Gmail** (e.g., the side-panel header) so Guidde re-captures the Gmail tab.
 30. Click **3-dot menu** → **Activity Log**.

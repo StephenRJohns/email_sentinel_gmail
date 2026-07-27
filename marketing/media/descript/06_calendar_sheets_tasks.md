@@ -1,5 +1,3 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Scan email now / Run scan now no longer exist; alerts now fire by opening the matching email and clicking Evaluate this email.
-
 # Calendar / Sheets / Tasks / Docs alerts
 **Duration:** 150 s
 **Tool:** Descript (cuts between four Google apps; narrative pacing)
@@ -18,11 +16,11 @@ Four free alert channels you already use. No setup. No API keys.
 Just check a box.
 
 ## Scene 1 — Google Calendar (0:08–0:40)
-ON-SCREEN: Rule editor → check Calendar → save. Send a SENTINEL_TEST
-email. Run Scan email now. Cut to Google Calendar — the event has
-a clear title, the rule name in brackets, the email subject, and
-a description with sender, received time, and the AI-generated
-summary.
+ON-SCREEN: Rule editor → check Calendar → save. Open the
+SENTINEL_TEST email and click **Evaluate this email**. Cut to
+Google Calendar — the event has a clear title, the rule name in
+brackets, the email subject, and a description with sender,
+received time, and the AI-generated summary.
 VOICEOVER:
 Calendar alerts land on your default calendar. The title shows the
 rule name and the email subject. The description has the sender,
@@ -86,9 +84,10 @@ Link below.
 
 ## Production notes
 
-- Pre-create one SENTINEL_TEST email so a single Scan-now
+- Pre-create one SENTINEL_TEST email so a single Evaluate click
   produces visible Calendar, Sheets, Tasks, and Docs artifacts you
-  can cut between.
+  can cut between (check all four channels on the rule BEFORE
+  evaluating).
 - The auto-created Sheets and Docs files share the same name —
   shoot the filename in the Drive title bar to reinforce the
   "automatic" claim.
@@ -105,10 +104,10 @@ Marked Descript because of the cuts between four Google apps, but
 you can capture each segment with Guidde and stitch in Descript.
 
 Before you start: Gmail open, demo account, Screenshot mode ON, one
-SENTINEL_TEST email already in INBOX, an existing rule called e.g.
-`Demo rule` watching INBOX, side panel open. Tabs open in this order:
-Gmail, Google Calendar, Google Drive (logged in), Google Tasks (or
-the side panel will do).
+SENTINEL_TEST email already in INBOX, an existing enabled rule called
+e.g. `Demo rule` that matches it, side panel open. Tabs open in this
+order: Gmail, Google Calendar, Google Drive (logged in), Google Tasks
+(or the side panel will do).
 
 1. Hit **Start capture** in the Guidde extension.
 2. Click **Rules** on the home card.
@@ -118,9 +117,10 @@ the side panel will do).
 6. Check **Tasks**.
 7. Check **Docs**.
 8. Click **Save**.
-9. (Back on Rules card.) Click **3-dot menu** → **Scan email now**.
-10. Click **Run scan now**.
-11. Wait for the green ✅ result card.
+9. In Gmail, open the **SENTINEL_TEST** email — the side panel
+    switches to the contextual card.
+10. Click **Evaluate this email**.
+11. Wait for the green ✅ **Evaluation result** card ("Match — alerts sent").
 12. Switch to the **Google Calendar** tab.
 13. Refresh; click the newly-created event so the description panel
     opens.

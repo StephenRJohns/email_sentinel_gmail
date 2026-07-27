@@ -1,85 +1,85 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Scheduled scans, the Scan email now button, and the pre-scan/result cards no longer exist.
-
-# Scan email now
+# Evaluate an email on demand
 **Duration:** 60 s
 **Tool:** Guidde
 
 Short, focused. Targets the user who just created a rule and is
-impatient to see it work.
+impatient to see it work. (Replaces the retired "Scan email now"
+video — the add-on is contextual-only now.)
 
 ---
 
 ## Hook (0:00–0:05)
-ON-SCREEN: Home card with the Scan email now button highlighted.
+ON-SCREEN: An open email in Gmail with the side panel showing the
+**Evaluate this email** button highlighted.
 VOICEOVER:
-Do not wait for the scheduled check. Run a scan right now and see
-the result in seconds.
+Open any email, click one button, and see in seconds which of your
+rules it matches.
 
-## Scene 1 — why it exists (0:05–0:18)
-ON-SCREEN: Settings card showing the scan interval ("every 1
-hour"). Highlight the "Scan email now" hint paragraph.
+## Scene 1 — why it works this way (0:05–0:18)
+ON-SCREEN: Gmail inbox LIST view with the side panel open on the
+home card — no evaluate button anywhere. Then open the SENTINEL_TEST
+email; the contextual card with **Evaluate this email** appears.
 VOICEOVER:
-"e-mail Sentinel" runs scheduled scans of Gmail once an hour — that
-one-hour floor is a Google add-on platform limit, not a choice we
-make. But Scan email now bypasses the schedule entirely.
+"e-mail Sentinel" reads only the email you have open — never your
+whole mailbox, never in the background. That is the privacy deal:
+nothing is evaluated until you ask.
 
-## Scene 2 — from the home card (0:18–0:30)
-ON-SCREEN: Click Scan email now on the home card. The button shows
-a spinner. After 10–15 seconds, the result card appears with a
-green ✅ "Scan complete — 1 new email, 1 match."
+## Scene 2 — evaluate (0:18–0:35)
+ON-SCREEN: Click **Evaluate this email**. The button shows a spinner.
+After a few seconds the **Evaluation result** card appears with the
+green ✅ "1 of 1 rule matched." banner and a "✅ Match — alerts sent"
+row with Gemini's one-line reason.
 VOICEOVER:
-Click the button. You will see a spinner while it works — scans
-usually take ten to thirty seconds — and then a result card
-tells you what fired.
+Click Evaluate. Gemini reads the message against every rule you have
+enabled — you get a per-rule verdict, and matches fire your alerts
+immediately.
 
-## Scene 3 — from the kebab menu (0:30–0:45)
-ON-SCREEN: Open any other card (Settings, Activity Log). Click the
-3-dot menu → Scan email now. Pre-scan card opens with explanation
-and a Run scan now button. Click it; spinner; result.
+## Scene 3 — the audit trail (0:35–0:45)
+ON-SCREEN: Click **View activity log** on the result card. The log
+shows the evaluation entry: sender, subject, rule name, MATCH and
+the reason.
 VOICEOVER:
-You can also kick off a scan from the 3-dot menu on any card.
-A confirmation card appears with a Run scan now button — that is
-the spinner you will watch while Gemini works.
+Every evaluation is logged — what was read, which rules ran, and
+why they matched. All stored privately in your own Google account.
 
 ## End card (0:45–0:50)
 ON-SCREEN: Logo + Marketplace URL
 VOICEOVER:
-Instant scans, anytime. Get "e-mail Sentinel" — link below.
+On-demand AI email triage. Get "e-mail Sentinel" — link below.
 
 ---
 
 ## Production notes
 
-- The pre-scan card from the kebab menu is a recent addition. Make
-  sure you are recording on a deployed version that has it.
-- Sequence one real test email arriving just before recording so
-  the scan returns "1 match" instead of "0 matches" — a green
-  result card with content sells the feature better.
+- Sequence one SENTINEL_TEST email into the inbox just before
+  recording so the evaluation returns "✅ Match — alerts sent" —
+  a green result card with content sells the feature better than
+  "➖ No match".
+- Scene 1's list-view beat matters: it is the visual proof of the
+  privacy claim. Hold it ~2 seconds before opening the email.
+- Evaluation takes a few seconds per enabled rule — keep only one
+  or two rules enabled so the spinner beat stays short on camera.
 
 ---
 
 ## Recording checklist (Guidde)
 
 Before you start: Gmail open, demo account, Screenshot mode ON, one
-SENTINEL_TEST email already sitting in INBOX, "e-mail Sentinel" side
-panel open on the home card.
+SENTINEL_TEST email already sitting unread in INBOX, one enabled rule
+that matches it, "e-mail Sentinel" side panel open on the home card.
 
 1. Hit **Start capture** in the Guidde extension.
-2. Click the "e-mail Sentinel" side-panel icon (if not already open).
-3. Click the **3-dot menu** (kebab) at the top of the card.
-4. Click **Settings**.
-5. Scroll to the *Scan email every* dropdown — hover it for ~1 second.
-6. Click the **3-dot menu** again.
-7. Click **Home**.
-8. Click **Scan email now** on the home card.
-9. Wait for the spinner → result card to appear (~10–30 s).
-10. Click the **3-dot menu**.
-11. Click **Activity Log**.
-12. Click the **3-dot menu**.
-13. Click **Scan email now** (this lands on the pre-scan card).
-14. Click **Run scan now**.
-15. Wait for the result card.
-16. Hit **Stop capture** in Guidde.
+2. From the inbox LIST view, click the "e-mail Sentinel" side-panel
+   icon — hover the home card ~2 seconds (no evaluate button here).
+3. Open the **SENTINEL_TEST** email in Gmail.
+4. The side panel switches to the contextual card — hover the
+   **Evaluate this email** button ~1 second.
+5. Click **Evaluate this email**.
+6. Wait for the spinner → **Evaluation result** card (~5–20 s).
+7. Hover the green "✅ 1 of 1 rule matched." banner ~1 second.
+8. Click **View activity log**.
+9. Hover the MATCH entry ~2 seconds.
+10. Hit **Stop capture** in Guidde.
 
 After capture: in Guidde's editor, replace the auto-generated voiceover
 on each step with the matching VOICEOVER lines from the scene script

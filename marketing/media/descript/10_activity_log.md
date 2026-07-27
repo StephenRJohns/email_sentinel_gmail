@@ -1,12 +1,10 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. Scheduled scans, label scanning, and the Reset baseline button no longer exist; log entries now come from on-demand Evaluate this email runs.
-
 # Activity log & troubleshooting
-**Duration:** 120 s
+**Duration:** 110 s
 **Tool:** Descript (heavier on narration than clicks)
 
 The "the alert did not fire" video. Pre-empt the support questions
 that turn into 1-star reviews. Cover: how to read the log, common
-reasons rules do not fire, and the Reset baseline lever.
+reasons rules do not fire, and how to re-run an evaluation.
 
 ---
 
@@ -22,22 +20,21 @@ the first place to look.
 ON-SCREEN: 3-dots menu → Activity Log. Scroll through ~20
 entries.
 VOICEOVER:
-Open Activity Log from the kebab menu. Every check writes entries.
-You see when it ran. Which labels it scanned. How many new emails
-it found. What each rule decided about each email. And any alert
-dispatch errors.
+Open Activity Log from the kebab menu. Every evaluation writes
+entries. You see which email you evaluated. What each rule decided
+about it, and why. And any alert dispatch errors.
 
 ## Scene 2 — reading a match (0:25–0:50)
 ON-SCREEN: Highlight a multi-line block: timestamp →
-"Checking label INBOX (3 new)" → "From: ... | Subject: ..." →
-"Evaluating against rule 'Critical security alerts' ..." →
+"Evaluating open email — From: ... | Subject: ..." →
+"Evaluating against rule 'Security & account alerts' ..." →
 "MATCH! Email mentions a security incident from a known service"
-→ "Calendar event created."
+→ the Calendar dispatch line.
 VOICEOVER:
-Each new email shows the From address and Subject. Then a line per
-rule it was evaluated against. A green MATCH means Gemini said yes.
-The match line shows the reason. The lines after tell you which
-channels fired.
+Each evaluation shows the From address and Subject of the email
+you opened. Then a line per enabled rule. A green MATCH means
+Gemini said yes — the match line shows the reason, and the lines
+after tell you which channels fired.
 
 ## Scene 3 — reading a no-match (0:50–1:10)
 ON-SCREEN: Highlight a block ending with "No match. The email is
@@ -48,26 +45,18 @@ fit the rule. If you see No match for emails you think should
 match, the rule text needs sharpening. Read the reason. Then
 adjust.
 
-## Scene 4 — failures and the retry (1:10–1:30)
+## Scene 4 — failures and re-running (1:10–1:35)
 ON-SCREEN: Highlight a red line — "MCP 'Asana' HTTP 401:
-Unauthorized" — followed by "Evaluation failed — will retry next
-run."
+Unauthorized". Then cut to an open email with the **Evaluate this
+email** button.
 VOICEOVER:
 Red lines are failures. Alert dispatch errors include the exact
-response from the channel. Evaluation failures from Gemini quota
-or transient network issues automatically retry on the next run.
-You do not lose alerts to a temporary glitch.
+response from the channel — no silent failures, and a broken
+channel does not stop the others from firing. If an evaluation
+fails from a Gemini quota blip, nothing is lost: open the email
+and click Evaluate again. You decide when anything gets re-checked.
 
-## Scene 5 — Reset baseline (1:30–1:55)
-ON-SCREEN: Settings card → Reset baseline button → confirmation.
-VOICEOVER:
-If you have changed rules and want to re-evaluate emails the
-add-on already saw, hit Reset baseline in Settings. Be careful.
-The next run will treat every recent message as brand new. It may
-fire a flurry of alerts. Use Reset baseline for testing rule
-changes, not in production.
-
-## End card (1:55–2:00)
+## End card (1:35–1:45)
 ON-SCREEN: Logo + Marketplace URL
 VOICEOVER:
 Full audit trail, no black box. Get "e-mail Sentinel" — link below.
@@ -78,13 +67,12 @@ Full audit trail, no black box. Get "e-mail Sentinel" — link below.
 
 - Salt the Activity log with three different scenarios before
   recording: a match, a no-match, and a failure. The simplest
-  way is (1) trigger a successful match, (2) write a rule that
-  should not match an existing email and run a scan, (3)
-  temporarily set an MCP server endpoint to a 401-returning URL
-  for a fake failure.
-- For Scene 5, demonstrate but Do not actually hit Reset
-  baseline on a live deployment — record the click-and-confirm
-  on a fresh demo account, then Cancel.
+  way is (1) evaluate an email that matches a rule, (2) evaluate
+  an email that should not match, and (3) temporarily set an MCP
+  server endpoint to a 401-returning URL and evaluate a matching
+  email for a fake dispatch failure.
+- Scene 4's closing beat cuts to an open email with the Evaluate
+  button — have one ready in the inbox so the cut is one click.
 - The activity log in screenshot mode shows the demo From line
   ("Tester <test@example.com>") instead of real senders —
   do not forget to enable screenshot mode before recording.
@@ -99,29 +87,24 @@ flow with Guidde and overdub.
 Before you start: Gmail open, demo account, Screenshot mode ON, the
 Activity log **pre-salted** with all three scenarios — at least one
 green MATCH, one No-match, and one red MCP failure (see Production
-notes above for how to salt it). A fresh second demo account is
-helpful for Scene 5 so you can demo Reset baseline without harming
-real state.
+notes above for how to salt it). One evaluable email open-able in
+the inbox for the Scene 4 closing beat.
 
 1. Hit **Start capture** in the Guidde extension.
 2. Click the **3-dot menu** on the home card.
 3. Click **Activity Log**.
 4. Scroll slowly down through ~20 entries.
-5. Hover a multi-line MATCH block (timestamp → "Checking label
-    INBOX (3 new)" → "From: ... | Subject: ..." → "Evaluating against
-    rule '...'" → green "MATCH! ..." → "Calendar event created.")
-    for ~3 s.
+5. Hover a multi-line MATCH block (timestamp → "Evaluating open
+    email — From: ... | Subject: ..." → "Evaluating against rule
+    '...'" → green "MATCH! ..." → the dispatch line) for ~3 s.
 6. Scroll to a No-match block; hover the "No match. The email is
     about ..." line for ~3 s.
 7. Scroll to a red MCP failure block; hover the
-    `MCP "Asana" HTTP 401: Unauthorized` line, then the
-    "Evaluation failed — will retry next run." line for ~3 s.
-8. Click the **3-dot menu** → **Settings**.
-9. Scroll to the **Reset baseline** button.
-10. Click **Reset baseline**.
-11. On the confirmation dialog, click **Cancel** (do **not** confirm
-    on a live deployment).
-12. Hit **Stop capture** in Guidde.
+    `MCP "Asana" HTTP 401: Unauthorized` line for ~3 s.
+8. In Gmail, open the prepared email — the side panel switches to
+    the contextual card; hover **Evaluate this email** ~2 s (no
+    need to click).
+9. Hit **Stop capture** in Guidde.
 
 After capture: replace the auto-generated voiceover with the
 storyboard VOICEOVER lines. The hover/dwell shots in steps 5–7 are

@@ -84,7 +84,7 @@ Before you start recording any of these:
 |---|---|---|---|
 | 01 | [Quickstart — install to first alert](01_quickstart.md) | 180 s | Descript |
 | 02 | [Create a rule](02_create_rule.md) | 90 s | Guidde |
-| 03 | [Scan email now](03_manual_scan.md) — **OUTDATED, re-record as "Evaluate this email"** | 60 s | Guidde |
+| 03 | [Evaluate an email on demand](03_manual_scan.md) | 60 s | Guidde |
 | 04 | [SMS alerts setup](04_sms_setup.md) | 180 s | Guidde |
 | 05 | [Google Chat alerts setup](05_chat_setup.md) | 90 s | Guidde |
 | 06 | [Calendar / Sheets / Tasks alerts](06_calendar_sheets_tasks.md) | 120 s | Descript |

@@ -1,5 +1,3 @@
-> **OUTDATED (2026-07-26):** flow changed to contextual-only "Evaluate this email" — re-record. The Gmail label dropdown in the rule editor no longer exists (rules have no labels field).
-
 # AI-assisted rule writing
 **Duration:** 90 s
 **Tool:** Descript (more talking, fewer clicks; voiceover-heavy)
@@ -19,7 +17,7 @@ Describe what you want in a sentence. Gemini writes the rule.
 ## Scene 1 — where it lives (0:08–0:18)
 ON-SCREEN: Rule editor → "Help me write the rule text" button.
 VOICEOVER:
-AI rule writing is built in and free for everyone. You can always
+AI rule writing is built into the rule editor. You can always
 write the rule text yourself — but if you would rather describe it,
 this helper does the drafting.
 
@@ -63,6 +61,12 @@ Sentinel". Link below.
 
 ## Production notes
 
+- **The "Help me write the rule text" button only renders on the Pro
+  tier** — run `setTierPro` from the Apps Script editor (or redeem a
+  promo code) before recording, otherwise the editor shows an
+  Upgrade-to-Pro prompt in its place. (Note: this gate contradicts
+  the "fully featured Lite" README claim — resolve that product
+  question before publishing this video.)
 - For Scene 3, the exact suggestion you get from Gemini varies
   per run. If you get an awkward one during recording, regenerate
   — the user does this anyway in real life.
@@ -77,25 +81,24 @@ Marked Descript because of the heavier narration, but Guidde works
 fine for capturing the click sequence — just overdub.
 
 Before you start: Gmail open, demo account, Screenshot mode ON, a
-Gemini key already saved in Settings, side panel open on the home
-card, at least one Gmail label ready to pick (e.g. `INBOX`).
+Gemini key already saved in Settings, tier set to Pro (`setTierPro`)
+so the helper button renders, side panel open on the home card.
 
 1. Hit **Start capture** in the Guidde extension.
 2. Click **Rules** on the home card.
 3. Click **+ New rule**.
 4. Click the **Name** field, type `Angry customer`.
-5. Click the **Gmail label** dropdown, pick `INBOX`.
-6. Click **Help me write the rule text**.
-7. Click the suggestion-prompt field, type:
+5. Click **Help me write the rule text**.
+6. Click the suggestion-prompt field, type:
     `Alert me when a customer sounds angry or threatens to cancel`.
-8. Click **Generate**.
-9. Wait for the rule text to populate.
-10. (If the suggestion is awkward, click **Generate** again; that is
+7. Click **Generate**.
+8. Wait for the rule text to populate.
+9. (If the suggestion is awkward, click **Generate** again; that is
     realistic.)
-11. Click into the rule text field; edit `a customer` to
+10. Click into the rule text field; edit `a customer` to
     `a customer of our paid plan`.
-12. Click **Save**.
-13. Hit **Stop capture** in Guidde.
+11. Click **Save**.
+12. Hit **Stop capture** in Guidde.
 
 After capture: blur any visible Gemini key. Replace the auto-
 generated voiceover with the storyboard VOICEOVER lines.

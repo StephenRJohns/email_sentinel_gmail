@@ -1,21 +1,14 @@
-********************************************************************************
-* OUTDATED (2026-07-26): the add-on is now CONTEXTUAL-ONLY. gmail.readonly     *
-* was replaced by gmail.addons.current.message.readonly (no CASA required).    *
-* The demo flow must show: open an email -> open the add-on panel -> click     *
-* "Evaluate this email" -> result card. There are no scheduled scans, no       *
-* "Scan email now", no labels, no baseline. Rewrite this script before         *
-* recording. See docs/oauth_verification/submission_answers.md for the         *
-* current scope list and justifications.                                       *
-********************************************************************************
-
 emAIl Sentinel — OAuth Verification Video Requirements
 ======================================================
 
 PURPOSE
 -------
-Demonstrate to Google's trust & safety team that gmail.readonly is used solely to
-read the user's own Gmail messages for rule evaluation, and that no data is stored
-externally or shared beyond the alert channels the user explicitly configures.
+Demonstrate to Google's trust & safety team that the add-on's only Gmail scope —
+gmail.addons.current.message.readonly — is used solely to read the ONE message the
+user currently has open, only when the user explicitly clicks "Evaluate this email",
+and that no data is stored externally or shared beyond Google's Gemini API and the
+alert channels the user explicitly configures. There is no background access of any
+kind, and no restricted scope is requested.
 
 
 RECORDING REQUIREMENTS
@@ -54,8 +47,11 @@ The video must cover these key demonstrations, in order:
 1. INSTALL + OAUTH CONSENT
    - Show the Google OAuth consent screen for emAIl Sentinel
    - Pause on the consent screen long enough for reviewers to read it (~2-3 seconds)
-   - Consent screen must show: app name "emAIl Sentinel", and all requested scopes
-     (gmail.readonly, Calendar, Sheets, Tasks, Docs, external requests)
+   - Consent screen must show: app name "emAIl Sentinel", and all requested scopes.
+     The Gmail entry is the current-message scope (worded by Google roughly as
+     "View your email messages when the add-on is running" — the scope ID
+     gmail.addons.current.message.readonly is authoritative), plus Calendar,
+     Sheets, Tasks, Docs, and external requests. There is NO whole-mailbox scope.
    - Complete the install by clicking Allow
 
 2. SETTINGS — API KEY STORAGE
@@ -73,32 +69,40 @@ The video must cover these key demonstrations, in order:
    - Demonstrates that the only external network call is to Google's own Gemini API
 
 5. CREATE A RULE
-   - Create a rule (Name: "Video demo rule", Label: INBOX,
+   - Create a rule (Name: "Video demo rule",
      Rule text: "Any email with SENTINEL_TEST in the subject line")
    - Leave alert channels unchecked
    - Save the rule; show it in the list with ON status
 
-6. BASELINE RUN
-   - Click "Scan email now" from the home card
-   - Show the result toast (e.g. "0 new email(s), 0 match(es)")
-   - Open Activity log and show the baseline run entry
+6. SHOW THE INBOX LIST VIEW — NO ACCESS WITHOUT AN OPEN MESSAGE
+   - From the inbox list view (no message open), open the add-on panel
+   - Show that only the home card renders — there is no way to read or evaluate
+     any message from here
+   - Demonstrates: the add-on has no whole-mailbox capability; it cannot act on
+     mail the user hasn't opened
 
-7. SEND TEST EMAIL + TRIGGER MATCH
-   - Compose and send an email to your own address with subject: SENTINEL_TEST — video demo
-   - Confirm the email arrives in the inbox
-   - Click "Scan email now"
-   - Show the toast: "Check complete: 1 new email(s), 1 match(es)"
+7. SEND TEST EMAIL + EVALUATE THE OPEN MESSAGE
+   - Compose and send an email to your own address with subject:
+     SENTINEL_TEST — video demo
+   - Open that email in Gmail
+   - The add-on panel shows the contextual card with the "Evaluate this email"
+     button — pause briefly: Gmail access happens ONLY when this button is clicked
+   - Click "Evaluate this email"
+   - Show the "Evaluation result" card: green "✅ 1 of 1 rule matched." banner and
+     the per-rule "✅ Match — alerts sent" row with Gemini's reason
 
 8. ACTIVITY LOG — KEY FRAME
    - Open Activity log
-   - Show the match entry: label, sender, subject, evaluation step, MATCH result
+   - Show the evaluation entry: sender, subject, "Evaluating against rule ...",
+     MATCH result
    - Pause here for 3-4 seconds — this is the primary evidence frame for reviewers
-   - Demonstrates: what gmail.readonly data is accessed, that it goes only to Gemini,
-     and that results are logged privately in the user's own Google account
+   - Demonstrates: what current-message data is accessed (sender, subject, body
+     excerpt), that it goes only to Gemini, and that results are logged privately
+     in the user's own Google account
 
 9. HELP / PRIVACY (optional)
-   - Navigate to Help → Privacy section
-   - Briefly show the privacy statement
+   - Navigate to Help → Settings & troubleshooting → privacy statement
+   - Briefly show the privacy posture text ("reads only the email you have open...")
 
 
 DO NOT SHOW
@@ -111,7 +115,10 @@ DO NOT SHOW
 KEY FRAMES FOR REVIEWERS
 -------------------------
 These moments must be clearly visible and unhurried:
-- OAuth consent screen (step 1)
+- OAuth consent screen (step 1) — no whole-mailbox scope listed
 - Masked API key display (step 2)
 - "Gemini OK" toast (step 4)
-- Activity log match entry (step 8)
+- The inbox list view showing no evaluate capability without an open message (step 6)
+- The "Evaluate this email" button on an open message (step 7) — the explicit
+  user action that gates all Gmail access
+- Activity log evaluation entry (step 8)
